@@ -13,7 +13,7 @@
     </header>
 
     <!-- Content below header, full height minus header height -->
-    <div class="flex items-center justify-center px-4 min-h-screen pt-24">
+    <div class="flex items-center justify-center px-4 min-h-screen pt-12">
         <div class="w-full max-w-md md:max-w-lg rounded-xl bg-white shadow-lg ring-1 ring-gray-300 p-10">
             
             <div class="flex flex-col items-center mb-8">
@@ -23,7 +23,7 @@
                 </h2>
             </div>
 
-            <form method="POST" action="/login" class="space-y-8">
+            <form method="POST" action="/login" class="space-y-4">
                 @csrf
 
                 <div>
@@ -36,7 +36,14 @@
                     <x-error name="password" />
                 </div>
 
-                <x-submit-button type="submit" class="mt-4">Login</x-submit-button>
+                <x-submit-button type="submit" class="mt-4 w-full">Login</x-submit-button>
+
+                <!-- Back link below the login button with underline on hover -->
+                <div class="mt-4 text-center">
+                    <a href="/" class="text-sm text-gray-600 hover:text-gray-800 hover:underline flex items-center justify-center gap-1">
+                        Back
+                    </a>
+                </div>
             </form>
         </div>
     </div>
