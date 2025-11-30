@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
             'middle_name' => 'Corpuz',
             'last_name' => 'Doe',
             'username' => 'JDoe',
-            'user_type' => '2',
+            'user_type' => '0',
         ]);
     }
 }

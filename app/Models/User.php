@@ -46,9 +46,9 @@ class User extends Authenticatable
     public function dashboardRoute(): string
     {
         return match ((int) $this->user_type) {
-            1 => 'admin.home',
-            2 => 'superadmin.home',
-            default => 'user.home', // includes 0 and null
+            1 => 'admin.dashboard',
+            2 => 'superadmin.dashboard',
+            default => 'user.dashboard', // includes 0 and null
         };
     }
 }

@@ -1,14 +1,13 @@
 @props(['color' => 'orange'])
 
 @php
-    // Color presets
-    $colors = [
-        'white' => ['bg' => '#FFF7F1', 'hover' => '#FFD7B5', 'text' => 'text-gray-800'],
-        'orange' => ['bg' => '#EC8B18', 'hover' => '#F5A647', 'text' => 'text-white'],
-        'gray' => ['bg' => '#EEE9E1', 'hover' => '#D9D4CA', 'text' => 'text-gray-800'],
+    $presets = [
+        'white' => 'text-gray-800 bg-[#FFF7F1] border-2 border-[#EC8B18] hover:bg-gray-200 hover:border-[#EC8B18] hover:shadow-md hover:scale-[1.02] active:scale-[0.98] focus:ring-[#FFF7F1]',
+        'orange' => 'text-white bg-[#EC8B18] border border-[#EC8B18] hover:bg-[#F5A647] hover:border-[#F5A647] hover:shadow-md hover:scale-[1.02] active:scale-[0.98] focus:ring-[#EC8B18]',
+        'gray' => 'text-gray-800 bg-[#EEE9E1] border border-gray-300 hover:bg-gray-200 hover:border-gray-400 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] focus:ring-[#EEE9E1]',
     ];
 
-    $preset = $colors[$color] ?? $colors['orange'];
+    $preset = $presets[$color] ?? $presets['orange'];
 @endphp
 
 <div>
@@ -16,16 +15,16 @@
         {{ $attributes->merge([
             'class' => "
                 w-full
-                rounded-md
+                rounded-full
                 px-3 py-2
                 text-sm font-semibold
-                {$preset['text']}
-                bg-[{$preset['bg']}]
-                hover:bg-[{$preset['hover']}]
+                {$preset}
                 focus:ring-2
-                focus:ring-[{$preset['bg']}]
+                transition-all
+                duration-200
+                cursor-pointer
             "
-        ]) }}
+        ])->merge(['disabled' => false]) }}
     >
         {{ $slot }}
     </button>

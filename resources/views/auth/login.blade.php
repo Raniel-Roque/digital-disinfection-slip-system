@@ -16,14 +16,14 @@
     <div class="flex items-center justify-center px-4 min-h-screen pt-12">
         <div class="w-full max-w-md md:max-w-lg rounded-xl bg-white shadow-lg ring-1 ring-gray-300 p-10">
             
-            <div class="flex flex-col items-center mb-8">
+            <div class="flex flex-col items-center mb-6">
                 <img src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600" class="h-10">
                 <h2 class="mt-6 text-2xl font-semibold text-gray-900 text-center">
                     Log in to your account
                 </h2>
             </div>
 
-            <form method="POST" action="/login" class="space-y-4">
+            <form method="POST" action="/login" class="space-y-6">
                 @csrf
 
                 <div>
@@ -36,13 +36,15 @@
                     <x-error name="password" />
                 </div>
 
-                <x-submit-button type="submit" class="mt-4 w-full">Login</x-submit-button>
+                <div>
+                    <x-submit-button type="submit" class="mt-2 w-full">Login</x-submit-button>
 
-                <!-- Back link below the login button with underline on hover -->
-                <div class="mt-4 text-center">
-                    <a href="/" class="text-sm text-gray-600 hover:text-gray-800 hover:underline flex items-center justify-center gap-1">
-                        Back
-                    </a>
+                    <!-- Back link below the login button with underline on hover -->
+                    <div class="mt-4 text-center">
+                        <a href="/" class="inline-flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:underline">
+                            Back
+                        </a>
+                    </div>
                 </div>
             </form>
         </div>

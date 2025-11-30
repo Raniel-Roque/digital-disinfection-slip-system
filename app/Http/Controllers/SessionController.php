@@ -31,12 +31,21 @@ class SessionController extends Controller
                 'password'=> '',
             ]);
         }
-
+        
         request()->session()->regenerate();
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
         return redirect()->route($user->dashboardRoute());
+    }
+
+    public function destroy()
+    {
+        Auth::logout();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
+
+        return redirect('/');
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SessionController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -10,21 +11,19 @@ Route::get("/login", [SessionController::class,'create'])->name('login');
 Route::post('/login', [SessionController::class,'store'])->name('login.store');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/home', function () {
-        $user = Auth::user();
+    Route::get('/dashboard', [DashboardController::class, 'redirect'])->name('dashboard');
 
-        return redirect()->route($user->dashboardRoute());
-    })->name('home');
-
-    Route::view('/user/home', 'user.home')
+    Route::get('/user/dashboard', [DashboardController::class, 'user'])
         ->middleware('user.type:0')
-        ->name('user.home');
+        ->name('user.dashboard');
 
-    Route::view('/admin/home', 'admin.home')
+    Route::get('/admin/dashboard', [DashboardController::class, 'admin'])
         ->middleware('user.type:1')
-        ->name('admin.home');
+        ->name('admin.dashboard');
 
-    Route::view('/superadmin/home', 'superadmin.home')
+    Route::get('/superadmin/dashboard', [DashboardController::class, 'superadmin'])
         ->middleware('user.type:2')
-        ->name('superadmin.home');
+        ->name('superadmin.dashboard');
+
+    Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
 });
