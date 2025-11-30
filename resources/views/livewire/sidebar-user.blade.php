@@ -34,6 +34,7 @@
             href="{{ route('user.incoming-trucks') }}" 
             :active="$currentRoute === 'user.incoming-trucks'"
             icon='<img src="https://cdn-icons-png.flaticon.com/512/8591/8591505.png" alt="Incoming" class="w-5 h-5 object-contain" />'
+            :indent="true"
         >
             Incoming Trucks
         </x-sidebar-menu-item>
@@ -42,6 +43,7 @@
             href="{{ route('user.outgoing-trucks') }}" 
             :active="$currentRoute === 'user.outgoing-trucks'"
             icon='<img src="https://cdn-icons-png.flaticon.com/512/7468/7468319.png" alt="Outgoing" class="w-5 h-5 object-contain" />'
+            :indent="true"
         >
             Outgoing Trucks
         </x-sidebar-menu-item>
@@ -52,6 +54,7 @@
             icon='<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>'
+            :indent="true"
         >
             Completed Trucks
         </x-sidebar-menu-item>

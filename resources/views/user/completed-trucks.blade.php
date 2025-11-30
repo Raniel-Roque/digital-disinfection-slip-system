@@ -1,3 +1,7 @@
-<div>
-    <!-- I begin to speak only when I am certain what I will say is not better left unsaid. - Cato the Younger -->
-</div>
+<x-layout>
+    <x-navbar module="Completed Trucks">
+        <x-slot:sidebar>
+            @livewire('sidebar-user', ['currentRoute' => request()->route()->getName()])
+        </x-slot:sidebar>
+    </x-navbar>
+</x-layout>
