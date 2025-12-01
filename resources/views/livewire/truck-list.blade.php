@@ -1,3 +1,4 @@
+
 <div class="max-w-full bg-white border border-gray-200 rounded-xl shadow-sm p-4 m-4">
   
     {{-- Search + Filter --}}
@@ -22,15 +23,18 @@
         </div>
     
         {{-- Filter Button --}}
-        <x-submit-button color="orange" class="w-auto px-4 flex items-center gap-2 whitespace-nowrap">
+        <button 
+            wire:click="$toggle('showFilters')"
+            class="w-auto px-4 py-2 flex items-center gap-2 whitespace-nowrap bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition">
             <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M6 12h12m-7 8h2" />
             </svg>
             Filter
-        </x-submit-button>
-    
+        </button>
     </div>
   
+    {{-- Filter Modal --}}
+    <x-filter-modal />
   
     {{-- Table --}}
     <div wire:poll class="overflow-x-auto">
@@ -49,9 +53,7 @@
                 </tr>
             </thead>
             
-
             <tbody class="divide-y divide-gray-200">
-
                 @forelse ($slips as $slip)
                     <tr class="hover:bg-gray-100 transition">
             
@@ -62,7 +64,6 @@
             
                         {{-- Status --}}
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 text-center w-[40%]">
-
                             @php
                                 $status = $slip->status;
                         
@@ -74,19 +75,10 @@
                             @endphp
                         
                             <span class="flex items-center justify-center gap-2">
-                        
-                                {{-- Colored Circle --}}
                                 <span class="w-3 h-3 rounded-full {{ $statusMap[$status]['color'] }}"></span>
-                        
-                                {{-- Text --}}
-                                <span class="font-medium">
-                                    {{ $statusMap[$status]['label'] }}
-                                </span>
-                        
+                                <span class="font-medium">{{ $statusMap[$status]['label'] }}</span>
                             </span>
-                        
                         </td>
-                        
             
                         {{-- Action --}}
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center w-[20%]">
@@ -105,19 +97,13 @@
                         </td>
                     </tr>
                 @endforelse
-            
             </tbody>
-            
         </table>
     </div>
 
-  
     {{-- Pagination --}}
     <div class="pt-4">
-
         <div class="flex items-center justify-between">
-
-            {{-- Left: Showing X–Y of Z --}}
             <div class="text-sm text-gray-600">
                 Showing 
                 {{ $slips->firstItem() }}–{{ $slips->lastItem() }} 
@@ -125,17 +111,13 @@
                 {{ $slips->total() }}
             </div>
 
-            {{-- Right: Pagination Buttons --}}
             <nav class="flex items-center space-x-1" aria-label="Pagination">
-
-                {{-- Previous --}}
                 @if ($slips->onFirstPage())
                     <button class="p-2.5 min-w-10 inline-flex justify-center items-center rounded-full text-gray-400 bg-gray-50 cursor-not-allowed">«</button>
                 @else
                     <button wire:click="previousPage" class="p-2.5 min-w-10 inline-flex justify-center items-center rounded-full text-gray-700 hover:bg-gray-100">«</button>
                 @endif
 
-                {{-- Page Numbers (max 3) --}}
                 @php
                     $current = $slips->currentPage();
                     $last    = $slips->lastPage();
@@ -168,13 +150,11 @@
                     @endif
                 @endfor
 
-                {{-- Next --}}
                 @if ($slips->hasMorePages())
                     <button wire:click="nextPage" class="p-2.5 min-w-10 inline-flex justify-center items-center rounded-full text-gray-700 hover:bg-gray-100">»</button>
                 @else
                     <button class="p-2.5 min-w-10 inline-flex justify-center items-center rounded-full text-gray-400 bg-gray-50 cursor-not-allowed">»</button>
                 @endif
-
             </nav>
         </div>
     </div>
