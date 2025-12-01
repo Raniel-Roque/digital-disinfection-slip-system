@@ -23,6 +23,7 @@ class LocationCards extends Component
         if ($locations->isNotEmpty()) {
             $ongoingCounts = DisinfectionSlip::where('status', 0)
                 ->whereIn('destination_id', $locations->pluck('id'))
+                ->whereDate('created_at', today())
                 ->selectRaw('destination_id, COUNT(*) as count')
                 ->groupBy('destination_id')
                 ->pluck('count', 'destination_id');
