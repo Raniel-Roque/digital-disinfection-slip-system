@@ -18,9 +18,10 @@
                 <livewire:truck-count-card type="outgoing" />
 
                 <!-- Create Disinfection Slip -->
-                <a href="#" 
+                <a href="#"
                     class="flex-1 flex items-center space-x-4 border border-orange-300 rounded-lg p-6 shadow-sm hover:shadow-md transition text-gray-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-green-600" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                     <span class="font-semibold text-lg">Create Disinfection Slip</span>
