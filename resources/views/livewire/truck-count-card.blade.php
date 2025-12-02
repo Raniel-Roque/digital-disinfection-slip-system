@@ -3,14 +3,15 @@
    wire:poll="updateCount">
 
     <div class="flex items-center space-x-3 min-w-[150px] text-gray-700 shrink-0">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 17v-2a4 4 0 014-4h3" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M3 13l3 3 4-4" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 7v5" />
-        </svg>
+        @if($type === 'incoming')
+            <img src="https://cdn-icons-png.flaticon.com/512/8591/8591505.png" 
+                 alt="Incoming" 
+                 class="h-7 w-7 object-contain" />
+        @else
+            <img src="https://cdn-icons-png.flaticon.com/512/7468/7468319.png" 
+                 alt="Outgoing" 
+                 class="h-7 w-7 object-contain" />
+        @endif
 
         <span class="text-black font-semibold text-lg whitespace-nowrap">
             {{ $type === 'incoming' ? 'Incoming Trucks Today' : 'Outgoing Trucks Today' }}

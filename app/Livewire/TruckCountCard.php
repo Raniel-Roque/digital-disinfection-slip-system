@@ -27,13 +27,14 @@ class TruckCountCard extends Component
         }
 
         $query = DisinfectionSlip::query()
-            ->where('status', 0)
             ->whereDate('created_at', today());
 
         if ($this->type === 'incoming') {
-            $query->where('destination_id', $locationId);
+            $query->where('destination_id', $locationId)
+            ->where('status', 0);
         } else { // outgoing
-            $query->where('location_id', $locationId);
+            $query->where('destination_id', $locationId)
+            ->where('status', [0,1]);
         }
 
         $this->count = $query->count();

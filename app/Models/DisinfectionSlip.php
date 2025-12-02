@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class DisinfectionSlip extends Model
 {
     use HasFactory;
+    
     protected $fillable = [
         'slip_id',
         'truck_id',
@@ -21,6 +22,31 @@ class DisinfectionSlip extends Model
         'received_guard_id',
         'status',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->slip_id)) {
+                $year = date('y');
+                $prefix = $year . '-';
+
+                $lastSlip = self::where('slip_id', 'LIKE', $prefix . '%')
+                    ->orderBy('slip_id', 'desc')
+                    ->lockForUpdate()
+                    ->first();
+
+                $nextNumber = 1;
+                if ($lastSlip) {
+                    $lastNumber = (int) substr($lastSlip->slip_id, 3);
+                    $nextNumber = $lastNumber + 1;
+                }
+
+                $model->slip_id = sprintf("%s-%05d", $year, $nextNumber);
+            }
+        });
+    }
 
     public function truck()
     {

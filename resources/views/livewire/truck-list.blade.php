@@ -106,9 +106,9 @@
         <div class="flex items-center justify-between">
             <div class="text-sm text-gray-600">
                 Showing 
-                {{ $slips->firstItem() }}–{{ $slips->lastItem() }} 
+                {{ $slips->firstItem() }} – {{ $slips->lastItem() }}
                 of 
-                {{ $slips->total() }}
+                {{ $slips->total() }} entries
             </div>
 
             <nav class="flex items-center space-x-1" aria-label="Pagination">

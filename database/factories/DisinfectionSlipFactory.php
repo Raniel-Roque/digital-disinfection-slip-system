@@ -17,25 +17,7 @@ class DisinfectionSlipFactory extends Factory
 
     public function definition()
     {
-        $year = date('y'); // current 2-digit year
-
-        // Find last slip of this year
-        $lastSlip = DB::table('disinfection_slips')
-            ->whereYear('created_at', '=', date('Y'))
-            ->orderBy('id', 'desc')
-            ->first();
-
-        // Determine next number
-        $nextNumber = 1;
-        if ($lastSlip && isset($lastSlip->slip_id)) {
-            $lastNumber = (int)substr($lastSlip->slip_id, 3); // after "YY-"
-            $nextNumber = $lastNumber + 1;
-        }
-
-        $slipId = sprintf("%s-%05d", $year, $nextNumber);
-
         return [
-            'slip_id' => $slipId,
             'truck_id' => Truck::factory(),
             'location_id' => Location::factory(),
             'destination_id' => Location::factory(),

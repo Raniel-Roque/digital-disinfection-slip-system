@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('disinfection_slips', function (Blueprint $table) {
             $table->id();
-            $table->string('slip_id');
+            $table->string('slip_id')->unique();
 
             // Foreign relations
             $table->foreignId('truck_id')->constrained('trucks')->cascadeOnUpdate();
@@ -29,6 +29,7 @@ return new class extends Migration {
 
             // Status
             $table->tinyInteger('status')->default(0);
+            $table->timestamp('completed_at')->nullable();
             // 0: ongoing, 1: disinfected, 2: completed
 
             $table->timestamps();
