@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\Sidebar;
 
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
@@ -53,7 +53,7 @@ class ChangePassword extends Component
 
     public function render()
     {
-        return view('livewire.change-password');
+        return view('livewire.sidebar.change-password');
     }
 }
 

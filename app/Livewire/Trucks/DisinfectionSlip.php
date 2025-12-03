@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\Trucks;
 
 use Livewire\Component;
 use App\Models\DisinfectionSlip as DisinfectionSlipModel;
@@ -193,6 +193,6 @@ class DisinfectionSlip extends Component
 
     public function render()
     {
-        return view('livewire.disinfection-slip');
+        return view('livewire.trucks.disinfection-slip');
     }
 }

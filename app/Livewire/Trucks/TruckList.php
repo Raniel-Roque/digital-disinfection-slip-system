@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\Trucks;
 
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -119,7 +119,7 @@ class TruckList extends Component
             ->orderBy('created_at', 'desc')
             ->paginate(5);
 
-        return view('livewire.truck-list', [
+        return view('livewire.trucks.truck-list', [
             'slips' => $slips,
             'availableStatuses' => $this->availableStatuses
         ]);

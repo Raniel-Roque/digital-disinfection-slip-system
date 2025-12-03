@@ -1,6 +1,6 @@
 @props(['show', 'file'])
 
-<x-modal-template :show="$show" title="Attachment Preview" max-width="max-w-4xl">
+<x-modals.modal-template :show="$show" title="Attachment Preview" max-width="max-w-4xl">
 
     @php
         $fileUrl = Storage::url($file);
@@ -23,9 +23,9 @@
     @endif
 
     <x-slot name="footer">
-        <x-submit-button wire:click="closeAttachmentModal" color="orange">
+        <x-buttons.submit-button wire:click="closeAttachmentModal" color="gray">
             Close
-        </x-submit-button>
+        </x-buttons.submit-button>
     </x-slot>
 
-</x-modal-template>
+</x-modals.modal-template>

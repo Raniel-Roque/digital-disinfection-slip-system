@@ -20,21 +20,21 @@
         </div>
 
         {{-- Filter Button --}}
-        <x-submit-button wire:click="$toggle('showFilters')"
+        <x-buttons.submit-button wire:click="$toggle('showFilters')"
             class="w-auto px-4 py-2 flex items-center gap-2 whitespace-nowrap bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition">
             <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M6 12h12m-7 8h2" />
             </svg>
             Filter
-        </x-submit-button>
+        </x-buttons.submit-button>
     </div>
 
     {{-- Filter Modal --}}
-    <x-filter-modal />
+    <x-modals.filter-modal />
 
     {{-- Disinfection Slip Details Modal --}}
-    <livewire:disinfection-slip />
+    <livewire:trucks.disinfection-slip />
 
     {{-- Card List --}}
     <div wire:poll class="space-y-3">
@@ -49,9 +49,9 @@
                 $status = $slip->status;
             @endphp
 
-            {{-- Card --}}
-            <div
-                class="flex justify-between items-center p-4 border-l-4 rounded-lg shadow-sm transition hover:shadow-md {{ $statusMap[$status]['color'] }}">
+            {{-- Card (Now Clickable) --}}
+            <div wire:click="$dispatch('open-disinfection-details', { id: {{ $slip->id }} })"
+                class="flex justify-between items-center p-4 border-l-4 rounded-lg shadow-sm transition hover:shadow-md cursor-pointer {{ $statusMap[$status]['color'] }}">
 
                 <div class="grid grid-cols-2 gap-y-2 text-sm">
                     <div class="font-semibold text-gray-600">Slip ID:</div>
@@ -61,15 +61,16 @@
                     <div class="text-gray-800">{{ $slip->truck->plate_number }}</div>
                 </div>
 
-
                 {{-- Right Side --}}
                 <div class="flex flex-col items-end">
-                    {{-- Action btn --}}
-                    <x-submit-button wire:click="$dispatch('open-disinfection-details', { id: {{ $slip->id }} })"
-                        class="px-4 py-2 whitespace-nowrap bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition">
-                        View
-                    </x-submit-button>
-
+                    {{-- Status Badge --}}
+                    <span
+                        class="px-3 py-1 text-xs font-semibold rounded-full
+                        {{ $status === 0 ? 'bg-red-100 text-red-700' : '' }}
+                        {{ $status === 1 ? 'bg-orange-100 text-orange-700' : '' }}
+                        {{ $status === 2 ? 'bg-green-100 text-green-700' : '' }}">
+                        {{ $statusMap[$status]['label'] }}
+                    </span>
                 </div>
             </div>
 
@@ -83,5 +84,5 @@
     </div>
 
     {{-- Pagination --}}
-    <x-nav-pagination :paginator="$slips" />
+    <x-buttons.nav-pagination :paginator="$slips" />
 </div>

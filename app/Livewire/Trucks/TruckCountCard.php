@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\Trucks;
 
 use Livewire\Component;
 use App\Models\DisinfectionSlip;
@@ -39,6 +39,6 @@ class TruckCountCard extends Component
 
     public function render()
     {
-        return view('livewire.truck-count-card');
+        return view('livewire.trucks.truck-count-card');
     }
 }

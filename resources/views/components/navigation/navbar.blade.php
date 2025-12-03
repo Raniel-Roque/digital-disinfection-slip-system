@@ -60,15 +60,15 @@
             <div class="space-y-1">
                 @switch(auth()->user()->user_type)
                     @case(0)
-                        <livewire:sidebar-user :currentRoute="Route::currentRouteName()" />
+                        <livewire:sidebar.sidebar-user :currentRoute="Route::currentRouteName()" />
                     @break
 
                     @case(1)
-                        <livewire:sidebar-admin />
+                        <livewire:sidebar.sidebar-admin />
                     @break
 
                     @case(2)
-                        <livewire:sidebar-super-admin />
+                        <livewire:sidebar.sidebar-super-admin />
                     @break
                 @endswitch
             </div>
@@ -85,10 +85,10 @@
 
                 <form method="POST" action="{{ route('logout') }}" class="w-full">
                     @csrf
-                    <x-submit-button type="submit" color="white"
+                    <x-buttons.submit-button type="submit" color="white"
                         class="hover:cursor-pointer w-full rounded-full px-3 py-2 text-sm font-semibold text-gray-800 bg-[#FFF7F1] hover:bg-gray-200 hover:shadow-md hover:scale-[1.02] focus:ring-2 focus:ring-[#FFF7F1] transition-all duration-200 cursor-pointer text-center block">
                         Logout
-                    </x-submit-button>
+                    </x-buttons.submit-button>
                 </form>
             </div>
         </div>

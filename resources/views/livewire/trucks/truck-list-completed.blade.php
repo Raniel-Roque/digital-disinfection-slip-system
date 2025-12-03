@@ -19,7 +19,7 @@
     </div>
 
     {{-- Disinfection Slip Details Modal --}}
-    <livewire:disinfection-slip />
+    <livewire:trucks.disinfection-slip />
 
     {{-- Card List --}}
     <div wire:poll class="space-y-3">
@@ -34,16 +34,16 @@
                 $status = $slip->status;
             @endphp
 
-            {{-- Card --}}
-            <div
-                class="p-4 border-l-4 rounded-lg shadow-sm transition hover:shadow-md flex justify-between items-center {{ $statusMap[$status]['color'] }}">
+            {{-- Card (Now Clickable) --}}
+            <div wire:click="$dispatch('open-disinfection-details', { id: {{ $slip->id }} })"
+                class="p-4 border-l-4 rounded-lg shadow-sm transition hover:shadow-md cursor-pointer flex justify-between items-center {{ $statusMap[$status]['color'] }}">
 
                 {{-- Left Side Info --}}
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-y-2 text-sm">
 
                     {{-- Status Badge --}}
                     <div
-                        class="col-span-2 md:col-span-4 px-3 py-1 text-xs font-semibold text-white rounded-full 
+                        class="col-span-2 md:col-span-4 px-3 py-1 text-xs font-semibold text-white rounded-full w-fit
                                 {{ $status === 0 ? 'bg-red-500' : ($status === 1 ? 'bg-orange-500' : 'bg-green-500') }}">
                         {{ $statusMap[$status]['label'] }}
                     </div>
@@ -68,12 +68,12 @@
                     </div>
                 </div>
 
-                {{-- Right Side --}}
-                <div class="flex flex-col items-end justify-between gap-2">
-                    <x-submit-button wire:click="$dispatch('open-disinfection-details', { id: {{ $slip->id }} })"
-                        class="px-3 py-1.5 text-xs whitespace-nowrap bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition">
-                        View
-                    </x-submit-button>
+                {{-- Right Side - Arrow Icon --}}
+                <div class="flex items-center">
+                    <svg class="size-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
                 </div>
             </div>
 
@@ -86,5 +86,5 @@
     </div>
 
     {{-- Pagination --}}
-    <x-nav-pagination :paginator="$slips" />
+    <x-buttons.nav-pagination :paginator="$slips" />
 </div>

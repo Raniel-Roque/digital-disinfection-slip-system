@@ -1,4 +1,4 @@
-<x-modal-template show="showFilters" title="Filter Options">
+<x-modals.modal-template show="showFilters" title="Filter Options">
 
     {{-- Date Range Filter --}}
     <div x-data="{ fromDate: @entangle('filterDateFrom') }">
@@ -33,16 +33,16 @@
 
     {{-- Footer slot --}}
     <x-slot name="footer">
-        <x-submit-button wire:click="clearFilters" color="white"
+        <x-buttons.submit-button wire:click="clearFilters" color="white"
             class="px-4 py-2 text-sm font-medium text-black bg-white border border-gray-300 
                    rounded-lg hover:bg-gray-50 transition">
             Clear Filters
-        </x-submit-button>
-        <x-submit-button wire:click="applyFilters" @click="show = false"
+        </x-buttons.submit-button>
+        <x-buttons.submit-button wire:click="applyFilters" @click="show = false"
             class="px-4 py-2 text-sm font-medium text-white bg-orange-500 
                    rounded-lg hover:bg-orange-600 transition">
             Apply
-        </x-submit-button>
+        </x-buttons.submit-button>
     </x-slot>
 
-</x-modal-template>
+</x-modals.modal-template>

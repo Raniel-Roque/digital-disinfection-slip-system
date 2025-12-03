@@ -60,7 +60,7 @@
                 </div>
 
                 <div>
-                    <x-submit-button type="submit" class="mt-2 w-full">Login</x-submit-button>
+                    <x-buttons.submit-button type="submit" class="mt-2 w-full">Login</x-buttons.submit-button>
 
                     <!-- Back link below the login button with underline on hover -->
                     <div class="mt-4 text-center">

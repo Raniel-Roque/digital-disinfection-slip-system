@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\Trucks;
 
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -46,7 +46,7 @@ class TruckListCompleted extends Component
             ->orderBy('completed_at', 'desc')
             ->paginate(10);
 
-        return view('livewire.truck-list-completed', [
+        return view('livewire.trucks.truck-list-completed', [
             'slips' => $slips
         ]);
     }

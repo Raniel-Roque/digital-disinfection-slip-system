@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\Trucks;
 
 use Livewire\Component;
 use App\Models\Location;
@@ -35,7 +35,7 @@ class LocationCards extends Component
             return $location;
         });
     
-        return view('livewire.location-cards', [
+        return view('livewire.trucks.location-cards', [
             'locations' => $locationsWithCounts
         ]);
     }    

@@ -1,9 +1,9 @@
 <x-layout>
-    <x-navbar module="Dashboard">
+    <x-navigation.navbar module="Dashboard">
         <x-slot:sidebar>
-            <livewire:sidebar-user :currentRoute="Route::currentRouteName()" />
+            <livewire:sidebar.sidebar-user :currentRoute="Route::currentRouteName()" />
         </x-slot:sidebar>
-    </x-navbar>
+    </x-navigation.navbar>
 
     <div class="p-4 bg-white min-h-screen flex flex-col items-center">
 
@@ -12,10 +12,10 @@
             <div class="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0">
 
                 <!-- Incoming Trucks -->
-                <livewire:truck-count-card type="incoming" />
+                <livewire:trucks.truck-count-card type="incoming" />
 
                 <!-- Outgoing Trucks -->
-                <livewire:truck-count-card type="outgoing" />
+                <livewire:trucks.truck-count-card type="outgoing" />
 
                 <!-- Create Disinfection Slip -->
                 <a href="#"

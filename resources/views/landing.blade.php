@@ -14,11 +14,12 @@
             <!-- Login / Dashboard Button -->
             <div class="whitespace-nowrap">
                 @guest
-                    <x-nav-button href="/login">Login as admin</x-nav-button>
+                    <x-buttons.nav-button href="/login">Login as admin</x-buttons.nav-button>
                 @endguest
 
                 @auth
-                    <x-nav-button href="{{ route(auth()->user()->dashboardRoute()) }}">Dashboard</x-nav-button>
+                    <x-buttons.nav-button
+                        href="{{ route(auth()->user()->dashboardRoute()) }}">Dashboard</x-buttons.nav-button>
                 @endauth
             </div>
         </div>
@@ -26,6 +27,6 @@
 
     <!-- Main Content Placeholder -->
     <main class="flex-1 p-6 pt-28 flex justify-center">
-        <livewire:location-cards />
+        <livewire:trucks.location-cards />
     </main>
 </x-layout>

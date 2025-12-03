@@ -5,10 +5,12 @@
     <div class="flex items-center space-x-3 min-w-[150px] text-gray-700 shrink-0">
         @if ($type === 'incoming')
             <img src="https://cdn-icons-png.flaticon.com/512/8591/8591505.png" alt="Incoming"
-                class="h-7 w-7 object-contain" />
+                class="h-7 w-7 object-contain"
+                style="filter: brightness(0) saturate(100%) invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(118%) contrast(119%);" />
         @else
             <img src="https://cdn-icons-png.flaticon.com/512/7468/7468319.png" alt="Outgoing"
-                class="h-7 w-7 object-contain" />
+                class="h-7 w-7 object-contain"
+                style="filter: brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%);" />
         @endif
 
         <span class="text-black font-semibold text-lg whitespace-nowrap">
