@@ -23,12 +23,6 @@ class DisinfectionSlip extends Model
         'status',
         'completed_at',
     ];
-
-    protected $casts = [
-        'completed_at' => 'datetime',
-        'deleted_at' => 'datetime',
-    ];
-
     protected static function boot()
     {
         parent::boot();

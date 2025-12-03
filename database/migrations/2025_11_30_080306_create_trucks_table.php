@@ -12,6 +12,8 @@ return new class extends Migration {
             $table->string('plate_number')->unique();
             $table->boolean('disabled')->default(false);
             $table->timestamps();
+            $table->softDeletes(); 
+
         });
     }
 

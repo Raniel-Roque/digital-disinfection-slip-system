@@ -20,6 +20,7 @@ return new class extends Migration
             $table->integer('user_type')->default(0); // 0: user, 1: admin, 2: superadmin
             $table->string('password');
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('sessions', function (Blueprint $table) {

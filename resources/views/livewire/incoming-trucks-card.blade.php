@@ -1,6 +1,6 @@
 <a href="{{ route('user.incoming-trucks') }}"
     class="flex-1 flex flex-wrap items-center border border-orange-300 rounded-lg p-6 shadow-sm hover:shadow-md transition"
-    wire:poll="updateCount">
+    wire:poll>
     <div class="flex items-center space-x-3 min-w-[150px] text-gray-700 shrink-0">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-gray-600" fill="none" viewBox="0 0 24 24"
             stroke="currentColor">
@@ -11,5 +11,5 @@
         <span class="font-semibold text-lg whitespace-nowrap">Incoming Trucks Today</span>
     </div>
     <span
-        class="text-red-600 font-bold text-2xl ml-auto min-w-[50px] mt-2 md:mt-0">{{ str_pad($count, 4, '0', STR_PAD_LEFT) }}</span>
+        class="text-red-600 font-bold text-2xl ml-auto min-w-[50px] mt-2 md:mt-0">{{ str_pad($this->count, 4, '0', STR_PAD_LEFT) }}</span>
 </a>

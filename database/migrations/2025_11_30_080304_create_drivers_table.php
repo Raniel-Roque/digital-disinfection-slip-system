@@ -14,6 +14,8 @@ return new class extends Migration {
             $table->string('last_name');
             $table->boolean('disabled')->default(false);
             $table->timestamps();
+            $table->softDeletes(); 
+
         });
     }
 

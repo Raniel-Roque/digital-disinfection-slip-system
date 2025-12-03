@@ -4,7 +4,7 @@
         <div class="flex justify-between items-center">
             <!-- Logo + Header Text -->
             <div class="flex items-center space-x-3">
-                <img src="{{ asset('image/logo/BGC.png') }}" alt="Logo" class="h-10 w-auto">
+                <img src="{{ asset('storage\images\logo\BGC.png') }}" alt="Logo" class="h-10 w-auto">
                 <div
                     class="font-bold text-gray-800 text-[clamp(1rem,1.8vw,1.5rem)] leading-snug whitespace-normal wrap-break-word">
                     Digital Disinfection Slip System

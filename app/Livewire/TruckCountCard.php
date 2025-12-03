@@ -5,44 +5,40 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\DisinfectionSlip;
 use Illuminate\Support\Facades\Session;
+use Livewire\Attributes\Computed;
 
 class TruckCountCard extends Component
 {
-    public $count = 0;
     public $type; // 'incoming' or 'outgoing'
 
     public function mount($type)
     {
         $this->type = $type;
-        $this->updateCount();
     }
 
-    public function updateCount()
+    #[Computed]
+    public function count()
     {
         $locationId = Session::get('location_id');
 
         if (!$locationId) {
-            $this->count = 0;
-            return;
+            return 0;
         }
 
-        $query = DisinfectionSlip::query()
-            ->whereDate('created_at', today());
+        $query = DisinfectionSlip::whereDate('created_at', today())
+            ->where('destination_id', $locationId);
 
         if ($this->type === 'incoming') {
-            $query->where('destination_id', $locationId)
-            ->where('status', 0);
+            $query->where('status', 0);
         } else { // outgoing
-            $query->where('destination_id', $locationId)
-            ->where('status', [0,1]);
+            $query->whereIn('status', [0, 1]);
         }
 
-        $this->count = $query->count();
+        return $query->count();
     }
 
     public function render()
     {
-        $this->updateCount();
         return view('livewire.truck-count-card');
     }
 }

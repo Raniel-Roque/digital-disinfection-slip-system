@@ -1,6 +1,6 @@
 <a href="{{ $type === 'incoming' ? route('user.incoming-trucks') : route('user.outgoing-trucks') }}"
     class="flex-1 flex flex-wrap items-center border border-orange-300 rounded-lg p-6 shadow-sm hover:shadow-md transition"
-    wire:poll="updateCount">
+    wire:poll>
 
     <div class="flex items-center space-x-3 min-w-[150px] text-gray-700 shrink-0">
         @if ($type === 'incoming')
@@ -17,7 +17,7 @@
     </div>
 
     <span class="font-bold text-2xl ml-auto min-w-[50px] mt-2 md:mt-0">
-        {{ str_pad($count, 4, '0', STR_PAD_LEFT) }}
+        {{ str_pad($this->count, 4, '0', STR_PAD_LEFT) }}
     </span>
 
 </a>
