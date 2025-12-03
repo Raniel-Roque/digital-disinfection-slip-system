@@ -48,15 +48,15 @@
                 @csrf
 
                 <div>
-                    <x-input-form name="username" required :value="old('username')"
-                        placeholder="Username">Username</x-input-form>
-                    <x-error name="username" />
+                    <x-forms.input-form name="username" required :value="old('username')"
+                        placeholder="Username">Username</x-forms.input-form>
+                    <x-forms.error name="username" />
                 </div>
 
                 <div>
-                    <x-input-form type="password" name="password" required
-                        placeholder="Password">Password</x-input-form>
-                    <x-error name="password" />
+                    <x-forms.input-form type="password" name="password" required
+                        placeholder="Password">Password</x-forms.input-form>
+                    <x-forms.error name="password" />
                 </div>
 
                 <div>

@@ -8,13 +8,6 @@
     <div class="p-4 sm:p-6 lg:p-8 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
 
         <div class="max-w-7xl mx-auto">
-
-            <!-- Page Header -->
-            <div class="mb-8">
-                <h1 class="text-3xl font-bold text-gray-800 mb-2">Truck Disinfection Dashboard</h1>
-                <p class="text-gray-600">Monitor and manage truck disinfection operations</p>
-            </div>
-
             <!-- Stats Cards Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
 
