@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
             'middle_name' => 'Corpuz',
             'last_name' => 'Doe',
             'username' => 'JDoe',
-            'user_type' => '0',
+            'user_type' => '1',
         ]);
 
         // Create default setting for attachment retention
