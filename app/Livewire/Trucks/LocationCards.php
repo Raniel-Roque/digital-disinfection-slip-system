@@ -21,7 +21,7 @@ class LocationCards extends Component
         // Only query if there are locations to avoid empty whereIn
         $ongoingCounts = collect();
         if ($locations->isNotEmpty()) {
-            $ongoingCounts = DisinfectionSlip::where('status', 0)
+            $ongoingCounts = DisinfectionSlip::whereIn('status', [0, 1])
                 ->whereIn('destination_id', $locations->pluck('id'))
                 ->whereDate('created_at', today())
                 ->selectRaw('destination_id, COUNT(*) as count')

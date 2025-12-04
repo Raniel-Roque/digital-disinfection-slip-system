@@ -28,6 +28,9 @@ class DisinfectionSlip extends Component
     public $attachmentFile = null;
 
     public $isEditing = false;
+    
+    // Type property: 'incoming' or 'outgoing'
+    public $type;
 
     // Editable fields
     public $truck_id;
@@ -39,6 +42,11 @@ class DisinfectionSlip extends Component
     private $originalValues = [];
 
     protected $listeners = ['open-disinfection-details' => 'openDetailsModal'];
+
+    public function mount($type = 'incoming')
+    {
+        $this->type = $type;
+    }
 
     // Computed properties for dynamic dropdown data
     public function getTrucksProperty()
@@ -58,8 +66,13 @@ class DisinfectionSlip extends Component
         return Driver::all();
     }
 
-    public function openDetailsModal($id)
+    public function openDetailsModal($id, $type = null)
     {
+        // Set the type if provided
+        if ($type) {
+            $this->type = $type;
+        }
+        
         $this->selectedSlip = DisinfectionSlipModel::with([
             'truck',
             'location',
@@ -69,6 +82,7 @@ class DisinfectionSlip extends Component
             'hatcheryGuard',
             'receivedGuard'
         ])->find($id);
+    
 
         // preload fields for editing
         $this->truck_id                = $this->selectedSlip->truck_id;
@@ -80,8 +94,84 @@ class DisinfectionSlip extends Component
         $this->showDetailsModal = true;
     }
 
+    public function canEdit()
+    {
+        if (!$this->selectedSlip) {
+            return false;
+        }
+
+        // Can edit ONLY on OUTGOING
+        return $this->type === 'outgoing'
+            && Auth::id() === $this->selectedSlip->hatchery_guard_id 
+            && $this->selectedSlip->location_id === Session::get('location_id')
+            && $this->selectedSlip->status != 2;
+    }
+
+    public function canStartDisinfecting()
+    {
+        if (!$this->selectedSlip) {
+            return false;
+        }
+
+        $currentLocation = Session::get('location_id');
+
+        // Can start ONLY on INCOMING
+        return $this->type === 'incoming'
+            && $this->selectedSlip->status == 0 
+            && $this->selectedSlip->destination_id === $currentLocation
+            && $this->selectedSlip->location_id !== $currentLocation;
+    }
+
+    public function canComplete()
+    {
+        if (!$this->selectedSlip) {
+            return false;
+        }
+
+        $currentLocation = Session::get('location_id');
+
+        // Can complete ONLY on INCOMING
+        return $this->type === 'incoming'
+            && $this->selectedSlip->status == 1 
+            && Auth::id() === $this->selectedSlip->received_guard_id
+            && $this->selectedSlip->destination_id === $currentLocation
+            && $this->selectedSlip->location_id !== $currentLocation;
+    }
+
+    public function canDelete()
+    {
+        if (!$this->selectedSlip) {
+            return false;
+        }
+
+        // Can delete ONLY on OUTGOING
+        return $this->type === 'outgoing'
+            && Auth::id() === $this->selectedSlip->hatchery_guard_id 
+            && $this->selectedSlip->location_id === Session::get('location_id')
+            && $this->selectedSlip->status != 2;
+    }
+
+    public function canManageAttachment()
+    {
+        if (!$this->selectedSlip) {
+            return false;
+        }
+
+        // Can manage attachment ONLY on INCOMING
+        return $this->type === 'incoming'
+            && Auth::id() === $this->selectedSlip->received_guard_id 
+            && $this->selectedSlip->status == 1
+            && $this->selectedSlip->destination_id === Session::get('location_id');
+    }
+
     public function editDetailsModal()
     {
+        // Authorization check - must be hatchery guard and location must match
+        if (!$this->canEdit()) {
+            $this->dispatch('toast', message: 'You are not authorized to edit this slip.', type: 'error');
+            return;
+        }
+
         $this->isEditing = true;
         
         // Store original values before editing
@@ -109,15 +199,9 @@ class DisinfectionSlip extends Component
 
     public function startDisinfecting()
     {
-        // Check if status is 0 (pending)
-        if ($this->selectedSlip->status != 0) {
-            $this->dispatch('toast', message: 'This slip is not in pending status.', type: 'error');
-            return;
-        }
-
-        // Authorization check - cannot start if you created it (hatchery guard)
-        if (Auth::id() === $this->selectedSlip->hatchery_guard_id) {
-            $this->dispatch('toast', message: 'You cannot start disinfecting your own slip. Only the destination guard can start disinfecting.', type: 'error');
+        // Authorization check using canStartDisinfecting
+        if (!$this->canStartDisinfecting()) {
+            $this->dispatch('toast', message: 'You are not authorized to start disinfecting this slip.', type: 'error');
             return;
         }
 
@@ -146,21 +230,9 @@ class DisinfectionSlip extends Component
 
     public function completeDisinfection()
     {
-        // Check if status is 1 (disinfecting)
-        if ($this->selectedSlip->status != 1) {
-            $this->dispatch('toast', message: 'This slip is not in disinfecting status.', type: 'error');
-            return;
-        }
-
-        // Authorization check - only the receiving guard can complete
-        if (Auth::id() !== $this->selectedSlip->received_guard_id) {
-            $this->dispatch('toast', message: 'Only the receiving guard can complete this disinfection.', type: 'error');
-            return;
-        }
-
-        // Additional check - cannot complete if you're the hatchery guard
-        if (Auth::id() === $this->selectedSlip->hatchery_guard_id) {
-            $this->dispatch('toast', message: 'You cannot complete your own slip. Only the destination guard can complete disinfection.', type: 'error');
+        // Authorization check using canComplete
+        if (!$this->canComplete()) {
+            $this->dispatch('toast', message: 'You are not authorized to complete this disinfection.', type: 'error');
             return;
         }
 
@@ -189,15 +261,9 @@ class DisinfectionSlip extends Component
 
     public function deleteSlip()
     {
-        // Authorization check - compare with hatchery_guard_id foreign key
-        if (Auth::id() !== $this->selectedSlip->hatchery_guard_id) {
+        // Authorization check using canDelete
+        if (!$this->canDelete()) {
             $this->dispatch('toast', message: 'You are not authorized to delete this slip.', type: 'error');
-            return;
-        }
-
-        // Check if not completed
-        if ($this->selectedSlip->status == 2) {
-            $this->dispatch('toast', message: 'Cannot delete a completed slip.', type: 'error');
             return;
         }
 
@@ -222,6 +288,12 @@ class DisinfectionSlip extends Component
 
     public function save()
     {
+        // Authorization check before saving
+        if (!$this->canEdit()) {
+            $this->dispatch('toast', message: 'You are not authorized to save changes to this slip.', type: 'error');
+            return;
+        }
+
         // Get current location to validate against
         $currentLocationId = Session::get('location_id');
         
@@ -302,15 +374,9 @@ class DisinfectionSlip extends Component
 
     public function openAddAttachmentModal()
     {
-        // Authorization check - only receiving guard can add attachment
-        if (Auth::id() !== $this->selectedSlip->received_guard_id) {
-            $this->dispatch('toast', message: 'Only the receiving guard can add attachments.', type: 'error');
-            return;
-        }
-
-        // Check if slip is in disinfecting status
-        if ($this->selectedSlip->status != 1) {
-            $this->dispatch('toast', message: 'Attachments can only be added during disinfection.', type: 'error');
+        // Authorization check using canManageAttachment
+        if (!$this->canManageAttachment()) {
+            $this->dispatch('toast', message: 'You are not authorized to add attachments.', type: 'error');
             return;
         }
 
@@ -326,15 +392,9 @@ class DisinfectionSlip extends Component
     public function removeAttachment()
     {
         try {
-            // Authorization check - only receiving guard can remove
-            if (Auth::id() !== $this->selectedSlip->received_guard_id) {
-                $this->dispatch('toast', message: 'Only the receiving guard can remove attachments.', type: 'error');
-                return;
-            }
-
-            // Check if in disinfecting status
-            if ($this->selectedSlip->status != 1) {
-                $this->dispatch('toast', message: 'Attachments can only be removed during disinfection.', type: 'error');
+            // Authorization check using canManageAttachment
+            if (!$this->canManageAttachment()) {
+                $this->dispatch('toast', message: 'You are not authorized to remove attachments.', type: 'error');
                 return;
             }
 
@@ -382,15 +442,9 @@ class DisinfectionSlip extends Component
     public function uploadAttachment($imageData)
     {
         try {
-            // Authorization check - only receiving guard can upload
-            if (Auth::id() !== $this->selectedSlip->received_guard_id) {
-                $this->dispatch('toast', message: 'Only the receiving guard can add attachments.', type: 'error');
-                return;
-            }
-
-            // Check if in disinfecting status
-            if ($this->selectedSlip->status != 1) {
-                $this->dispatch('toast', message: 'Attachments can only be added during disinfection.', type: 'error');
+            // Authorization check using canManageAttachment
+            if (!$this->canManageAttachment()) {
+                $this->dispatch('toast', message: 'You are not authorized to add attachments.', type: 'error');
                 return;
             }
 

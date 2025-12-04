@@ -35,7 +35,7 @@
             @endphp
 
             {{-- Card (Now Clickable) --}}
-            <div wire:click="$dispatch('open-disinfection-details', { id: {{ $slip->id }} })"
+            <div wire:click="$dispatch('open-disinfection-details', { id: {{ $slip->id }}, type: 'incoming' })"
                 class="flex justify-between items-center p-4 border-l-4 rounded-lg shadow-sm transition hover:shadow-md cursor-pointer {{ $statusMap[$status]['color'] }}">
 
                 <div class="grid grid-cols-2 gap-y-2 text-sm">

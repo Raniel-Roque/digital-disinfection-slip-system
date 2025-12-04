@@ -130,6 +130,7 @@
                     </div>
                 </div>
 
+                {{-- Attachment Section --}}
                 <div class="grid grid-cols-3 mb-2">
                     <div class="font-semibold text-gray-700">Attachment:</div>
                     <div class="col-span-2">
@@ -138,7 +139,7 @@
                                 class="text-orange-500 hover:text-orange-600 underline cursor-pointer">
                                 See Attachment
                             </button>
-                        @elseif ($isReceivingGuard && $status == 1)
+                        @elseif ($this->canManageAttachment())
                             <button wire:click="openAddAttachmentModal"
                                 class="text-blue-500 hover:text-blue-600 underline cursor-pointer">
                                 Add Attachment
@@ -162,8 +163,8 @@
                         Close
                     </x-buttons.submit-button>
 
-                    {{-- Edit Button (Only hatchery guard and not completed) --}}
-                    @if ($isHatcheryAssigned && $status != 2)
+                    {{-- Edit Button (Only hatchery guard, matching location, and not completed) --}}
+                    @if ($this->canEdit())
                         <x-buttons.submit-button wire:click="editDetailsModal" color="blue">
                             Edit
                         </x-buttons.submit-button>
