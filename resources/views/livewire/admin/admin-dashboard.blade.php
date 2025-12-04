@@ -1,336 +1,292 @@
 <div class="p-4 sm:p-6 lg:p-8 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
-    <div class="max-w-7xl mx-auto">
-        <!-- Disinfected Trucks Statistics -->
-        <div class="mb-8">
-            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                Disinfected Vehicles
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-
-                <!-- Week to Date -->
-                <div wire:poll
-                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-blue-400">
-                    <div class="p-6">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="flex items-center gap-3">
-                                <div class="p-3 bg-blue-100 rounded-xl group-hover:bg-blue-200 transition-colors">
-                                    <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24"
-                                        stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Week</h3>
-                                    <p class="text-xs text-gray-400 mt-0.5">to Date</p>
-                                </div>
-                            </div>
-                            <span class="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full font-medium">This
-                                Week</span>
-                        </div>
-                        <div class="flex items-end justify-between">
-                            <p class="text-4xl font-bold text-gray-800">
-                                {{ number_format($this->stats['week_disinfected']) }}</p>
-                            <span
-                                class="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full font-medium">Active</span>
-                        </div>
-                    </div>
-                    <div
-                        class="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-blue-400 to-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left">
-                    </div>
-                </div>
-
-                <!-- Month to Date -->
-                <div wire:poll
-                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-purple-400">
-                    <div class="p-6">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="flex items-center gap-3">
-                                <div class="p-3 bg-purple-100 rounded-xl group-hover:bg-purple-200 transition-colors">
-                                    <svg class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24"
-                                        stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Month</h3>
-                                    <p class="text-xs text-gray-400 mt-0.5">to Date</p>
-                                </div>
-                            </div>
-                            <span class="text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded-full font-medium">This
-                                Month</span>
-                        </div>
-                        <div class="flex items-end justify-between">
-                            <p class="text-4xl font-bold text-gray-800">
-                                {{ number_format($this->stats['month_disinfected']) }}</p>
-                            <span
-                                class="text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded-full font-medium">Active</span>
-                        </div>
-                    </div>
-                    <div
-                        class="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-purple-400 to-purple-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left">
-                    </div>
-                </div>
-
-                <!-- Year to Date -->
-                <div wire:poll
-                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-green-400">
-                    <div class="p-6">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="flex items-center gap-3">
-                                <div class="p-3 bg-green-100 rounded-xl group-hover:bg-green-200 transition-colors">
-                                    <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24"
-                                        stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Year</h3>
-                                    <p class="text-xs text-gray-400 mt-0.5">{{ date('Y') }}</p>
-                                </div>
-                            </div>
-                            <span class="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full font-medium">This
-                                Year</span>
-                        </div>
-                        <div class="flex items-end justify-between">
-                            <p class="text-4xl font-bold text-gray-800">
-                                {{ number_format($this->stats['year_disinfected']) }}</p>
-                            <span
-                                class="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full font-medium">Active</span>
-                        </div>
-                    </div>
-                    <div
-                        class="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-green-400 to-green-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left">
-                    </div>
-                </div>
-
-                <!-- All Time Total -->
-                <div wire:poll
-                    class="group relative overflow-hidden bg-linear-to-br from-yellow-500 to-orange-600 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-orange-400 hover:scale-105">
-                    <div class="p-6 h-full flex flex-col justify-between">
-                        <div class="flex items-start justify-between mb-4">
-                            <div
-                                class="p-3 bg-white/20 backdrop-blur-sm rounded-xl group-hover:bg-white/30 transition-colors">
-                                <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                </svg>
-                            </div>
-                            <span
-                                class="text-xs text-white bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full font-medium">All-Time</span>
-                        </div>
-                        <div>
-                            <p class="text-4xl font-bold text-white mb-1">
-                                {{ number_format($this->stats['total_disinfected']) }}</p>
-                            <p class="text-sm text-yellow-100">Total Disinfected</p>
-                        </div>
-                    </div>
-                    <div class="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 bg-white/10 rounded-full blur-2xl"></div>
-                    <div class="absolute bottom-0 left-0 -mb-4 -ml-4 h-20 w-20 bg-white/10 rounded-full blur-xl"></div>
-                </div>
-
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+                <p class="text-gray-500 mt-1">Welcome back! Here's your overview</p>
+            </div>
+            <div class="text-right">
+                <p class="text-sm text-gray-500">Last updated</p>
+                <p class="text-sm font-semibold text-gray-700">{{ now()->format('M d, Y h:i A') }}</p>
             </div>
         </div>
 
-        <!-- System Statistics -->
-        <div class="mb-8">
-            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                System Resources
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-
-                <!-- Guards Count -->
-                <div wire:poll
-                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-cyan-400">
-                    <div class="p-6">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="flex items-center gap-3">
-                                <div class="p-3 bg-cyan-100 rounded-xl group-hover:bg-cyan-200 transition-colors">
-                                    <svg class="h-6 w-6 text-cyan-600" fill="none" viewBox="0 0 24 24"
-                                        stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Guards</h3>
-                                    <p class="text-xs text-gray-400 mt-0.5">System Users</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex items-end justify-between">
-                            <p class="text-4xl font-bold text-gray-800">
-                                {{ number_format($this->stats['total_guards']) }}</p>
-                            <span
-                                class="text-xs text-cyan-600 bg-cyan-50 px-2 py-1 rounded-full font-medium">Active</span>
-                        </div>
-                    </div>
-                    <div
-                        class="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-cyan-400 to-cyan-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left">
-                    </div>
-                </div>
-
-                <!-- Drivers Count -->
-                <div wire:poll
-                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-pink-400">
-                    <div class="p-6">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="flex items-center gap-3">
-                                <div class="p-3 bg-pink-100 rounded-xl group-hover:bg-pink-200 transition-colors">
-                                    <svg class="h-6 w-6 text-pink-600" fill="none" viewBox="0 0 24 24"
-                                        stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Drivers</h3>
-                                    <p class="text-xs text-gray-400 mt-0.5">Registered</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex items-end justify-between">
-                            <p class="text-4xl font-bold text-gray-800">
-                                {{ number_format($this->stats['total_drivers']) }}</p>
-                            <span
-                                class="text-xs text-pink-600 bg-pink-50 px-2 py-1 rounded-full font-medium">Active</span>
-                        </div>
-                    </div>
-                    <div
-                        class="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-pink-400 to-pink-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left">
-                    </div>
-                </div>
-
-                <!-- Plate Numbers Count -->
-                <div wire:poll
-                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-amber-400">
-                    <div class="p-6">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="flex items-center gap-3">
-                                <div class="p-3 bg-amber-100 rounded-xl group-hover:bg-amber-200 transition-colors">
-                                    <svg class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24"
-                                        stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Trucks</h3>
-                                    <p class="text-xs text-gray-400 mt-0.5">Unique Plates</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex items-end justify-between">
-                            <p class="text-4xl font-bold text-gray-800">
-                                {{ number_format($this->stats['total_plate_numbers']) }}</p>
-                            <span
-                                class="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full font-medium">Active</span>
-                        </div>
-                    </div>
-                    <div
-                        class="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-amber-400 to-amber-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left">
-                    </div>
-                </div>
-
-                <!-- Locations Count -->
-                <div wire:poll
-                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-teal-400">
-                    <div class="p-6">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="flex items-center gap-3">
-                                <div class="p-3 bg-teal-100 rounded-xl group-hover:bg-teal-200 transition-colors">
-                                    <svg class="h-6 w-6 text-teal-600" fill="none" viewBox="0 0 24 24"
-                                        stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Locations
-                                    </h3>
-                                    <p class="text-xs text-gray-400 mt-0.5">Active Sites</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex items-end justify-between">
-                            <p class="text-4xl font-bold text-gray-800">
-                                {{ number_format($this->stats['total_locations']) }}</p>
-                            <span
-                                class="text-xs text-teal-600 bg-teal-50 px-2 py-1 rounded-full font-medium">Active</span>
-                        </div>
-                    </div>
-                    <div
-                        class="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-teal-400 to-teal-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left">
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="bg-white rounded-2xl shadow-md border border-gray-200 p-6">
-            <h2 class="text-lg font-bold text-gray-800 mb-4">Quick Actions</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <a href="#"
-                    class="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all group">
-                    <div class="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                        <svg class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                    </div>
-                    <span class="font-medium text-gray-700 group-hover:text-blue-700">Manage Guards</span>
-                </a>
-
-                <a href="#"
-                    class="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all group">
-                    <div class="p-2 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                        <svg class="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
+        <!-- Disinfection Statistics Section -->
+        <div class="bg-white rounded-3xl shadow-lg border border-gray-200 p-6 lg:p-8">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-blue-100 rounded-xl">
+                        <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
                     </div>
-                    <span class="font-medium text-gray-700 group-hover:text-purple-700">View Reports</span>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">Disinfection Statistics</h2>
+                        <p class="text-sm text-gray-500">Vehicle disinfection performance metrics</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                <!-- Week to Date -->
+                <div wire:poll class="relative group">
+                    <div class="p-5 bg-linear-to-br from-blue-50 to-blue-100/50 rounded-2xl border-2 border-blue-200 hover:border-blue-400 transition-all duration-300 hover:shadow-md">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="p-2 bg-blue-200 rounded-lg">
+                                <svg class="h-5 w-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <span class="text-xs font-semibold text-blue-700 bg-blue-200 px-2 py-1 rounded-full">This Week</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-blue-700 mb-1">Week to Date</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ number_format($this->stats['week_disinfected']) }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Month to Date -->
+                <div wire:poll class="relative group">
+                    <div class="p-5 bg-linear-to-br from-purple-50 to-purple-100/50 rounded-2xl border-2 border-purple-200 hover:border-purple-400 transition-all duration-300 hover:shadow-md">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="p-2 bg-purple-200 rounded-lg">
+                                <svg class="h-5 w-5 text-purple-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <span class="text-xs font-semibold text-purple-700 bg-purple-200 px-2 py-1 rounded-full">This Month</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-purple-700 mb-1">Month to Date</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ number_format($this->stats['month_disinfected']) }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Year to Date -->
+                <div wire:poll class="relative group">
+                    <div class="p-5 bg-linear-to-br from-green-50 to-green-100/50 rounded-2xl border-2 border-green-200 hover:border-green-400 transition-all duration-300 hover:shadow-md">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="p-2 bg-green-200 rounded-lg">
+                                <svg class="h-5 w-5 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <span class="text-xs font-semibold text-green-700 bg-green-200 px-2 py-1 rounded-full">{{ date('Y') }}</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-green-700 mb-1">Year to Date</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ number_format($this->stats['year_disinfected']) }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- All Time Total -->
+                <div wire:poll class="relative group">
+                    <div class="p-5 bg-linear-to-br from-orange-500 to-yellow-500 rounded-2xl border-2 border-orange-400 hover:border-orange-600 transition-all duration-300 hover:shadow-lg hover:scale-105">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="p-2 bg-white/30 backdrop-blur-sm rounded-lg">
+                                <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                            </div>
+                            <span class="text-xs font-semibold text-white bg-white/30 backdrop-blur-sm px-2 py-1 rounded-full">All-Time</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-white/90 mb-1">Total Disinfected</p>
+                            <p class="text-3xl font-bold text-white">{{ number_format($this->stats['total_disinfected']) }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Resources Section -->
+        <div class="bg-white rounded-3xl shadow-lg border border-gray-200 p-6 lg:p-8">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-indigo-100 rounded-xl">
+                        <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">System Resources</h2>
+                        <p class="text-sm text-gray-500">Manage your system data and resources</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Guards -->
+                <div wire:poll class="group">
+                    <div class="p-5 bg-linear-to-br from-cyan-50 to-cyan-100/50 rounded-2xl border-2 border-cyan-200 hover:border-cyan-400 transition-all duration-300 hover:shadow-md">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="p-2.5 bg-cyan-200 rounded-xl group-hover:bg-cyan-300 transition-colors">
+                                <svg class="h-6 w-6 text-cyan-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium text-cyan-700 uppercase tracking-wider">Guards</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ number_format($this->stats['total_guards']) }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-cyan-700">System Users</span>
+                            <span class="text-xs font-semibold text-cyan-700 bg-cyan-200 px-2 py-0.5 rounded-full">Active</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Drivers -->
+                <div wire:poll class="group">
+                    <div class="p-5 bg-linear-to-br from-pink-50 to-pink-100/50 rounded-2xl border-2 border-pink-200 hover:border-pink-400 transition-all duration-300 hover:shadow-md">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="p-2.5 bg-pink-200 rounded-xl group-hover:bg-pink-300 transition-colors">
+                                <svg class="h-6 w-6 text-pink-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium text-pink-700 uppercase tracking-wider">Drivers</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ number_format($this->stats['total_drivers']) }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-pink-700">Registered</span>
+                            <span class="text-xs font-semibold text-pink-700 bg-pink-200 px-2 py-0.5 rounded-full">Active</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trucks -->
+                <div wire:poll class="group">
+                    <div class="p-5 bg-linear-to-br from-amber-50 to-amber-100/50 rounded-2xl border-2 border-amber-200 hover:border-amber-400 transition-all duration-300 hover:shadow-md">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="p-2.5 bg-amber-200 rounded-xl group-hover:bg-amber-300 transition-colors">
+                                <svg class="h-6 w-6 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium text-amber-700 uppercase tracking-wider">Trucks</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ number_format($this->stats['total_plate_numbers']) }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-amber-700">Unique Plates</span>
+                            <span class="text-xs font-semibold text-amber-700 bg-amber-200 px-2 py-0.5 rounded-full">Active</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Locations -->
+                <div wire:poll class="group">
+                    <div class="p-5 bg-linear-to-br from-teal-50 to-teal-100/50 rounded-2xl border-2 border-teal-200 hover:border-teal-400 transition-all duration-300 hover:shadow-md">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="p-2.5 bg-teal-200 rounded-xl group-hover:bg-teal-300 transition-colors">
+                                <svg class="h-6 w-6 text-teal-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium text-teal-700 uppercase tracking-wider">Locations</p>
+                                <p class="text-2xl font-bold text-gray-900">{{ number_format($this->stats['total_locations']) }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-teal-700">Active Sites</span>
+                            <span class="text-xs font-semibold text-teal-700 bg-teal-200 px-2 py-0.5 rounded-full">Active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Section -->
+        <div class="bg-white rounded-3xl shadow-lg border border-gray-200 p-6 lg:p-8">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="p-3 bg-gray-100 rounded-xl">
+                    <svg class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">Quick Actions</h2>
+                    <p class="text-sm text-gray-500">Frequently used actions and shortcuts</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <a href="{{ route('admin.guards') }}"
+                    class="group p-4 bg-linear-to-br from-blue-50 to-blue-100/50 rounded-2xl border-2 border-blue-200 hover:border-blue-400 hover:shadow-md transition-all duration-300">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 bg-blue-200 rounded-xl group-hover:bg-blue-300 transition-colors">
+                            <svg class="h-5 w-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        </div>
+                        <span class="font-semibold text-gray-800 group-hover:text-blue-700 transition-colors">Manage Guards</span>
+                    </div>
                 </a>
 
                 <a href="#"
-                    class="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-green-300 hover:bg-green-50 transition-all group">
-                    <div class="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
-                        <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
+                    class="group p-4 bg-linear-to-br from-purple-50 to-purple-100/50 rounded-2xl border-2 border-purple-200 hover:border-purple-400 hover:shadow-md transition-all duration-300">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 bg-purple-200 rounded-xl group-hover:bg-purple-300 transition-colors">
+                            <svg class="h-5 w-5 text-purple-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                        </div>
+                        <span class="font-semibold text-gray-800 group-hover:text-purple-700 transition-colors">View Reports</span>
                     </div>
-                    <span class="font-medium text-gray-700 group-hover:text-green-700">Manage Locations</span>
                 </a>
 
-                <a href="#"
-                    class="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-all group">
-                    <div class="p-2 bg-amber-100 rounded-lg group-hover:bg-amber-200 transition-colors">
-                        <svg class="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
+                <a href="{{ route('admin.locations') }}"
+                    class="group p-4 bg-linear-to-br from-green-50 to-green-100/50 rounded-2xl border-2 border-green-200 hover:border-green-400 hover:shadow-md transition-all duration-300">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 bg-green-200 rounded-xl group-hover:bg-green-300 transition-colors">
+                            <svg class="h-5 w-5 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                        <span class="font-semibold text-gray-800 group-hover:text-green-700 transition-colors">Manage Locations</span>
                     </div>
-                    <span class="font-medium text-gray-700 group-hover:text-amber-700">All Slips</span>
+                </a>
+
+                <a href="{{ route('admin.trucks') }}"
+                    class="group p-4 bg-linear-to-br from-amber-50 to-amber-100/50 rounded-2xl border-2 border-amber-200 hover:border-amber-400 hover:shadow-md transition-all duration-300">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 bg-amber-200 rounded-xl group-hover:bg-amber-300 transition-colors">
+                            <svg class="h-5 w-5 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <span class="font-semibold text-gray-800 group-hover:text-amber-700 transition-colors">All Slips</span>
+                    </div>
                 </a>
             </div>
         </div>
