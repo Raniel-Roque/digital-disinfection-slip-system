@@ -10,7 +10,7 @@
                 <!-- Logo Section -->
                 <div class="flex justify-center items-center mb-4 sm:mb-5 h-20 sm:h-24">
                     @if ($location->attachment_id && $location->attachment)
-                        <img src="{{ asset('storage/' . $location->attachment->path) }}"
+                        <img src="{{ asset('storage/' . $location->attachment->file_path) }}"
                             alt="{{ $location->location_name }}"
                             class="max-h-full w-auto object-contain filter group-hover:scale-110 transition-transform duration-300">
                     @else
