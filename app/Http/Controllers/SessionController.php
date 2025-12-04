@@ -12,7 +12,7 @@ class SessionController extends Controller
 {
     public function create(Request $request, $location = null)
     {
-        // If user is logged in, redirect to /home
+        // If user is already logged in, redirect to home
         if (Auth::check()) {
             return redirect('/');
         }
@@ -40,22 +40,30 @@ class SessionController extends Controller
             ]);
         }
         
-        request()->session()->regenerate();
-
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // If no location is provided, only allow admin (1) or superadmin (2) to login
-        // Regular users (0) must login through a location
-        if (!$location && $user->user_type === 0) {
+        // If location login is being used, only allow regular users (type 0)
+        if ($location && $user->user_type !== 0) {
             Auth::logout();
             throw ValidationException::withMessages([
-                'username' => 'Regular users must login through a location',
+                'username' => 'Only guards can login through locations. Admins must use the admin login.',
                 'password' => '',
             ]);
         }
 
-        // Store location in session if provided
+        // If no location (admin login), only allow admin (1) or superadmin (2)
+        if (!$location && $user->user_type === 0) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'username' => 'Guards must login through a location',
+                'password' => '',
+            ]);
+        }
+
+        request()->session()->regenerate();
+
+        // Store location in session if provided (for regular users)
         if ($location) {
             $locationModel = Location::findOrFail($location);
             $request->session()->put('location_id', $locationModel->id);
@@ -67,15 +75,10 @@ class SessionController extends Controller
 
     public function destroy()
     {
-        // Get location from session before logout
-        $hadLocation = request()->session()->has('location_id');
-        
         Auth::logout();
         request()->session()->invalidate();
         request()->session()->regenerateToken();
     
-        // If user was logged in through a location, redirect to landing
-        // Otherwise redirect to landing page for all users
         return redirect('/');
     }
 }
