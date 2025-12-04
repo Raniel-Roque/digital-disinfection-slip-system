@@ -66,7 +66,9 @@ class TruckList extends Component
 
     public function getLocationsProperty()
     {
-        return Location::all();
+        // Exclude the current location from the list
+        $currentLocationId = Session::get('location_id');
+        return Location::where('id', '!=', $currentLocationId)->get();
     }
 
     public function getDriversProperty()
@@ -140,9 +142,20 @@ class TruckList extends Component
 
     public function createSlip()
     {
+        // Get current location to validate against
+        $currentLocationId = Session::get('location_id');
+        
         $this->validate([
             'truck_id' => 'required|exists:trucks,id',
-            'destination_id' => 'required|exists:locations,id',
+            'destination_id' => [
+                'required',
+                'exists:locations,id',
+                function ($attribute, $value, $fail) use ($currentLocationId) {
+                    if ($value == $currentLocationId) {
+                        $fail('The destination cannot be the same as the current location.');
+                    }
+                },
+            ],
             'driver_id' => 'required|exists:drivers,id',
             'reason_for_disinfection' => 'nullable|string|max:1000',
         ]);
@@ -152,7 +165,7 @@ class TruckList extends Component
             'destination_id' => $this->destination_id,
             'driver_id' => $this->driver_id,
             'reason_for_disinfection' => $this->reason_for_disinfection,
-            'location_id' => Session::get('location_id'),
+            'location_id' => $currentLocationId,
             'hatchery_guard_id' => Auth::id(),
             'status' => 0, // Ongoing
             'slip_id' => $this->generateSlipId(),

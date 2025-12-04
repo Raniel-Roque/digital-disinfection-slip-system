@@ -25,23 +25,26 @@
     @endif
 
     <x-slot name="footer">
-        <div class="flex justify-between w-full">
-            {{-- Left side: Remove button (only if receiving guard and disinfecting) --}}
-            <div>
-                @if ($isReceivingGuard && $status == 1)
-                    <x-buttons.submit-button wire:click="$set('showRemoveAttachmentConfirmation', true)" color="red">
-                        Remove Attachment
-                    </x-buttons.submit-button>
-                @endif
-            </div>
+        <div class="flex justify-end space-x-3 w-full">
 
-            {{-- Right side: Close button --}}
-            <div>
-                <x-buttons.submit-button wire:click="closeAttachmentModal" color="white">
-                    Close
+            {{-- Back Button (always visible) --}}
+            <x-buttons.submit-button wire:click="closeAttachmentModal" color="white">
+                Back
+            </x-buttons.submit-button>
+
+            {{-- Remove Attachment button (only if receiving guard and disinfecting) --}}
+            @if ($isReceivingGuard && $status == 1)
+                <x-buttons.submit-button wire:click="$set('showRemoveAttachmentConfirmation', true)" color="red">
+                    Remove Attachment
                 </x-buttons.submit-button>
-            </div>
+            @endif
+
         </div>
     </x-slot>
 
 </x-modals.modal-template>
+
+{{-- Remove Attachment Confirmation Modal --}}
+<x-modals.delete-confirmation show="showRemoveAttachmentConfirmation" title="REMOVE ATTACHMENT?"
+    message="Are you sure you want to remove this attachment?" warning="This action cannot be undone."
+    onConfirm="removeAttachment" confirmText="Yes, Remove Attachment" cancelText="Cancel" />

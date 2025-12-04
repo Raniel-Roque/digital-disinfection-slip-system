@@ -11,6 +11,7 @@ use App\Models\Driver;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
 class DisinfectionSlip extends Component
@@ -47,7 +48,9 @@ class DisinfectionSlip extends Component
 
     public function getLocationsProperty()
     {
-        return Location::all();
+        // Exclude the current location from the list
+        $currentLocationId = Session::get('location_id');
+        return Location::where('id', '!=', $currentLocationId)->get();
     }
 
     public function getDriversProperty()
@@ -219,9 +222,20 @@ class DisinfectionSlip extends Component
 
     public function save()
     {
+        // Get current location to validate against
+        $currentLocationId = Session::get('location_id');
+        
         $this->validate([
             'truck_id'                => 'required|exists:trucks,id',
-            'destination_id'          => 'required|exists:locations,id',
+            'destination_id'          => [
+                'required',
+                'exists:locations,id',
+                function ($attribute, $value, $fail) use ($currentLocationId) {
+                    if ($value == $currentLocationId) {
+                        $fail('The destination cannot be the same as the current location.');
+                    }
+                },
+            ],
             'driver_id'               => 'required|exists:drivers,id',
             'reason_for_disinfection' => 'required|string|max:500',
         ]);
