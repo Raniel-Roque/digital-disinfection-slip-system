@@ -344,7 +344,7 @@
         {{-- Filter Modal --}}
         <x-modals.filter-modal>
             <x-slot name="filters">
-                <x-modals.filter-admin-body ... />
+                <x-modals.filter-admin-body :availableStatuses="$availableStatuses" :locations="$locations" :drivers="$drivers" :trucks="$trucks" />
             </x-slot>
         </x-modals.filter-modal>
 

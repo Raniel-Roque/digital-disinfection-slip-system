@@ -20,7 +20,7 @@
                         </div>
                         <input type="text" wire:model.live.debounce.300ms="search"
                             class="block w-full pl-10 pr-10 py-2.5 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                            placeholder="Search by name or username...">
+                            placeholder="Search by name or @username...">
                         @if ($search)
                             <button wire:click="$set('search', '')"
                                 class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
@@ -44,6 +44,46 @@
                     </button>
                 </div>
             </div>
+
+            {{-- Active Filters Display --}}
+            @if ($filtersActive)
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <span class="text-sm text-gray-600">Active filters:</span>
+
+                    @if ($appliedCreatedFrom)
+                        <span
+                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            From: {{ \Carbon\Carbon::parse($appliedCreatedFrom)->format('M d, Y') }}
+                            <button wire:click="removeFilter('createdFrom')" class="ml-1.5 inline-flex items-center">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </span>
+                    @endif
+
+                    @if ($appliedCreatedTo)
+                        <span
+                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            To: {{ \Carbon\Carbon::parse($appliedCreatedTo)->format('M d, Y') }}
+                            <button wire:click="removeFilter('createdTo')" class="ml-1.5 inline-flex items-center">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </span>
+                    @endif
+
+                    <button wire:click="clearFilters"
+                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors">
+                        Clear all
+                    </button>
+                </div>
+            @endif
         </div>
 
         {{-- Table Card --}}
@@ -152,70 +192,11 @@
         </div>
 
         {{-- Filter Modal --}}
-        @if ($showFilters)
-            <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
-                aria-modal="true">
-                <div class="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-                    <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-                        wire:click="$set('showFilters', false)"></div>
-
-                    <div
-                        class="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
-                        <div class="px-6 py-4 bg-white border-b border-gray-200">
-                            <div class="flex items-center justify-between">
-                                <h3 class="text-lg font-semibold text-gray-900">Filters</h3>
-                                <button wire:click="$set('showFilters', false)"
-                                    class="text-gray-400 hover:text-gray-600">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="px-6 py-4 max-h-96 overflow-y-auto">
-                            <div class="space-y-6">
-                                {{-- Date Range Filter --}}
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-3">Created Date
-                                        Range</label>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-xs text-gray-600 mb-1">From</label>
-                                            <input type="date" wire:model="filterCreatedFrom"
-                                                class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                        </div>
-                                        <div>
-                                            <label class="block text-xs text-gray-600 mb-1">To</label>
-                                            <input type="date" wire:model="filterCreatedTo"
-                                                class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between">
-                            <button wire:click="clearFilters"
-                                class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
-                                Clear All
-                            </button>
-                            <div class="flex gap-3">
-                                <button wire:click="$set('showFilters', false)"
-                                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150">
-                                    Cancel
-                                </button>
-                                <button wire:click="applyFilters"
-                                    class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-150">
-                                    Apply Filters
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @endif
+        <x-modals.filter-modal>
+            <x-slot name="filters">
+                <x-modals.filter-guards-body />
+            </x-slot>
+        </x-modals.filter-modal>
 
         {{-- Edit Modal --}}
         @if ($showEditModal)

@@ -45,11 +45,6 @@ class Guards extends Component
         $this->resetPage();
     }
 
-    public function getFiltersActiveProperty()
-    {
-        return !empty($this->appliedCreatedFrom) || !empty($this->appliedCreatedTo);
-    }
-
     public function applyFilters()
     {
         $this->appliedCreatedFrom = $this->filterCreatedFrom;
@@ -191,8 +186,11 @@ class Guards extends Component
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
+        $filtersActive = !empty($this->appliedCreatedFrom) || !empty($this->appliedCreatedTo);
+
         return view('livewire.admin.guards', [
             'users' => $users,
+            'filtersActive' => $filtersActive,
         ]);
     }
 }
