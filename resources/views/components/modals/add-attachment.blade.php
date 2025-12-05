@@ -24,17 +24,22 @@
             Cancel
         </x-buttons.submit-button>
 
+        <!-- Switch Camera Button (Only visible when camera is active) -->
+        <x-buttons.submit-button id="switchCameraBtn" color="gray" class="hidden">
+            Switch Camera
+        </x-buttons.submit-button>
+
         <!-- Capture/Retake Button -->
-        <x-buttons.submit-button id="captureBtn" onclick="capturePhoto()" color="blue">
+        <x-buttons.submit-button id="captureBtn" color="blue">
             Capture Photo
         </x-buttons.submit-button>
 
-        <x-buttons.submit-button id="retakeBtn" onclick="retakePhoto()" color="gray" class="hidden">
+        <x-buttons.submit-button id="retakeBtn" color="gray" class="hidden">
             Retake
         </x-buttons.submit-button>
 
         <!-- Upload Button (Hidden until photo is captured) -->
-        <x-buttons.submit-button id="uploadBtn" onclick="uploadCapturedPhoto()" color="green" class="hidden">
+        <x-buttons.submit-button id="uploadBtn" color="green" class="hidden">
             Upload
         </x-buttons.submit-button>
     </x-slot>
@@ -43,6 +48,7 @@
         <script>
             let stream = null;
             let capturedImageData = null;
+            let currentFacingMode = 'environment'; // Start with back camera, fallback to front
 
             // Helper function to get elements safely
             function getElement(id) {
@@ -121,20 +127,52 @@
 
             // Initialize when DOM is ready
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initCameraManagement);
+                document.addEventListener('DOMContentLoaded', () => {
+                    initCameraManagement();
+                    setupButtonListeners();
+                });
             } else {
                 initCameraManagement();
+                setupButtonListeners();
             }
 
-            async function startCamera() {
+            // Set up event listeners for buttons
+            function setupButtonListeners() {
+                // Use a small delay to ensure buttons are rendered
+                setTimeout(() => {
+                    const captureBtn = getElement('captureBtn');
+                    const retakeBtn = getElement('retakeBtn');
+                    const uploadBtn = getElement('uploadBtn');
+                    const switchCameraBtn = getElement('switchCameraBtn');
+
+                    if (captureBtn) {
+                        captureBtn.addEventListener('click', capturePhoto);
+                    }
+                    if (retakeBtn) {
+                        retakeBtn.addEventListener('click', retakePhoto);
+                    }
+                    if (uploadBtn) {
+                        uploadBtn.addEventListener('click', uploadCapturedPhoto);
+                    }
+                    if (switchCameraBtn) {
+                        switchCameraBtn.addEventListener('click', switchCamera);
+                    }
+                }, 100);
+            }
+
+            async function startCamera(facingMode = null) {
                 const video = getElement('cameraPreview');
                 const statusMessage = getElement('statusMessage');
                 const capturedPhotoContainer = getElement('capturedPhotoContainer');
+                const switchCameraBtn = getElement('switchCameraBtn');
 
                 if (!video || !statusMessage) {
                     console.error('Camera elements not found');
                     return;
                 }
+
+                // Use provided facingMode or current one
+                const targetFacingMode = facingMode || currentFacingMode;
 
                 try {
                     // Stop any existing stream first
@@ -142,17 +180,47 @@
                         stopCamera();
                     }
 
-                    stream = await navigator.mediaDevices.getUserMedia({
-                        video: {
-                            facingMode: 'environment', // Back camera
-                            width: {
-                                ideal: 640
-                            },
-                            height: {
-                                ideal: 480
+                    // Try to get the requested camera
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia({
+                            video: {
+                                facingMode: targetFacingMode,
+                                width: {
+                                    ideal: 640
+                                },
+                                height: {
+                                    ideal: 480
+                                }
                             }
+                        });
+                        currentFacingMode = targetFacingMode;
+                    } catch (primaryError) {
+                        // If back camera fails, try front camera (for laptops)
+                        if (targetFacingMode === 'environment') {
+                            console.log('Back camera not available, trying front camera...');
+                            try {
+                                stream = await navigator.mediaDevices.getUserMedia({
+                                    video: {
+                                        facingMode: 'user', // Front camera
+                                        width: {
+                                            ideal: 640
+                                        },
+                                        height: {
+                                            ideal: 480
+                                        }
+                                    }
+                                });
+                                currentFacingMode = 'user';
+                                if (statusMessage) {
+                                    statusMessage.textContent = 'Using front camera (back camera not available)';
+                                }
+                            } catch (fallbackError) {
+                                throw primaryError; // Throw original error if both fail
+                            }
+                        } else {
+                            throw primaryError;
                         }
-                    });
+                    }
 
                     video.srcObject = stream;
                     if (video.parentElement) {
@@ -161,17 +229,42 @@
                     if (capturedPhotoContainer) {
                         capturedPhotoContainer.classList.add('hidden');
                     }
-                    statusMessage.textContent = 'Camera ready';
+
+                    // Show switch camera button if multiple cameras are available
+                    if (switchCameraBtn) {
+                        // Check if device has multiple cameras
+                        const devices = await navigator.mediaDevices.enumerateDevices();
+                        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                        if (videoDevices.length > 1) {
+                            switchCameraBtn.classList.remove('hidden');
+                        }
+                    }
+
+                    if (statusMessage && !statusMessage.textContent.includes('front camera')) {
+                        statusMessage.textContent = 'Camera ready';
+                    }
                     statusMessage.classList.remove('text-red-600');
                     statusMessage.classList.add('text-gray-600');
                 } catch (error) {
                     if (statusMessage) {
-                        statusMessage.textContent = 'Error accessing camera: ' + error.message;
+                        let errorMsg = 'Error accessing camera: ' + error.message;
+                        if (error.name === 'NotAllowedError') {
+                            errorMsg = 'Camera permission denied. Please allow camera access.';
+                        } else if (error.name === 'NotFoundError') {
+                            errorMsg = 'No camera found. Please connect a camera.';
+                        }
+                        statusMessage.textContent = errorMsg;
                         statusMessage.classList.remove('text-gray-600');
                         statusMessage.classList.add('text-red-600');
                     }
                     console.error('Camera error:', error);
                 }
+            }
+
+            function switchCamera() {
+                // Toggle between front and back camera
+                const newFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+                startCamera(newFacingMode);
             }
 
             function stopCamera() {
@@ -235,6 +328,7 @@
                 const captureBtn = getElement('captureBtn');
                 const retakeBtn = getElement('retakeBtn');
                 const uploadBtn = getElement('uploadBtn');
+                const switchCameraBtn = getElement('switchCameraBtn');
                 const statusMessage = getElement('statusMessage');
 
                 if (!capturedPhoto || !capturedPhotoContainer || !statusMessage) {
@@ -252,6 +346,7 @@
 
                 // Toggle buttons
                 if (captureBtn) captureBtn.classList.add('hidden');
+                if (switchCameraBtn) switchCameraBtn.classList.add('hidden');
                 if (retakeBtn) retakeBtn.classList.remove('hidden');
                 if (uploadBtn) uploadBtn.classList.remove('hidden');
 
@@ -290,12 +385,14 @@
                 const retakeBtn = getElement('retakeBtn');
                 const uploadBtn = getElement('uploadBtn');
                 const captureBtn = getElement('captureBtn');
+                const switchCameraBtn = getElement('switchCameraBtn');
                 const statusMessage = getElement('statusMessage');
 
                 if (capturedPhotoContainer) capturedPhotoContainer.classList.add('hidden');
                 if (retakeBtn) retakeBtn.classList.add('hidden');
                 if (uploadBtn) uploadBtn.classList.add('hidden');
                 if (captureBtn) captureBtn.classList.remove('hidden');
+                if (switchCameraBtn) switchCameraBtn.classList.add('hidden');
                 if (statusMessage) statusMessage.textContent = '';
                 capturedImageData = null;
             }
@@ -347,6 +444,12 @@
                         if (uploadBtn) uploadBtn.disabled = false;
                     });
             }
+
+            // Attach functions to window for global access (after all functions are defined)
+            window.capturePhoto = capturePhoto;
+            window.retakePhoto = retakePhoto;
+            window.uploadCapturedPhoto = uploadCapturedPhoto;
+            window.switchCamera = switchCamera;
         </script>
     @endpush
 
