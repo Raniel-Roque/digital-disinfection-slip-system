@@ -8,6 +8,8 @@ use App\Models\DisinfectionSlip;
 
 class LocationCards extends Component
 {
+    public $search = '';
+    
     protected $listeners = ['refreshLocationCards' => '$refresh'];
 
     public function render()
@@ -15,6 +17,9 @@ class LocationCards extends Component
         // Get all active locations with their attachments
         $locations = Location::where('disabled', false)
             ->with('attachment')
+            ->when($this->search, function ($query) {
+                $query->where('location_name', 'like', '%' . $this->search . '%');
+            })
             ->get();
     
         // Get all ongoing slip counts in a single query for better performance
