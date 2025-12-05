@@ -3,9 +3,15 @@
 namespace App\Livewire\Admin;
 
 use Livewire\Component;
-use App\Models\DisinfectionSlip;
+use App\Models\DisinfectionSlip as DisinfectionSlipModel;
+use App\Models\Attachment;
+use App\Models\Truck;
 use App\Models\Location;
+use App\Models\Driver;
 use Livewire\WithPagination;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class Trucks extends Component
 {
@@ -40,6 +46,25 @@ class Trucks extends Component
         2 => 'Completed',
     ];
 
+    // Details Modal
+    public $showDetailsModal = false;
+    public $showAttachmentModal = false;
+    public $showCancelConfirmation = false;
+    public $showDeleteConfirmation = false;
+    public $showRemoveAttachmentConfirmation = false;
+    public $selectedSlip = null;
+    public $attachmentFile = null;
+    public $isEditing = false;
+
+    // Editable fields
+    public $truck_id;
+    public $destination_id;
+    public $driver_id;
+    public $reason_for_disinfection;
+
+    // Original values for cancel
+    private $originalValues = [];
+
     public function mount()
     {
         // Initialize array filters
@@ -62,13 +87,13 @@ class Trucks extends Component
     // Computed property for drivers
     public function getDriversProperty()
     {
-        return \App\Models\Driver::orderBy('first_name')->get();
+        return Driver::orderBy('first_name')->get();
     }
 
     // Computed property for trucks
     public function getTrucksProperty()
     {
-        return \App\Models\Truck::orderBy('plate_number')->get();
+        return Truck::orderBy('plate_number')->get();
     }
 
     public function updatingSearch()
@@ -203,9 +228,257 @@ class Trucks extends Component
         $this->resetPage();
     }
 
+    // ==================== DETAILS MODAL METHODS ====================
+
+    public function openDetailsModal($id)
+    {
+        $this->selectedSlip = DisinfectionSlipModel::with([
+            'truck',
+            'location',
+            'destination',
+            'driver',
+            'attachment',
+            'hatcheryGuard',
+            'receivedGuard'
+        ])->find($id);
+
+        // Preload fields for editing
+        $this->truck_id                = $this->selectedSlip->truck_id;
+        $this->destination_id          = $this->selectedSlip->destination_id;
+        $this->driver_id               = $this->selectedSlip->driver_id;
+        $this->reason_for_disinfection = $this->selectedSlip->reason_for_disinfection;
+
+        $this->isEditing = false;
+        $this->showDetailsModal = true;
+    }
+
+    public function canEdit()
+    {
+        if (!$this->selectedSlip) {
+            return false;
+        }
+
+        // Admin can edit if not completed
+        return $this->selectedSlip->status != 2;
+    }
+
+    public function canDelete()
+    {
+        if (!$this->selectedSlip) {
+            return false;
+        }
+
+        // Admin can delete if not completed
+        return $this->selectedSlip->status != 2;
+    }
+
+    public function canRemoveAttachment()
+    {
+        if (!$this->selectedSlip) {
+            return false;
+        }
+
+        // Admin can only REMOVE attachment (not add), and only if not completed
+        return $this->selectedSlip->attachment_id !== null 
+            && $this->selectedSlip->status != 2;
+    }
+
+    public function editDetailsModal()
+    {
+        if (!$this->canEdit()) {
+            $this->dispatch('toast', message: 'Cannot edit a completed slip.', type: 'error');
+            return;
+        }
+
+        $this->isEditing = true;
+        
+        // Store original values before editing
+        $this->originalValues = [
+            'truck_id'                => $this->truck_id,
+            'destination_id'          => $this->destination_id,
+            'driver_id'               => $this->driver_id,
+            'reason_for_disinfection' => $this->reason_for_disinfection,
+        ];
+    }
+
+    public function confirmCancelEdit()
+    {
+        $this->showCancelConfirmation = true;
+    }
+
+    public function cancelEdit()
+    {
+        // Restore original values
+        $this->truck_id                = $this->originalValues['truck_id'] ?? $this->selectedSlip->truck_id;
+        $this->destination_id          = $this->originalValues['destination_id'] ?? $this->selectedSlip->destination_id;
+        $this->driver_id               = $this->originalValues['driver_id'] ?? $this->selectedSlip->driver_id;
+        $this->reason_for_disinfection = $this->originalValues['reason_for_disinfection'] ?? $this->selectedSlip->reason_for_disinfection;
+        
+        // Reset states
+        $this->isEditing = false;
+        $this->showCancelConfirmation = false;
+        $this->originalValues = [];
+    }
+
+    public function confirmDeleteSlip()
+    {
+        $this->showDeleteConfirmation = true;
+    }
+
+    public function save()
+    {
+        if (!$this->canEdit()) {
+            $this->dispatch('toast', message: 'Cannot edit a completed slip.', type: 'error');
+            return;
+        }
+
+        $this->validate([
+            'truck_id'                => 'required|exists:trucks,id',
+            'destination_id'          => 'required|exists:locations,id',
+            'driver_id'               => 'required|exists:drivers,id',
+            'reason_for_disinfection' => 'required|string|max:500',
+        ]);
+
+        $this->selectedSlip->update([
+            'truck_id'                => $this->truck_id,
+            'destination_id'          => $this->destination_id,
+            'driver_id'               => $this->driver_id,
+            'reason_for_disinfection' => $this->reason_for_disinfection,
+        ]);
+
+        // Refresh the slip with relationships
+        $this->selectedSlip->refresh();
+        $this->selectedSlip->load([
+            'truck',
+            'location',
+            'destination',
+            'driver',
+            'attachment',
+            'hatcheryGuard',
+            'receivedGuard'
+        ]);
+
+        $this->isEditing = false;
+        $this->originalValues = [];
+        $this->dispatch('toast', message: 'Slip updated successfully!', type: 'success');
+    }
+
+    public function deleteSlip()
+    {
+        if (!$this->canDelete()) {
+            $this->dispatch('toast', message: 'Cannot delete a completed slip.', type: 'error');
+            return;
+        }
+
+        $slipId = $this->selectedSlip->slip_id;
+        
+        // Soft delete the slip
+        $this->selectedSlip->delete();
+        
+        // Close all modals
+        $this->showDeleteConfirmation = false;
+        $this->showDetailsModal = false;
+        
+        // Clear selected slip
+        $this->selectedSlip = null;
+        
+        // Show success message
+        $this->dispatch('toast', message: "Slip #{$slipId} deleted successfully!", type: 'success');
+        
+        // Reset page to refresh the list
+        $this->resetPage();
+    }
+
+    public function closeDetailsModal()
+    {
+        $this->isEditing = false;
+        $this->showCancelConfirmation = false;
+        $this->showDeleteConfirmation = false;
+        $this->showRemoveAttachmentConfirmation = false;
+        $this->originalValues = [];
+        $this->showDetailsModal = false;
+        $this->js('setTimeout(() => $wire.clearSelectedSlip(), 300)');
+    }
+
+    public function clearSelectedSlip()
+    {
+        $this->selectedSlip = null;
+    }
+
+    public function openAttachmentModal($file)
+    {
+        $this->attachmentFile = $file;
+        $this->showAttachmentModal = true;
+    }
+
+    public function closeAttachmentModal()
+    {
+        $this->showAttachmentModal = false;
+        $this->js('setTimeout(() => $wire.clearAttachment(), 300)');
+    }
+
+    public function clearAttachment()
+    {
+        $this->attachmentFile = null;
+    }
+
+    public function confirmRemoveAttachment()
+    {
+        $this->showRemoveAttachmentConfirmation = true;
+    }
+
+    public function removeAttachment()
+    {
+        try {
+            if (!$this->canRemoveAttachment()) {
+                $this->dispatch('toast', message: 'Cannot remove attachment from a completed slip.', type: 'error');
+                return;
+            }
+
+            // Check if attachment exists
+            if (!$this->selectedSlip->attachment_id) {
+                $this->dispatch('toast', message: 'No attachment found to remove.', type: 'error');
+                return;
+            }
+
+            // Get the attachment record
+            $attachment = Attachment::find($this->selectedSlip->attachment_id);
+
+            if ($attachment) {
+                // Delete the physical file from storage
+                if (Storage::disk('public')->exists($attachment->file_path)) {
+                    Storage::disk('public')->delete($attachment->file_path);
+                }
+
+                // Remove attachment reference from slip
+                $this->selectedSlip->update([
+                    'attachment_id' => null,
+                ]);
+
+                // Hard delete the attachment record
+                $attachment->forceDelete();
+
+                // Refresh the slip
+                $this->selectedSlip->refresh();
+                $this->selectedSlip->load('attachment');
+
+                // Close attachment modal and confirmation
+                $this->showAttachmentModal = false;
+                $this->showRemoveAttachmentConfirmation = false;
+                $this->attachmentFile = null;
+
+                $this->dispatch('toast', message: 'Attachment removed successfully!', type: 'success');
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Attachment removal error: ' . $e->getMessage());
+            $this->dispatch('toast', message: 'Failed to remove attachment. Please try again.', type: 'error');
+        }
+    }
+
     public function render()
     {
-        $slips = DisinfectionSlip::with(['truck', 'location', 'destination', 'driver'])
+        $slips = DisinfectionSlipModel::with(['truck', 'location', 'destination', 'driver'])
             // Search
             ->when($this->search, function($query) {
                 $query->where('slip_id', 'like', '%' . $this->search . '%')

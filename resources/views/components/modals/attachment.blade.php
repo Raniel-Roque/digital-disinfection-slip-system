@@ -1,6 +1,6 @@
 @props(['show', 'file', 'selectedSlip' => null])
 
-<x-modals.modal-template :show="$show" title="Attachment Preview" max-width="max-w-4xl">
+<x-modals.modal-template :show="$show" title="Attachment Preview" max-width="max-w-4xl" class="bg-black/80">
 
     @php
         $fileUrl = Storage::url($file);

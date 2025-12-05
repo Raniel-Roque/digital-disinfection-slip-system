@@ -295,8 +295,8 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                    <button
-                                        class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    <button wire:click="openDetailsModal({{ $slip->id }})"
+                                        class="hover:cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                         View Details
                                     </button>
                                 </td>
@@ -344,9 +344,12 @@
         {{-- Filter Modal --}}
         <x-modals.filter-modal>
             <x-slot name="filters">
-                <x-modals.filter-admin-body class="max-w-3xl" :availableStatuses="$availableStatuses" :locations="$locations" :drivers="$drivers"
-                    :trucks="$trucks" />
+                <x-modals.filter-admin-body ... />
             </x-slot>
         </x-modals.filter-modal>
+
+        {{-- Admin Slip Details Modal --}}
+        @include('livewire.admin.slip-details-modal')
+
     </div>
 </div>
