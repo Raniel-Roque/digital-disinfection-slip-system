@@ -82,6 +82,20 @@
                 } else {
                     this.localSelection.push(val);
                 }
+            },
+            handleFocusIn(event) {
+                // Close if focus moves to another input, dropdown, or form element
+                const target = event.target;
+                const container = $refs.dropdownContainer;
+                if (this.open && !container.contains(target)) {
+                    // Check if target is an input, select, textarea, or button (another dropdown)
+                    if (target.tagName === 'INPUT' || 
+                        target.tagName === 'SELECT' || 
+                        target.tagName === 'TEXTAREA' || 
+                        (target.tagName === 'BUTTON' && target.closest('[x-data]') && !container.contains(target.closest('[x-data]')))) {
+                        this.closeDropdown();
+                    }
+                }
             }
         }"
     @else
@@ -106,6 +120,20 @@
             closeDropdown() {
                 this.open = false;
                 this.searchTerm = '';
+            },
+            handleFocusIn(event) {
+                // Close if focus moves to another input, dropdown, or form element
+                const target = event.target;
+                const container = $refs.dropdownContainer;
+                if (this.open && !container.contains(target)) {
+                    // Check if target is an input, select, textarea, or button (another dropdown)
+                    if (target.tagName === 'INPUT' || 
+                        target.tagName === 'SELECT' || 
+                        target.tagName === 'TEXTAREA' || 
+                        (target.tagName === 'BUTTON' && target.closest('[x-data]') && !container.contains(target.closest('[x-data]')))) {
+                        this.closeDropdown();
+                    }
+                }
             }
         }"
     @endif
@@ -114,20 +142,7 @@
         @sync-selections.window="syncToLivewire()"
         @endif
         @click.outside="closeDropdown()"
-        @focusin.window="
-            // Close if focus moves to another input, dropdown, or form element
-            const target = $event.target;
-            const container = $refs.dropdownContainer;
-            if (open && !container.contains(target)) {
-                // Check if target is an input, select, textarea, or button (another dropdown)
-                if (target.tagName === 'INPUT' || 
-                    target.tagName === 'SELECT' || 
-                    target.tagName === 'TEXTAREA' || 
-                    (target.tagName === 'BUTTON' && target.closest('[x-data]') && !container.contains(target.closest('[x-data]')))) {
-                    closeDropdown();
-                }
-            }
-        ">
+        @focusin.window="handleFocusIn($event)">
         <!-- Dropdown Button -->
         <button type="button" 
             x-on:click="open = !open"

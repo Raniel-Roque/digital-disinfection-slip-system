@@ -22,7 +22,28 @@ class Trucks extends Component
     public $showFilters = false;
     
     // Filter fields
-    public $filterStatus = '';
+    public $filterStatus = null; // null = All Statuses, 0 = Ongoing, 1 = Disinfecting, 2 = Completed
+    
+    // Ensure filterStatus is properly typed when updated
+    public function updatedFilterStatus($value)
+    {
+        // Handle null, empty string, or numeric values (0, 1, 2 matching backend)
+        // null/empty = All Statuses, 0 = Ongoing, 1 = Disinfecting, 2 = Completed
+        // The select will send values as strings, so we convert to int
+        if ($value === null || $value === '' || $value === false) {
+            $this->filterStatus = null;
+        } elseif (is_numeric($value)) {
+            $intValue = (int)$value;
+            if ($intValue >= 0 && $intValue <= 2) {
+                // Store as integer (0, 1, or 2)
+                $this->filterStatus = $intValue;
+            } else {
+                $this->filterStatus = null;
+            }
+        } else {
+            $this->filterStatus = null;
+        }
+    }
     public $filterOrigin = [];
     public $filterDestination = [];
     public $filterDriver = [];
@@ -37,7 +58,7 @@ class Trucks extends Component
     public $searchFilterDestination = '';
     
     // Applied filters (stored separately)
-    public $appliedStatus = '';
+    public $appliedStatus = null; // null = All Statuses, 0 = Ongoing, 1 = Disinfecting, 2 = Completed
     public $appliedOrigin = [];
     public $appliedDestination = [];
     public $appliedDriver = [];
@@ -49,7 +70,7 @@ class Trucks extends Component
     
     public $availableStatuses = [
         0 => 'Ongoing',
-        1 => 'Disinfected',
+        1 => 'Disinfecting',
         2 => 'Completed',
     ];
 
@@ -478,7 +499,11 @@ class Trucks extends Component
 
     public function applyFilters()
     {
-        $this->appliedStatus = $this->filterStatus;
+        // Use filterStatus directly - it's already an integer (0, 1, 2) or null
+        // null = All Statuses (no filter), 0 = Ongoing, 1 = Disinfecting, 2 = Completed
+        $this->appliedStatus = $this->filterStatus; // Already an int or null
+        
+        $this->updateFiltersActive();
         $this->appliedOrigin = $this->filterOrigin;
         $this->appliedDestination = $this->filterDestination;
         $this->appliedDriver = $this->filterDriver;
@@ -497,8 +522,8 @@ class Trucks extends Component
         // Clear both the applied and filter values
         switch($filterName) {
             case 'status':
-                $this->appliedStatus = '';
-                $this->filterStatus = '';
+                $this->appliedStatus = null;
+                $this->filterStatus = null;
                 break;
             case 'origin':
                 $this->appliedOrigin = [];
@@ -566,8 +591,9 @@ class Trucks extends Component
     public function updateFiltersActive()
     {
         // Check if any filters are actually applied
+        // Important: 0 is a valid status (Ongoing), so check for null explicitly
         $this->filtersActive = 
-            $this->appliedStatus !== '' ||
+            ($this->appliedStatus !== null) ||
             !empty($this->appliedOrigin) ||
             !empty($this->appliedDestination) ||
             !empty($this->appliedDriver) ||
@@ -583,7 +609,7 @@ class Trucks extends Component
 
     public function clearFilters()
     {
-        $this->filterStatus = '';
+        $this->filterStatus = null;
         $this->filterOrigin = [];
         $this->filterDestination = [];
         $this->filterDriver = [];
@@ -597,7 +623,7 @@ class Trucks extends Component
         $this->searchFilterOrigin = '';
         $this->searchFilterDestination = '';
         
-        $this->appliedStatus = '';
+        $this->appliedStatus = null;
         $this->appliedOrigin = [];
         $this->appliedDestination = [];
         $this->appliedDriver = [];
@@ -1010,7 +1036,9 @@ class Trucks extends Component
                     });
             })
             // Status filter
-            ->when($this->filtersActive && $this->appliedStatus !== '', function($query) {
+            // Important: Check for null explicitly, as 0 is a valid status (Ongoing)
+            ->when($this->filtersActive && $this->appliedStatus !== null, function($query) {
+                // appliedStatus is already an integer (0, 1, or 2)
                 $query->where('status', $this->appliedStatus);
             })
             // Origin filter

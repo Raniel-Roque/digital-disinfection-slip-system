@@ -37,7 +37,7 @@ class DisinfectionSlip extends Component
     public $destination_id;
     public $driver_id;
     public $reason_for_disinfection;
-    
+
     // Search properties for dropdowns
     public $searchTruck = '';
     public $searchDestination = '';

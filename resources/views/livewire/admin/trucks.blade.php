@@ -61,7 +61,7 @@
                 <div class="mt-4 flex flex-wrap gap-2">
                     <span class="text-sm text-gray-600">Active filters:</span>
 
-                    @if ($appliedStatus !== '')
+                    @if ($appliedStatus !== null && $appliedStatus !== '')
                         <span
                             class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             Status: {{ $availableStatuses[$appliedStatus] }}
@@ -288,7 +288,7 @@
                                     @elseif($slip->status == 1)
                                         <span
                                             class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                            Disinfected
+                                            Disinfecting
                                         </span>
                                     @elseif($slip->status == 2)
                                         <div>
@@ -355,7 +355,7 @@
         <x-modals.filter-modal>
             <x-slot name="filters">
                 <x-modals.filter-admin-body :availableStatuses="$availableStatuses" :locations="$locations" :drivers="$drivers" :trucks="$trucks"
-                    :filterTruckOptions="$filterTruckOptions" :filterDriverOptions="$filterDriverOptions" :filterOriginOptions="$filterOriginOptions" :filterDestinationOptions="$filterDestinationOptions" />
+                    :filterTruckOptions="$filterTruckOptions" :filterDriverOptions="$filterDriverOptions" :filterOriginOptions="$filterOriginOptions" :filterDestinationOptions="$filterDestinationOptions" :filterStatus="$filterStatus" />
             </x-slot>
         </x-modals.filter-modal>
 
