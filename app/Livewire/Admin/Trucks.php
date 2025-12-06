@@ -30,6 +30,12 @@ class Trucks extends Component
     public $filterCreatedFrom = '';
     public $filterCreatedTo = '';
     
+    // Search properties for filter dropdowns
+    public $searchFilterPlateNumber = '';
+    public $searchFilterDriver = '';
+    public $searchFilterOrigin = '';
+    public $searchFilterDestination = '';
+    
     // Applied filters (stored separately)
     public $appliedStatus = '';
     public $appliedOrigin = [];
@@ -71,6 +77,22 @@ class Trucks extends Component
     public $showCancelCreateConfirmation = false;
     public $location_id; // Origin
     public $hatchery_guard_id;
+    
+    // Search properties for dropdowns (create modal)
+    public $searchOrigin = '';
+    public $searchDestination = '';
+    public $searchTruck = '';
+    public $searchDriver = '';
+    public $searchHatcheryGuard = '';
+    
+    // Search properties for details modal
+    public $searchDetailsTruck = '';
+    public $searchDetailsDestination = '';
+    public $searchDetailsDriver = '';
+    
+    // Store filtered options as properties for reactivity
+    public $availableOriginsOptions = [];
+    public $availableDestinationsOptions = [];
 
     public function mount()
     {
@@ -83,6 +105,9 @@ class Trucks extends Component
         $this->appliedDestination = [];
         $this->appliedDriver = [];
         $this->appliedPlateNumber = [];
+        
+        // Initialize filtered options
+        $this->updateFilteredOptions();
     }
 
     // Computed property for locations
@@ -101,6 +126,73 @@ class Trucks extends Component
     public function getTrucksProperty()
     {
         return Truck::orderBy('plate_number')->get();
+    }
+    
+    // Computed properties for filtered filter options
+    public function getFilterTruckOptionsProperty()
+    {
+        $trucks = Truck::orderBy('plate_number')->get();
+        $options = $trucks->pluck('plate_number', 'id');
+        
+        // Apply search filter
+        if (!empty($this->searchFilterPlateNumber)) {
+            $searchTerm = strtolower($this->searchFilterPlateNumber);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+        }
+        
+        return $options->toArray();
+    }
+    
+    public function getFilterDriverOptionsProperty()
+    {
+        $drivers = Driver::orderBy('first_name')->get();
+        $options = $drivers->mapWithKeys(function ($driver) {
+            return [$driver->id => $driver->first_name . ' ' . $driver->last_name];
+        });
+        
+        // Apply search filter
+        if (!empty($this->searchFilterDriver)) {
+            $searchTerm = strtolower($this->searchFilterDriver);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+        }
+        
+        return $options->toArray();
+    }
+    
+    public function getFilterOriginOptionsProperty()
+    {
+        $locations = Location::orderBy('location_name')->get();
+        $options = $locations->pluck('location_name', 'id');
+        
+        // Apply search filter
+        if (!empty($this->searchFilterOrigin)) {
+            $searchTerm = strtolower($this->searchFilterOrigin);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+        }
+        
+        return $options->toArray();
+    }
+    
+    public function getFilterDestinationOptionsProperty()
+    {
+        $locations = Location::orderBy('location_name')->get();
+        $options = $locations->pluck('location_name', 'id');
+        
+        // Apply search filter
+        if (!empty($this->searchFilterDestination)) {
+            $searchTerm = strtolower($this->searchFilterDestination);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+        }
+        
+        return $options->toArray();
     }
 
     // Computed property for guards (users)
@@ -122,10 +214,11 @@ class Trucks extends Component
         
         if ($this->destination_id) {
             return $locations->where('id', '!=', $this->destination_id)
-                ->pluck('location_name', 'id');
+                ->pluck('location_name', 'id')
+                ->toArray();
         }
         
-        return $locations->pluck('location_name', 'id');
+        return $locations->pluck('location_name', 'id')->toArray();
     }
 
     // Computed property for available destinations (excludes selected origin)
@@ -135,10 +228,159 @@ class Trucks extends Component
         
         if ($this->location_id) {
             return $locations->where('id', '!=', $this->location_id)
-                ->pluck('location_name', 'id');
+                ->pluck('location_name', 'id')
+                ->toArray();
         }
         
-        return $locations->pluck('location_name', 'id');
+        return $locations->pluck('location_name', 'id')->toArray();
+    }
+    
+    // Computed properties for create modal filtered options
+    public function getCreateTruckOptionsProperty()
+    {
+        $trucks = Truck::orderBy('plate_number')->get();
+        $options = $trucks->pluck('plate_number', 'id');
+        
+        if (!empty($this->searchTruck)) {
+            $searchTerm = strtolower($this->searchTruck);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+        }
+        
+        return $options->toArray();
+    }
+    
+    public function getCreateDriverOptionsProperty()
+    {
+        $drivers = Driver::orderBy('first_name')->get();
+        $options = $drivers->pluck('full_name', 'id');
+        
+        if (!empty($this->searchDriver)) {
+            $searchTerm = strtolower($this->searchDriver);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+        }
+        
+        return $options->toArray();
+    }
+    
+    public function getCreateGuardOptionsProperty()
+    {
+        $guards = User::orderBy('first_name')
+            ->orderBy('last_name')
+            ->get()
+            ->mapWithKeys(function ($user) {
+                $name = trim("{$user->first_name} {$user->middle_name} {$user->last_name}");
+                return [$user->id => $name];
+            });
+        
+        if (!empty($this->searchHatcheryGuard)) {
+            $searchTerm = strtolower($this->searchHatcheryGuard);
+            $guards = $guards->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+        }
+        
+        return $guards->toArray();
+    }
+    
+    // Computed properties for details modal filtered options
+    public function getDetailsTruckOptionsProperty()
+    {
+        $trucks = Truck::orderBy('plate_number')->get();
+        $options = $trucks->pluck('plate_number', 'id');
+        
+        if (!empty($this->searchDetailsTruck)) {
+            $searchTerm = strtolower($this->searchDetailsTruck);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+        }
+        
+        return $options->toArray();
+    }
+    
+    public function getDetailsLocationOptionsProperty()
+    {
+        $locations = Location::orderBy('location_name')->get();
+        $options = $locations->pluck('location_name', 'id');
+        
+        if (!empty($this->searchDetailsDestination)) {
+            $searchTerm = strtolower($this->searchDetailsDestination);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+        }
+        
+        return $options->toArray();
+    }
+    
+    public function getDetailsDriverOptionsProperty()
+    {
+        $drivers = Driver::orderBy('first_name')->get();
+        $options = $drivers->pluck('full_name', 'id');
+        
+        if (!empty($this->searchDetailsDriver)) {
+            $searchTerm = strtolower($this->searchDetailsDriver);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+        }
+        
+        return $options->toArray();
+    }
+    
+    // Update filtered options when form fields change
+    private function updateFilteredOptions()
+    {
+        $locations = Location::orderBy('location_name')->get();
+        
+        // Update origins (exclude selected destination, filter by search)
+        $originOptions = $locations;
+        if ($this->destination_id) {
+            $originOptions = $originOptions->where('id', '!=', $this->destination_id);
+        }
+        $originOptions = $originOptions->pluck('location_name', 'id');
+        
+        // Apply search filter
+        if (!empty($this->searchOrigin)) {
+            $searchTerm = strtolower($this->searchOrigin);
+            $originOptions = $originOptions->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+        }
+        
+        $this->availableOriginsOptions = $originOptions->toArray();
+        
+        // Update destinations (exclude selected origin, filter by search)
+        $destinationOptions = $locations;
+        if ($this->location_id) {
+            $destinationOptions = $destinationOptions->where('id', '!=', $this->location_id);
+        }
+        $destinationOptions = $destinationOptions->pluck('location_name', 'id');
+        
+        // Apply search filter
+        if (!empty($this->searchDestination)) {
+            $searchTerm = strtolower($this->searchDestination);
+            $destinationOptions = $destinationOptions->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+        }
+        
+        $this->availableDestinationsOptions = $destinationOptions->toArray();
+    }
+    
+    // Watch for search changes
+    public function updatedSearchOrigin()
+    {
+        $this->updateFilteredOptions();
+    }
+    
+    public function updatedSearchDestination()
+    {
+        $this->updateFilteredOptions();
     }
 
     public function updatingSearch()
@@ -261,6 +503,12 @@ class Trucks extends Component
         $this->filterCreatedFrom = null;
         $this->filterCreatedTo = null;
         
+        // Clear search properties
+        $this->searchFilterPlateNumber = '';
+        $this->searchFilterDriver = '';
+        $this->searchFilterOrigin = '';
+        $this->searchFilterDestination = '';
+        
         $this->appliedStatus = '';
         $this->appliedOrigin = [];
         $this->appliedDestination = [];
@@ -359,6 +607,11 @@ class Trucks extends Component
         $this->driver_id               = $this->originalValues['driver_id'] ?? $this->selectedSlip->driver_id;
         $this->reason_for_disinfection = $this->originalValues['reason_for_disinfection'] ?? $this->selectedSlip->reason_for_disinfection;
         
+        // Reset search properties
+        $this->searchDetailsTruck = '';
+        $this->searchDetailsDestination = '';
+        $this->searchDetailsDriver = '';
+        
         // Reset states
         $this->isEditing = false;
         $this->showCancelConfirmation = false;
@@ -455,6 +708,7 @@ class Trucks extends Component
     public function openCreateModal()
     {
         $this->resetCreateForm();
+        $this->updateFilteredOptions();
         $this->showCreateModal = true;
     }
 
@@ -484,6 +738,12 @@ class Trucks extends Component
         $this->driver_id = null;
         $this->hatchery_guard_id = null;
         $this->reason_for_disinfection = null;
+        $this->searchOrigin = '';
+        $this->searchDestination = '';
+        $this->searchTruck = '';
+        $this->searchDriver = '';
+        $this->searchHatcheryGuard = '';
+        $this->updateFilteredOptions();
         $this->resetErrorBag();
     }
 
@@ -549,6 +809,8 @@ class Trucks extends Component
         if ($this->destination_id == $this->location_id) {
             $this->destination_id = null;
         }
+        // Update filtered options
+        $this->updateFilteredOptions();
     }
 
     public function updatedDestinationId()
@@ -557,6 +819,8 @@ class Trucks extends Component
         if ($this->location_id == $this->destination_id) {
             $this->location_id = null;
         }
+        // Update filtered options
+        $this->updateFilteredOptions();
     }
 
     public function openAttachmentModal($file)
@@ -686,9 +950,19 @@ class Trucks extends Component
             'drivers' => $this->drivers,
             'trucks' => $this->trucks,
             'guards' => $this->guards,
-            'availableOrigins' => $this->availableOrigins,
-            'availableDestinations' => $this->availableDestinations,
+            'availableOriginsOptions' => $this->availableOriginsOptions,
+            'availableDestinationsOptions' => $this->availableDestinationsOptions,
             'availableStatuses' => $this->availableStatuses,
+            'filterTruckOptions' => $this->filterTruckOptions,
+            'filterDriverOptions' => $this->filterDriverOptions,
+            'filterOriginOptions' => $this->filterOriginOptions,
+            'filterDestinationOptions' => $this->filterDestinationOptions,
+            'createTruckOptions' => $this->createTruckOptions,
+            'createDriverOptions' => $this->createDriverOptions,
+            'createGuardOptions' => $this->createGuardOptions,
+            'detailsTruckOptions' => $this->detailsTruckOptions,
+            'detailsLocationOptions' => $this->detailsLocationOptions,
+            'detailsDriverOptions' => $this->detailsDriverOptions,
         ]);
     }
 }

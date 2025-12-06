@@ -354,7 +354,8 @@
         {{-- Filter Modal --}}
         <x-modals.filter-modal>
             <x-slot name="filters">
-                <x-modals.filter-admin-body :availableStatuses="$availableStatuses" :locations="$locations" :drivers="$drivers" :trucks="$trucks" />
+                <x-modals.filter-admin-body :availableStatuses="$availableStatuses" :locations="$locations" :drivers="$drivers" :trucks="$trucks"
+                    :filterTruckOptions="$filterTruckOptions" :filterDriverOptions="$filterDriverOptions" :filterOriginOptions="$filterOriginOptions" :filterDestinationOptions="$filterDestinationOptions" />
             </x-slot>
         </x-modals.filter-modal>
 
@@ -363,7 +364,7 @@
 
         {{-- Admin Create Modal --}}
         <x-modals.admin-slip-creation-modal :trucks="$trucks" :locations="$locations" :drivers="$drivers" :guards="$guards"
-            :available-origins="$availableOrigins" :available-destinations="$availableDestinations" />
+            :available-origins-options="$availableOriginsOptions" :available-destinations-options="$availableDestinationsOptions" :create-truck-options="$createTruckOptions" :create-driver-options="$createDriverOptions" :create-guard-options="$createGuardOptions" />
 
     </div>
 </div>

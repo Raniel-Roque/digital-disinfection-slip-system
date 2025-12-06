@@ -43,6 +43,11 @@ class TruckList extends Component
     public $destination_id;
     public $driver_id;
     public $reason_for_disinfection;
+    
+    // Search properties for dropdowns
+    public $searchTruck = '';
+    public $searchDestination = '';
+    public $searchDriver = '';
 
     protected $listeners = ['slip-created' => '$refresh'];
 
@@ -74,6 +79,53 @@ class TruckList extends Component
     public function getDriversProperty()
     {
         return Driver::all();
+    }
+    
+    // Computed properties for filtered options with search
+    public function getTruckOptionsProperty()
+    {
+        $trucks = Truck::orderBy('plate_number')->get();
+        $options = $trucks->pluck('plate_number', 'id');
+        
+        if (!empty($this->searchTruck)) {
+            $searchTerm = strtolower($this->searchTruck);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+        }
+        
+        return $options->toArray();
+    }
+    
+    public function getLocationOptionsProperty()
+    {
+        $currentLocationId = Session::get('location_id');
+        $locations = Location::where('id', '!=', $currentLocationId)->orderBy('location_name')->get();
+        $options = $locations->pluck('location_name', 'id');
+        
+        if (!empty($this->searchDestination)) {
+            $searchTerm = strtolower($this->searchDestination);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+        }
+        
+        return $options->toArray();
+    }
+    
+    public function getDriverOptionsProperty()
+    {
+        $drivers = Driver::orderBy('first_name')->get();
+        $options = $drivers->pluck('full_name', 'id');
+        
+        if (!empty($this->searchDriver)) {
+            $searchTerm = strtolower($this->searchDriver);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+        }
+        
+        return $options->toArray();
     }
 
     public function updatedSearch()
@@ -256,6 +308,9 @@ class TruckList extends Component
             'trucks' => $this->trucks,
             'locations' => $this->locations,
             'drivers' => $this->drivers,
+            'truckOptions' => $this->truckOptions,
+            'locationOptions' => $this->locationOptions,
+            'driverOptions' => $this->driverOptions,
         ]);
     }
 }

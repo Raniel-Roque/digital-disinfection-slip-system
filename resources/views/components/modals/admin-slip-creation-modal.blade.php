@@ -3,8 +3,11 @@
     'locations' => collect(),
     'drivers' => collect(),
     'guards' => collect(),
-    'availableOrigins' => collect(),
-    'availableDestinations' => collect(),
+    'availableOriginsOptions' => [],
+    'availableDestinationsOptions' => [],
+    'createTruckOptions' => [],
+    'createDriverOptions' => [],
+    'createGuardOptions' => [],
 ])
 
 {{-- ADMIN CREATE MODAL --}}
@@ -14,8 +17,8 @@
     <div class="grid grid-cols-3 mb-4">
         <div class="font-semibold text-gray-700">Plate No:<span class="text-red-500">*</span></div>
         <div class="col-span-2">
-            <x-forms.searchable-dropdown wire-model="truck_id" :options="$trucks->pluck('plate_number', 'id')" placeholder="Select plate number..."
-                search-placeholder="Search plates..." />
+            <x-forms.searchable-dropdown wire-model="truck_id" :options="$createTruckOptions" search-property="searchTruck"
+                placeholder="Select plate number..." search-placeholder="Search plates..." />
             @error('truck_id')
                 <span class="text-red-500 text-xs">{{ $message }}</span>
             @enderror
@@ -25,9 +28,9 @@
     {{-- Origin --}}
     <div class="grid grid-cols-3 mb-4">
         <div class="font-semibold text-gray-700">Origin:<span class="text-red-500">*</span></div>
-        <div class="col-span-2">
-            <x-forms.searchable-dropdown wire-model="location_id" :options="$availableOrigins" placeholder="Select origin..."
-                search-placeholder="Search locations..." />
+        <div class="col-span-2" wire:key="origin-wrapper-{{ md5(json_encode($availableOriginsOptions)) }}">
+            <x-forms.searchable-dropdown wire-model="location_id" :options="$availableOriginsOptions" search-property="searchOrigin"
+                placeholder="Select origin..." search-placeholder="Search locations..." />
             @error('location_id')
                 <span class="text-red-500 text-xs">{{ $message }}</span>
             @enderror
@@ -37,9 +40,10 @@
     {{-- Destination --}}
     <div class="grid grid-cols-3 mb-4">
         <div class="font-semibold text-gray-700">Destination:<span class="text-red-500">*</span></div>
-        <div class="col-span-2">
-            <x-forms.searchable-dropdown wire-model="destination_id" :options="$availableDestinations"
-                placeholder="Select destination..." search-placeholder="Search locations..." />
+        <div class="col-span-2" wire:key="destination-wrapper-{{ md5(json_encode($availableDestinationsOptions)) }}">
+            <x-forms.searchable-dropdown wire-model="destination_id" :options="$availableDestinationsOptions"
+                search-property="searchDestination" placeholder="Select destination..."
+                search-placeholder="Search locations..." />
             @error('destination_id')
                 <span class="text-red-500 text-xs">{{ $message }}</span>
             @enderror
@@ -50,8 +54,8 @@
     <div class="grid grid-cols-3 mb-4">
         <div class="font-semibold text-gray-700">Driver Name:<span class="text-red-500">*</span></div>
         <div class="col-span-2">
-            <x-forms.searchable-dropdown wire-model="driver_id" :options="$drivers->pluck('full_name', 'id')" placeholder="Select driver..."
-                search-placeholder="Search drivers..." />
+            <x-forms.searchable-dropdown wire-model="driver_id" :options="$createDriverOptions" search-property="searchDriver"
+                placeholder="Select driver..." search-placeholder="Search drivers..." />
             @error('driver_id')
                 <span class="text-red-500 text-xs">{{ $message }}</span>
             @enderror
@@ -62,8 +66,9 @@
     <div class="grid grid-cols-3 mb-4">
         <div class="font-semibold text-gray-700">Hatchery Guard:<span class="text-red-500">*</span></div>
         <div class="col-span-2">
-            <x-forms.searchable-dropdown wire-model="hatchery_guard_id" :options="$guards"
-                placeholder="Select hatchery guard..." search-placeholder="Search guards..." />
+            <x-forms.searchable-dropdown wire-model="hatchery_guard_id" :options="$createGuardOptions"
+                search-property="searchHatcheryGuard" placeholder="Select hatchery guard..."
+                search-placeholder="Search guards..." />
             @error('hatchery_guard_id')
                 <span class="text-red-500 text-xs">{{ $message }}</span>
             @enderror

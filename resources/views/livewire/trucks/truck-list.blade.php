@@ -61,7 +61,8 @@
     </x-modals.filter-modal>
 
     {{-- CREATE MODAL --}}
-    <x-modals.slip-creation-modal show="showCreateModal" :trucks="$trucks" :locations="$locations" :drivers="$drivers" />
+    <x-modals.slip-creation-modal show="showCreateModal" :trucks="$trucks" :locations="$locations" :drivers="$drivers"
+        :truckOptions="$truckOptions" :locationOptions="$locationOptions" :driverOptions="$driverOptions" />
 
     {{-- Disinfection Slip Details Modal --}}
     <livewire:trucks.disinfection-slip />

@@ -58,8 +58,9 @@
                 <div class="font-semibold text-gray-700">Plate No:</div>
                 <div class="col-span-2 text-gray-900">
                     @if ($isEditing)
-                        <x-forms.searchable-dropdown wire-model="truck_id" :options="$this->trucks->pluck('plate_number', 'id')"
-                            placeholder="Select plate number..." search-placeholder="Search plates..." />
+                        <x-forms.searchable-dropdown wire-model="truck_id" :options="$this->truckOptions"
+                            search-property="searchTruck" placeholder="Select plate number..."
+                            search-placeholder="Search plates..." />
                     @else
                         {{ $selectedSlip->truck->plate_number ?? 'N/A' }}
                     @endif
@@ -71,8 +72,9 @@
                 <div class="font-semibold text-gray-700">Destination:</div>
                 <div class="col-span-2 text-gray-900">
                     @if ($isEditing)
-                        <x-forms.searchable-dropdown wire-model="destination_id" :options="$this->locations->pluck('location_name', 'id')"
-                            placeholder="Select destination..." search-placeholder="Search locations..." />
+                        <x-forms.searchable-dropdown wire-model="destination_id" :options="$this->locationOptions"
+                            search-property="searchDestination" placeholder="Select destination..."
+                            search-placeholder="Search locations..." />
                     @else
                         {{ $selectedSlip->destination->location_name ?? 'N/A' }}
                     @endif
@@ -84,8 +86,9 @@
                 <div class="font-semibold text-gray-700">Driver Name:</div>
                 <div class="col-span-2 text-gray-900">
                     @if ($isEditing)
-                        <x-forms.searchable-dropdown wire-model="driver_id" :options="$this->drivers->pluck('full_name', 'id')"
-                            placeholder="Select driver..." search-placeholder="Search drivers..." />
+                        <x-forms.searchable-dropdown wire-model="driver_id" :options="$this->driverOptions"
+                            search-property="searchDriver" placeholder="Select driver..."
+                            search-placeholder="Search drivers..." />
                     @else
                         {{ $selectedSlip->driver?->first_name . ' ' . $selectedSlip->driver?->last_name ?? 'N/A' }}
                     @endif

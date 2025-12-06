@@ -37,6 +37,11 @@ class DisinfectionSlip extends Component
     public $destination_id;
     public $driver_id;
     public $reason_for_disinfection;
+    
+    // Search properties for dropdowns
+    public $searchTruck = '';
+    public $searchDestination = '';
+    public $searchDriver = '';
 
     // Original values for cancel
     private $originalValues = [];
@@ -64,6 +69,53 @@ class DisinfectionSlip extends Component
     public function getDriversProperty()
     {
         return Driver::all();
+    }
+    
+    // Computed properties for filtered options with search
+    public function getTruckOptionsProperty()
+    {
+        $trucks = Truck::orderBy('plate_number')->get();
+        $options = $trucks->pluck('plate_number', 'id');
+        
+        if (!empty($this->searchTruck)) {
+            $searchTerm = strtolower($this->searchTruck);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+        }
+        
+        return $options->toArray();
+    }
+    
+    public function getLocationOptionsProperty()
+    {
+        $currentLocationId = Session::get('location_id');
+        $locations = Location::where('id', '!=', $currentLocationId)->orderBy('location_name')->get();
+        $options = $locations->pluck('location_name', 'id');
+        
+        if (!empty($this->searchDestination)) {
+            $searchTerm = strtolower($this->searchDestination);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+        }
+        
+        return $options->toArray();
+    }
+    
+    public function getDriverOptionsProperty()
+    {
+        $drivers = Driver::orderBy('first_name')->get();
+        $options = $drivers->pluck('full_name', 'id');
+        
+        if (!empty($this->searchDriver)) {
+            $searchTerm = strtolower($this->searchDriver);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+        }
+        
+        return $options->toArray();
     }
 
     public function openDetailsModal($id, $type = null)
@@ -190,6 +242,11 @@ class DisinfectionSlip extends Component
         $this->destination_id          = $this->originalValues['destination_id'] ?? $this->selectedSlip->destination_id;
         $this->driver_id               = $this->originalValues['driver_id'] ?? $this->selectedSlip->driver_id;
         $this->reason_for_disinfection = $this->originalValues['reason_for_disinfection'] ?? $this->selectedSlip->reason_for_disinfection;
+        
+        // Reset search properties
+        $this->searchTruck = '';
+        $this->searchDestination = '';
+        $this->searchDriver = '';
         
         // Reset states
         $this->isEditing = false;

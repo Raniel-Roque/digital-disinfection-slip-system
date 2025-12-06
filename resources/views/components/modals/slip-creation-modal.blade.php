@@ -1,3 +1,12 @@
+@props([
+    'trucks' => collect(),
+    'locations' => collect(),
+    'drivers' => collect(),
+    'truckOptions' => [],
+    'locationOptions' => [],
+    'driverOptions' => [],
+])
+
 {{-- CREATE MODAL --}}
 <x-modals.modal-template show="showCreateModal" title="CREATE NEW DISINFECTION SLIP" max-width="max-w-3xl">
 
@@ -5,8 +14,8 @@
     <div class="grid grid-cols-3 mb-4">
         <div class="font-semibold text-gray-700">Plate No:<span class="text-red-500">*</span></div>
         <div class="col-span-2">
-            <x-forms.searchable-dropdown wire-model="truck_id" :options="$trucks->pluck('plate_number', 'id')" placeholder="Select plate number..."
-                search-placeholder="Search plates..." />
+            <x-forms.searchable-dropdown wire-model="truck_id" :options="$truckOptions" search-property="searchTruck"
+                placeholder="Select plate number..." search-placeholder="Search plates..." />
             @error('truck_id')
                 <span class="text-red-500 text-xs">{{ $message }}</span>
             @enderror
@@ -17,8 +26,9 @@
     <div class="grid grid-cols-3 mb-4">
         <div class="font-semibold text-gray-700">Destination:<span class="text-red-500">*</span></div>
         <div class="col-span-2">
-            <x-forms.searchable-dropdown wire-model="destination_id" :options="$locations->pluck('location_name', 'id')"
-                placeholder="Select destination..." search-placeholder="Search locations..." />
+            <x-forms.searchable-dropdown wire-model="destination_id" :options="$locationOptions"
+                search-property="searchDestination" placeholder="Select destination..."
+                search-placeholder="Search locations..." />
             @error('destination_id')
                 <span class="text-red-500 text-xs">{{ $message }}</span>
             @enderror
@@ -29,8 +39,8 @@
     <div class="grid grid-cols-3 mb-4">
         <div class="font-semibold text-gray-700">Driver Name:<span class="text-red-500">*</span></div>
         <div class="col-span-2">
-            <x-forms.searchable-dropdown wire-model="driver_id" :options="$drivers->pluck('full_name', 'id')" placeholder="Select driver..."
-                search-placeholder="Search drivers..." />
+            <x-forms.searchable-dropdown wire-model="driver_id" :options="$driverOptions" search-property="searchDriver"
+                placeholder="Select driver..." search-placeholder="Search drivers..." />
             @error('driver_id')
                 <span class="text-red-500 text-xs">{{ $message }}</span>
             @enderror

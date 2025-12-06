@@ -3,6 +3,10 @@
     'locations' => collect(),
     'drivers' => collect(),
     'trucks' => collect(),
+    'filterTruckOptions' => [],
+    'filterDriverOptions' => [],
+    'filterOriginOptions' => [],
+    'filterDestinationOptions' => [],
 ])
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -65,9 +69,6 @@
 
     {{-- Plate Number Filter --}}
     <div>
-        @php
-            $truckOptions = $trucks->pluck('plate_number', 'id')->toArray();
-        @endphp
         <div class="flex items-center justify-between mb-1">
             <label class="block text-sm font-medium text-gray-700">Plate Number</label>
             <button type="button" wire:click="$set('filterPlateNumber', [])"
@@ -76,19 +77,13 @@
                 Clear
             </button>
         </div>
-        <x-forms.searchable-dropdown wireModel="filterPlateNumber" :options="$truckOptions" placeholder="Select plate no..."
-            searchPlaceholder="Search plate numbers..." :multiple="true" />
+        <x-forms.searchable-dropdown wireModel="filterPlateNumber" :options="$filterTruckOptions"
+            search-property="searchFilterPlateNumber" placeholder="Select plate no..."
+            search-placeholder="Search plate numbers..." :multiple="true" />
     </div>
 
     {{-- Driver Filter --}}
     <div>
-        @php
-            $driverOptions = $drivers
-                ->mapWithKeys(function ($driver) {
-                    return [$driver->id => $driver->first_name . ' ' . $driver->last_name];
-                })
-                ->toArray();
-        @endphp
         <div class="flex items-center justify-between mb-1">
             <label class="block text-sm font-medium text-gray-700">Driver</label>
             <button type="button" wire:click="$set('filterDriver', [])"
@@ -97,8 +92,8 @@
                 Clear
             </button>
         </div>
-        <x-forms.searchable-dropdown wireModel="filterDriver" :options="$driverOptions" placeholder="Select drivers..."
-            searchPlaceholder="Search drivers..." :multiple="true" />
+        <x-forms.searchable-dropdown wireModel="filterDriver" :options="$filterDriverOptions" search-property="searchFilterDriver"
+            placeholder="Select drivers..." search-placeholder="Search drivers..." :multiple="true" />
     </div>
 
     {{-- Origin Filter --}}
@@ -111,8 +106,8 @@
                 Clear
             </button>
         </div>
-        <x-forms.searchable-dropdown wireModel="filterOrigin" :options="$locations->pluck('location_name', 'id')->toArray()" placeholder="Select origin..."
-            searchPlaceholder="Search origin..." :multiple="true" />
+        <x-forms.searchable-dropdown wireModel="filterOrigin" :options="$filterOriginOptions" search-property="searchFilterOrigin"
+            placeholder="Select origin..." search-placeholder="Search origin..." :multiple="true" />
     </div>
 
     {{-- Destination Filter --}}
@@ -125,8 +120,9 @@
                 Clear
             </button>
         </div>
-        <x-forms.searchable-dropdown wireModel="filterDestination" :options="$locations->pluck('location_name', 'id')->toArray()" placeholder="Select destination..."
-            searchPlaceholder="Search destinations..." :multiple="true" />
+        <x-forms.searchable-dropdown wireModel="filterDestination" :options="$filterDestinationOptions"
+            search-property="searchFilterDestination" placeholder="Select destination..."
+            search-placeholder="Search destinations..." :multiple="true" />
     </div>
 
     {{-- From Date Input --}}
