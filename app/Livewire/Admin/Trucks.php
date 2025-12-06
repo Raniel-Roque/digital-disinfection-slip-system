@@ -502,8 +502,6 @@ class Trucks extends Component
         // Use filterStatus directly - it's already an integer (0, 1, 2) or null
         // null = All Statuses (no filter), 0 = Ongoing, 1 = Disinfecting, 2 = Completed
         $this->appliedStatus = $this->filterStatus; // Already an int or null
-        
-        $this->updateFiltersActive();
         $this->appliedOrigin = $this->filterOrigin;
         $this->appliedDestination = $this->filterDestination;
         $this->appliedDriver = $this->filterDriver;
