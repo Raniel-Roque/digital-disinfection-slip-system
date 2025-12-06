@@ -8,6 +8,7 @@ use App\Models\Attachment;
 use App\Models\Truck;
 use App\Models\Location;
 use App\Models\Driver;
+use App\Models\User;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -65,6 +66,12 @@ class Trucks extends Component
     // Original values for cancel
     private $originalValues = [];
 
+    // Create Modal
+    public $showCreateModal = false;
+    public $showCancelCreateConfirmation = false;
+    public $location_id; // Origin
+    public $hatchery_guard_id;
+
     public function mount()
     {
         // Initialize array filters
@@ -94,6 +101,44 @@ class Trucks extends Component
     public function getTrucksProperty()
     {
         return Truck::orderBy('plate_number')->get();
+    }
+
+    // Computed property for guards (users)
+    public function getGuardsProperty()
+    {
+        return User::orderBy('first_name')
+            ->orderBy('last_name')
+            ->get()
+            ->mapWithKeys(function ($user) {
+                $name = trim("{$user->first_name} {$user->middle_name} {$user->last_name}");
+                return [$user->id => $name];
+            });
+    }
+
+    // Computed property for available origins (excludes selected destination)
+    public function getAvailableOriginsProperty()
+    {
+        $locations = Location::orderBy('location_name')->get();
+        
+        if ($this->destination_id) {
+            return $locations->where('id', '!=', $this->destination_id)
+                ->pluck('location_name', 'id');
+        }
+        
+        return $locations->pluck('location_name', 'id');
+    }
+
+    // Computed property for available destinations (excludes selected origin)
+    public function getAvailableDestinationsProperty()
+    {
+        $locations = Location::orderBy('location_name')->get();
+        
+        if ($this->location_id) {
+            return $locations->where('id', '!=', $this->location_id)
+                ->pluck('location_name', 'id');
+        }
+        
+        return $locations->pluck('location_name', 'id');
     }
 
     public function updatingSearch()
@@ -405,6 +450,115 @@ class Trucks extends Component
         $this->selectedSlip = null;
     }
 
+    // ==================== CREATE MODAL METHODS ====================
+
+    public function openCreateModal()
+    {
+        $this->resetCreateForm();
+        $this->showCreateModal = true;
+    }
+
+    public function closeCreateModal()
+    {
+        // Check if form has unsaved changes
+        if ($this->hasUnsavedChanges()) {
+            $this->showCancelCreateConfirmation = true;
+        } else {
+            $this->resetCreateForm();
+            $this->showCreateModal = false;
+        }
+    }
+
+    public function cancelCreate()
+    {
+        $this->resetCreateForm();
+        $this->showCancelCreateConfirmation = false;
+        $this->showCreateModal = false;
+    }
+
+    public function resetCreateForm()
+    {
+        $this->truck_id = null;
+        $this->location_id = null;
+        $this->destination_id = null;
+        $this->driver_id = null;
+        $this->hatchery_guard_id = null;
+        $this->reason_for_disinfection = null;
+        $this->resetErrorBag();
+    }
+
+    public function hasUnsavedChanges()
+    {
+        return !empty($this->truck_id) || 
+               !empty($this->location_id) || 
+               !empty($this->destination_id) || 
+               !empty($this->driver_id) || 
+               !empty($this->hatchery_guard_id) || 
+               !empty($this->reason_for_disinfection);
+    }
+
+    public function createSlip()
+    {
+        $this->validate([
+            'truck_id' => 'required|exists:trucks,id',
+            'location_id' => [
+                'required',
+                'exists:locations,id',
+                function ($attribute, $value, $fail) {
+                    if ($value == $this->destination_id) {
+                        $fail('The origin cannot be the same as the destination.');
+                    }
+                },
+            ],
+            'destination_id' => [
+                'required',
+                'exists:locations,id',
+                function ($attribute, $value, $fail) {
+                    if ($value == $this->location_id) {
+                        $fail('The destination cannot be the same as the origin.');
+                    }
+                },
+            ],
+            'driver_id' => 'required|exists:drivers,id',
+            'hatchery_guard_id' => 'required|exists:users,id',
+            'reason_for_disinfection' => 'nullable|string|max:1000',
+        ]);
+
+        $slip = DisinfectionSlipModel::create([
+            'truck_id' => $this->truck_id,
+            'location_id' => $this->location_id,
+            'destination_id' => $this->destination_id,
+            'driver_id' => $this->driver_id,
+            'hatchery_guard_id' => $this->hatchery_guard_id,
+            'reason_for_disinfection' => $this->reason_for_disinfection,
+            'status' => 0, // Ongoing
+        ]);
+
+        $this->dispatch('toast', message: 'Disinfection slip created successfully!', type: 'success');
+        
+        // Close modal and reset form
+        $this->showCreateModal = false;
+        $this->resetCreateForm();
+        $this->resetPage();
+    }
+
+    // Watch for changes to location_id or destination_id to update available options
+    public function updatedLocationId()
+    {
+        // If destination is the same as origin, clear it
+        if ($this->destination_id == $this->location_id) {
+            $this->destination_id = null;
+        }
+    }
+
+    public function updatedDestinationId()
+    {
+        // If origin is the same as destination, clear it
+        if ($this->location_id == $this->destination_id) {
+            $this->location_id = null;
+        }
+    }
+
     public function openAttachmentModal($file)
     {
         $this->attachmentFile = $file;
@@ -531,6 +685,9 @@ class Trucks extends Component
             'locations' => $this->locations,
             'drivers' => $this->drivers,
             'trucks' => $this->trucks,
+            'guards' => $this->guards,
+            'availableOrigins' => $this->availableOrigins,
+            'availableDestinations' => $this->availableDestinations,
             'availableStatuses' => $this->availableStatuses,
         ]);
     }
