@@ -48,6 +48,8 @@ class Trucks extends Component
     public $filterDestination = [];
     public $filterDriver = [];
     public $filterPlateNumber = [];
+    public $filterHatcheryGuard = [];
+    public $filterReceivedGuard = [];
     public $filterCreatedFrom = '';
     public $filterCreatedTo = '';
     
@@ -56,6 +58,8 @@ class Trucks extends Component
     public $searchFilterDriver = '';
     public $searchFilterOrigin = '';
     public $searchFilterDestination = '';
+    public $searchFilterHatcheryGuard = '';
+    public $searchFilterReceivedGuard = '';
     
     // Applied filters (stored separately)
     public $appliedStatus = null; // null = All Statuses, 0 = Ongoing, 1 = Disinfecting, 2 = Completed
@@ -63,6 +67,8 @@ class Trucks extends Component
     public $appliedDestination = [];
     public $appliedDriver = [];
     public $appliedPlateNumber = [];
+    public $appliedHatcheryGuard = [];
+    public $appliedReceivedGuard = [];
     public $appliedCreatedFrom = null;
     public $appliedCreatedTo = null;
     
@@ -132,6 +138,8 @@ class Trucks extends Component
     private $cachedDrivers = null;
     private $cachedTrucks = null;
     private $cachedGuards = null;
+    private $cachedFilterGuards = null;
+    private $cachedFilterGuardsCollection = null;
 
     public function mount()
     {
@@ -140,10 +148,14 @@ class Trucks extends Component
         $this->filterDestination = [];
         $this->filterDriver = [];
         $this->filterPlateNumber = [];
+        $this->filterHatcheryGuard = [];
+        $this->filterReceivedGuard = [];
         $this->appliedOrigin = [];
         $this->appliedDestination = [];
         $this->appliedDriver = [];
         $this->appliedPlateNumber = [];
+        $this->appliedHatcheryGuard = [];
+        $this->appliedReceivedGuard = [];
         
         // Options are now computed properties, no initialization needed
     }
@@ -187,6 +199,31 @@ class Trucks extends Component
                 });
         }
         return $this->cachedGuards;
+    }
+    
+    // Get guards for filtering (includes disabled guards) - cached User collection
+    private function getFilterGuardsCollection()
+    {
+        if ($this->cachedFilterGuardsCollection === null) {
+            $this->cachedFilterGuardsCollection = User::where('user_type', 0)
+                ->orderBy('first_name')
+                ->orderBy('last_name')
+                ->get();
+        }
+        return $this->cachedFilterGuardsCollection;
+    }
+    
+    // Get guards as mapped collection (id => name) for dropdowns
+    private function getFilterGuards()
+    {
+        if ($this->cachedFilterGuards === null) {
+            $users = $this->getFilterGuardsCollection();
+            $this->cachedFilterGuards = $users->mapWithKeys(function ($user) {
+                $name = trim("{$user->first_name} {$user->middle_name} {$user->last_name}");
+                return [$user->id => $name];
+            });
+        }
+        return $this->cachedFilterGuards;
     }
 
     // Computed property for locations
@@ -272,6 +309,46 @@ class Trucks extends Component
         return $options->toArray();
     }
     
+    public function getFilterHatcheryGuardOptionsProperty()
+    {
+        // Always use the cached guards - no need to cache filtered options as they change frequently
+        $guards = $this->getFilterGuards();
+        $allOptions = $guards;
+        $options = $allOptions;
+        
+        // Apply search filter
+        if (!empty($this->searchFilterHatcheryGuard)) {
+            $searchTerm = strtolower($this->searchFilterHatcheryGuard);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+            // Ensure selected values are always included
+            $options = $this->ensureSelectedInOptions($options, $this->filterHatcheryGuard, $allOptions);
+        }
+        
+        return is_array($options) ? $options : $options->toArray();
+    }
+    
+    public function getFilterReceivedGuardOptionsProperty()
+    {
+        // Always use the cached guards - no need to cache filtered options as they change frequently
+        $guards = $this->getFilterGuards();
+        $allOptions = $guards;
+        $options = $allOptions;
+        
+        // Apply search filter
+        if (!empty($this->searchFilterReceivedGuard)) {
+            $searchTerm = strtolower($this->searchFilterReceivedGuard);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+            // Ensure selected values are always included
+            $options = $this->ensureSelectedInOptions($options, $this->filterReceivedGuard, $allOptions);
+        }
+        
+        return is_array($options) ? $options : $options->toArray();
+    }
+    
     public function getFilterOriginOptionsProperty()
     {
         $locations = $this->getCachedLocations();
@@ -313,7 +390,8 @@ class Trucks extends Component
     // Computed property for guards (users)
     public function getGuardsProperty()
     {
-        return $this->getCachedGuards();
+        // Return all guards (including disabled) for filter display purposes
+        return $this->getFilterGuardsCollection()->keyBy('id');
     }
 
     // Computed property for available origins (excludes selected destination)
@@ -696,14 +774,28 @@ class Trucks extends Component
         // Use filterStatus directly - it's already an integer (0, 1, 2) or null
         // null = All Statuses (no filter), 0 = Ongoing, 1 = Disinfecting, 2 = Completed
         $this->appliedStatus = $this->filterStatus; // Already an int or null
-        $this->appliedOrigin = $this->filterOrigin;
-        $this->appliedDestination = $this->filterDestination;
-        $this->appliedDriver = $this->filterDriver;
-        $this->appliedPlateNumber = $this->filterPlateNumber;
-        $this->appliedCreatedFrom = $this->filterCreatedFrom;
-        $this->appliedCreatedTo = $this->filterCreatedTo;
+        // Create new array instances to ensure Livewire detects the change
+        // Convert string IDs to integers for proper filtering
+        $this->appliedOrigin = array_values(array_map('intval', $this->filterOrigin ?? []));
+        $this->appliedDestination = array_values(array_map('intval', $this->filterDestination ?? []));
+        $this->appliedDriver = array_values(array_map('intval', $this->filterDriver ?? []));
+        $this->appliedPlateNumber = array_values(array_map('intval', $this->filterPlateNumber ?? []));
+        $this->appliedHatcheryGuard = array_values(array_map('intval', $this->filterHatcheryGuard ?? []));
+        $this->appliedReceivedGuard = array_values(array_map('intval', $this->filterReceivedGuard ?? []));
+        $this->appliedCreatedFrom = !empty($this->filterCreatedFrom) ? $this->filterCreatedFrom : null;
+        $this->appliedCreatedTo = !empty($this->filterCreatedTo) ? $this->filterCreatedTo : null;
         
-        $this->updateFiltersActive();
+        // Update filters active status
+        $this->filtersActive = 
+            ($this->appliedStatus !== null) ||
+            !empty($this->appliedOrigin) ||
+            !empty($this->appliedDestination) ||
+            !empty($this->appliedDriver) ||
+            !empty($this->appliedPlateNumber) ||
+            !empty($this->appliedHatcheryGuard) ||
+            !empty($this->appliedReceivedGuard) ||
+            $this->appliedCreatedFrom ||
+            $this->appliedCreatedTo;
         
         $this->showFilters = false;
         $this->resetPage();
@@ -732,6 +824,14 @@ class Trucks extends Component
             case 'plateNumber':
                 $this->appliedPlateNumber = [];
                 $this->filterPlateNumber = [];
+                break;
+            case 'hatcheryGuard':
+                $this->appliedHatcheryGuard = [];
+                $this->filterHatcheryGuard = [];
+                break;
+            case 'receivedGuard':
+                $this->appliedReceivedGuard = [];
+                $this->filterReceivedGuard = [];
                 break;
             case 'createdFrom':
                 $this->appliedCreatedFrom = null;
@@ -774,6 +874,18 @@ class Trucks extends Component
                 }));
                 $this->filterPlateNumber = $this->appliedPlateNumber;
                 break;
+            case 'hatcheryGuard':
+                $this->appliedHatcheryGuard = array_values(array_filter($this->appliedHatcheryGuard, function($id) use ($valueToRemove) {
+                    return $id != $valueToRemove;
+                }));
+                $this->filterHatcheryGuard = $this->appliedHatcheryGuard;
+                break;
+            case 'receivedGuard':
+                $this->appliedReceivedGuard = array_values(array_filter($this->appliedReceivedGuard, function($id) use ($valueToRemove) {
+                    return $id != $valueToRemove;
+                }));
+                $this->filterReceivedGuard = $this->appliedReceivedGuard;
+                break;
         }
         
         $this->updateFiltersActive();
@@ -790,6 +902,8 @@ class Trucks extends Component
             !empty($this->appliedDestination) ||
             !empty($this->appliedDriver) ||
             !empty($this->appliedPlateNumber) ||
+            !empty($this->appliedHatcheryGuard) ||
+            !empty($this->appliedReceivedGuard) ||
             $this->appliedCreatedFrom ||
             $this->appliedCreatedTo;
     }
@@ -806,6 +920,8 @@ class Trucks extends Component
         $this->filterDestination = [];
         $this->filterDriver = [];
         $this->filterPlateNumber = [];
+        $this->filterHatcheryGuard = [];
+        $this->filterReceivedGuard = [];
         $this->filterCreatedFrom = null;
         $this->filterCreatedTo = null;
         
@@ -814,12 +930,16 @@ class Trucks extends Component
         $this->searchFilterDriver = '';
         $this->searchFilterOrigin = '';
         $this->searchFilterDestination = '';
+        $this->searchFilterHatcheryGuard = '';
+        $this->searchFilterReceivedGuard = '';
         
         $this->appliedStatus = null;
         $this->appliedOrigin = [];
         $this->appliedDestination = [];
         $this->appliedDriver = [];
         $this->appliedPlateNumber = [];
+        $this->appliedHatcheryGuard = [];
+        $this->appliedReceivedGuard = [];
         $this->appliedCreatedFrom = null;
         $this->appliedCreatedTo = null;
         
@@ -1539,23 +1659,52 @@ class Trucks extends Component
 
     public function render()
     {
-        $slips = DisinfectionSlipModel::with(['truck', 'location', 'destination', 'driver'])
+        $slips = DisinfectionSlipModel::with(['truck', 'location', 'destination', 'driver', 'hatcheryGuard', 'receivedGuard'])
             // Search
             ->when($this->search, function($query) {
-                $query->where('slip_id', 'like', '%' . $this->search . '%')
-                    ->orWhereHas('truck', function($q) {
-                        $q->where('plate_number', 'like', '%' . $this->search . '%');
-                    })
-                    ->orWhereHas('driver', function($q) {
-                        $q->where('first_name', 'like', '%' . $this->search . '%')
-                          ->orWhere('last_name', 'like', '%' . $this->search . '%');
-                    })
-                    ->orWhereHas('location', function($q) {
-                        $q->where('location_name', 'like', '%' . $this->search . '%');
-                    })
-                    ->orWhereHas('destination', function($q) {
-                        $q->where('location_name', 'like', '%' . $this->search . '%');
-                    });
+                // Sanitize search term to prevent SQL injection
+                $searchTerm = trim($this->search);
+                $searchTerm = preg_replace('/[%_]/', '', $searchTerm); // Remove LIKE wildcards for safety
+                
+                if (empty($searchTerm)) {
+                    return;
+                }
+                
+                // Escape special characters for LIKE
+                $escapedSearchTerm = str_replace(['%', '_'], ['\%', '\_'], $searchTerm);
+                
+                $query->where(function($q) use ($escapedSearchTerm) {
+                    $q->where('slip_id', 'like', '%' . $escapedSearchTerm . '%')
+                        ->orWhereHas('truck', function($truckQuery) use ($escapedSearchTerm) {
+                            $truckQuery->where('plate_number', 'like', '%' . $escapedSearchTerm . '%');
+                        })
+                        ->orWhereHas('driver', function($driverQuery) use ($escapedSearchTerm) {
+                            $driverQuery->where('first_name', 'like', '%' . $escapedSearchTerm . '%')
+                                ->orWhere('last_name', 'like', '%' . $escapedSearchTerm . '%')
+                                ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%'])
+                                ->orWhereRaw("CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%']);
+                        })
+                        ->orWhereHas('location', function($locationQuery) use ($escapedSearchTerm) {
+                            $locationQuery->where('location_name', 'like', '%' . $escapedSearchTerm . '%');
+                        })
+                        ->orWhereHas('destination', function($destinationQuery) use ($escapedSearchTerm) {
+                            $destinationQuery->where('location_name', 'like', '%' . $escapedSearchTerm . '%');
+                        })
+                        ->orWhereHas('hatcheryGuard', function($guardQuery) use ($escapedSearchTerm) {
+                            $guardQuery->where('first_name', 'like', '%' . $escapedSearchTerm . '%')
+                                ->orWhere('middle_name', 'like', '%' . $escapedSearchTerm . '%')
+                                ->orWhere('last_name', 'like', '%' . $escapedSearchTerm . '%')
+                                ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%'])
+                                ->orWhereRaw("CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%']);
+                        })
+                        ->orWhereHas('receivedGuard', function($guardQuery) use ($escapedSearchTerm) {
+                            $guardQuery->where('first_name', 'like', '%' . $escapedSearchTerm . '%')
+                                ->orWhere('middle_name', 'like', '%' . $escapedSearchTerm . '%')
+                                ->orWhere('last_name', 'like', '%' . $escapedSearchTerm . '%')
+                                ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%'])
+                                ->orWhereRaw("CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%']);
+                        });
+                });
             })
             // Status filter
             // Important: Check for null explicitly, as 0 is a valid status (Ongoing)
@@ -1579,6 +1728,20 @@ class Trucks extends Component
             ->when($this->filtersActive && !empty($this->appliedPlateNumber), function($query) {
                 $query->whereIn('truck_id', $this->appliedPlateNumber);
             })
+            // Hatchery guard filter
+            ->when(!empty($this->appliedHatcheryGuard), function($query) {
+                $guardIds = array_map('intval', $this->appliedHatcheryGuard);
+                if (!empty($guardIds)) {
+                    $query->whereIn('hatchery_guard_id', $guardIds);
+                }
+            })
+            // Received guard filter
+            ->when(!empty($this->appliedReceivedGuard), function($query) {
+                $guardIds = array_map('intval', $this->appliedReceivedGuard);
+                if (!empty($guardIds)) {
+                    $query->whereIn('received_guard_id', $guardIds);
+                }
+            })
             // Created date range filter
             ->when($this->filtersActive && $this->appliedCreatedFrom, function($query) {
                 $query->whereDate('created_at', '>=', $this->appliedCreatedFrom);
@@ -1600,6 +1763,8 @@ class Trucks extends Component
             'availableStatuses' => $this->availableStatuses,
             'filterTruckOptions' => $this->filterTruckOptions,
             'filterDriverOptions' => $this->filterDriverOptions,
+            'filterHatcheryGuardOptions' => $this->filterHatcheryGuardOptions,
+            'filterReceivedGuardOptions' => $this->filterReceivedGuardOptions,
             'filterOriginOptions' => $this->filterOriginOptions,
             'filterDestinationOptions' => $this->filterDestinationOptions,
             'createTruckOptions' => $this->createTruckOptions,

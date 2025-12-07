@@ -41,11 +41,22 @@
 
             {{-- Footer --}}
             <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-3">
-                <x-buttons.submit-button wire:click="applyFilters" 
-                    @click="
+                <x-buttons.submit-button
+                    @click.prevent="
                         // Sync all multiselect dropdowns before applying filters
                         window.dispatchEvent(new CustomEvent('sync-selections'));
-                        show = false;
+                        
+                        // Use requestAnimationFrame and multiple ticks to ensure all syncs complete
+                        // Livewire processes $wire.set() calls asynchronously, so we need to wait
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                setTimeout(() => {
+                                    $wire.call('applyFilters').then(() => {
+                                        show = false;
+                                    });
+                                }, 100);
+                            });
+                        });
                     "
                     class="inline-flex w-full justify-center px-4 py-2 text-sm font-medium text-white bg-orange-500 
                            rounded-lg hover:bg-orange-600 transition sm:w-auto">

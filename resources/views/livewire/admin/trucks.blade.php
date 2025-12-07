@@ -21,7 +21,7 @@
                         </div>
                         <input type="text" wire:model.live="search"
                             class="block w-full pl-10 pr-10 py-2.5 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                            placeholder="Search slip no., plate no., driver or location...">
+                            placeholder="Search...">
                         @if ($search)
                             <button wire:click="$set('search', '')"
                                 class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
@@ -138,6 +138,48 @@
                                 class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                 Plate: {{ $truck->plate_number }}
                                 <button wire:click="removeSpecificFilter('plateNumber', {{ $truckId }})"
+                                    class="ml-1.5 inline-flex items-center">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                            clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                            </span>
+                        @endforeach
+                    @endif
+
+                    @if (!empty($appliedHatcheryGuard))
+                        @foreach ($appliedHatcheryGuard as $guardId)
+                            @php
+                                $guard = $guards->find($guardId);
+                            @endphp
+                            <span
+                                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                Hatchery Guard:
+                                {{ trim("{$guard->first_name} {$guard->middle_name} {$guard->last_name}") }}
+                                <button wire:click="removeSpecificFilter('hatcheryGuard', {{ $guardId }})"
+                                    class="ml-1.5 inline-flex items-center">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                            clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                            </span>
+                        @endforeach
+                    @endif
+
+                    @if (!empty($appliedReceivedGuard))
+                        @foreach ($appliedReceivedGuard as $guardId)
+                            @php
+                                $guard = $guards->find($guardId);
+                            @endphp
+                            <span
+                                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                Received Guard:
+                                {{ trim("{$guard->first_name} {$guard->middle_name} {$guard->last_name}") }}
+                                <button wire:click="removeSpecificFilter('receivedGuard', {{ $guardId }})"
                                     class="ml-1.5 inline-flex items-center">
                                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"
@@ -273,11 +315,21 @@
                                     <div class="text-sm text-gray-700">
                                         {{ $slip->location->location_name }}
                                     </div>
+                                    @if ($slip->hatcheryGuard)
+                                        <div class="text-xs text-gray-500 mt-0.5">
+                                            {{ trim("{$slip->hatcheryGuard->first_name} {$slip->hatcheryGuard->middle_name} {$slip->hatcheryGuard->last_name}") }}
+                                        </div>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-700">
                                         {{ $slip->destination->location_name }}
                                     </div>
+                                    @if ($slip->receivedGuard)
+                                        <div class="text-xs text-gray-500 mt-0.5">
+                                            {{ trim("{$slip->receivedGuard->first_name} {$slip->receivedGuard->middle_name} {$slip->receivedGuard->last_name}") }}
+                                        </div>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if ($slip->status == 0)
@@ -355,7 +407,8 @@
         <x-modals.filter-modal>
             <x-slot name="filters">
                 <x-modals.filter-admin-body :availableStatuses="$availableStatuses" :locations="$locations" :drivers="$drivers" :trucks="$trucks"
-                    :filterTruckOptions="$filterTruckOptions" :filterDriverOptions="$filterDriverOptions" :filterOriginOptions="$filterOriginOptions" :filterDestinationOptions="$filterDestinationOptions" :filterStatus="$filterStatus" />
+                    :filterTruckOptions="$filterTruckOptions" :filterDriverOptions="$filterDriverOptions" :filterHatcheryGuardOptions="$filterHatcheryGuardOptions" :filterReceivedGuardOptions="$filterReceivedGuardOptions" :filterOriginOptions="$filterOriginOptions"
+                    :filterDestinationOptions="$filterDestinationOptions" :filterStatus="$filterStatus" />
             </x-slot>
         </x-modals.filter-modal>
 

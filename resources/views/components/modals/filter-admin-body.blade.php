@@ -5,6 +5,8 @@
     'trucks' => collect(),
     'filterTruckOptions' => [],
     'filterDriverOptions' => [],
+    'filterHatcheryGuardOptions' => [],
+    'filterReceivedGuardOptions' => [],
     'filterOriginOptions' => [],
     'filterDestinationOptions' => [],
     'filterStatus' => null,
@@ -117,6 +119,36 @@
         </div>
         <x-forms.searchable-dropdown wireModel="filterDriver" :options="$filterDriverOptions" search-property="searchFilterDriver"
             placeholder="Select drivers..." search-placeholder="Search drivers..." :multiple="true" />
+    </div>
+
+    {{-- Hatchery Guard Filter --}}
+    <div x-data="{ filterValue: @entangle('filterHatcheryGuard') }">
+        <div class="flex items-center justify-between mb-1">
+            <label class="block text-sm font-medium text-gray-700">Hatchery Guard</label>
+            <button type="button" wire:click="$set('filterHatcheryGuard', [])"
+                x-show="filterValue && filterValue.length > 0"
+                class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                Clear
+            </button>
+        </div>
+        <x-forms.searchable-dropdown wireModel="filterHatcheryGuard" :options="$filterHatcheryGuardOptions"
+            search-property="searchFilterHatcheryGuard" placeholder="Select hatchery guards..."
+            search-placeholder="Search hatchery guards..." :multiple="true" />
+    </div>
+
+    {{-- Received Guard Filter --}}
+    <div x-data="{ filterValue: @entangle('filterReceivedGuard') }">
+        <div class="flex items-center justify-between mb-1">
+            <label class="block text-sm font-medium text-gray-700">Received Guard</label>
+            <button type="button" wire:click="$set('filterReceivedGuard', [])"
+                x-show="filterValue && filterValue.length > 0"
+                class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                Clear
+            </button>
+        </div>
+        <x-forms.searchable-dropdown wireModel="filterReceivedGuard" :options="$filterReceivedGuardOptions"
+            search-property="searchFilterReceivedGuard" placeholder="Select received guards..."
+            search-placeholder="Search received guards..." :multiple="true" />
     </div>
 
     {{-- Origin Filter --}}
