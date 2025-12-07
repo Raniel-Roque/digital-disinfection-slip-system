@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50 p-6" wire:poll>
+<div class="min-h-screen bg-gray-50 p-6" @if (!$showFilters) wire:poll.keep-alive @endif>
     <div class="max-w-7xl mx-auto">
         {{-- Simple Header --}}
         <div class="mb-6">
@@ -32,18 +32,17 @@
                         @endif
                     </div>
 
-                    {{-- Filter Button --}}
-                    <button wire:click="$toggle('showFilters')"
-                        class="inline-flex items-center px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 relative">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{-- Filter Button (Icon only with tooltip) --}}
+                    <button wire:click="$toggle('showFilters')" title="Filters"
+                        class="inline-flex items-center justify-center w-10 h-10 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 relative">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
                             </path>
                         </svg>
-                        Filters
                     </button>
 
-                    {{-- Create Button --}}
+                    {{-- Create Button (Primary action - Icon + Text) --}}
                     <button wire:click="openCreateModal"
                         class="inline-flex items-center px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,6 +51,50 @@
                         </svg>
                         Create Driver
                     </button>
+
+                    {{-- Restore Deleted Button (Icon + Text) --}}
+                    <button wire:click="toggleDeletedView" wire:loading.attr="disabled" wire:target="toggleDeletedView"
+                        class="inline-flex items-center px-4 py-2.5 {{ $showDeleted ?? false ? 'bg-gray-600 hover:bg-gray-700' : 'bg-yellow-600 hover:bg-yellow-700' }} text-white rounded-lg text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 {{ $showDeleted ?? false ? 'focus:ring-gray-500' : 'focus:ring-yellow-500' }} disabled:opacity-50 disabled:cursor-not-allowed">
+                        <svg wire:loading.remove wire:target="toggleDeletedView" class="w-5 h-5 mr-2" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                            </path>
+                        </svg>
+                        <svg wire:loading wire:target="toggleDeletedView" class="animate-spin w-5 h-5 mr-2"
+                            fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                        <span wire:loading.remove
+                            wire:target="toggleDeletedView">{{ $showDeleted ?? false ? 'Back to Active' : 'Restore Deleted' }}</span>
+                        <span wire:loading wire:target="toggleDeletedView">Loading...</span>
+                    </button>
+
+                    {{-- Export CSV Button (Icon only with tooltip) --}}
+                    @if (!($showDeleted ?? false))
+                        <button wire:click="exportCSV" title="Export as CSV"
+                            class="inline-flex items-center justify-center w-10 h-10 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                </path>
+                            </svg>
+                        </button>
+
+                        {{-- Print Button (Icon only with tooltip) --}}
+                        <button wire:click="openPrintView" title="Print / PDF"
+                            class="inline-flex items-center justify-center w-10 h-10 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+                                </path>
+                            </svg>
+                        </button>
+                    @endif
                 </div>
             </div>
 
@@ -130,14 +173,14 @@
                                                 $firstDir = $this->getSortDirection('first_name');
                                             @endphp
                                             @if ($firstDir === 'asc')
-                                                <svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
+                                                <svg class="w-3 h-3 text-green-600" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2" d="M5 15l7-7 7 7" />
                                                 </svg>
                                             @elseif ($firstDir === 'desc')
-                                                <svg class="w-3 h-3 text-red-600" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
+                                                <svg class="w-3 h-3 text-red-600" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2" d="M19 9l-7 7-7-7" />
                                                 </svg>
@@ -547,3 +590,14 @@
             confirmText="Delete Driver" />
     </div>
 </div>
+
+<script>
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('open-print-window', (event) => {
+            const url = event.url || (Array.isArray(event) ? event[0]?.url : null);
+            if (url) {
+                window.open(url, '_blank');
+            }
+        });
+    });
+</script>

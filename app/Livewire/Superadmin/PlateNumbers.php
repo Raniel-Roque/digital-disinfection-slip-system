@@ -6,6 +6,9 @@ use App\Models\Truck;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Str;
 
 class PlateNumbers extends Component
 {
@@ -58,6 +61,8 @@ class PlateNumbers extends Component
     public $showEditModal = false;
     public $showDisableModal = false;
     public $showCreateModal = false;
+    public $showDeleteModal = false;
+    public $showDeleted = false; // Toggle to show deleted items
 
     // Edit form fields
     public $plate_number;
@@ -294,7 +299,11 @@ class PlateNumbers extends Component
 
     public function render()
     {
-        $trucks = Truck::when($this->search, function ($query) {
+        $query = $this->showDeleted 
+            ? Truck::onlyTrashed()
+            : Truck::whereNull('deleted_at');
+        
+        $trucks = $query->when($this->search, function ($query) {
                 $searchTerm = $this->search;
                 
                 // Sanitize search term to prevent SQL injection
@@ -317,7 +326,7 @@ class PlateNumbers extends Component
             ->when($this->appliedCreatedTo, function ($query) {
                 $query->whereDate('created_at', '<=', $this->appliedCreatedTo);
             })
-            ->when($this->appliedStatus !== null, function ($query) {
+            ->when($this->appliedStatus !== null && !$this->showDeleted, function ($query) {
                 if ($this->appliedStatus === 0) {
                     // Enabled (disabled = false)
                     $query->where('disabled', false);
@@ -327,7 +336,7 @@ class PlateNumbers extends Component
                 }
             })
             // Apply multi-column sorting
-            ->when(!empty($this->sortColumns), function($query) {
+            ->when(!empty($this->sortColumns) && !$this->showDeleted, function($query) {
                 // Initialize sortColumns if it's not an array
                 if (!is_array($this->sortColumns)) {
                     $this->sortColumns = ['plate_number' => 'asc'];
@@ -346,9 +355,12 @@ class PlateNumbers extends Component
                     $firstSort = false;
                 }
             })
-            ->when(empty($this->sortColumns), function($query) {
+            ->when(empty($this->sortColumns) && !$this->showDeleted, function($query) {
                 // Default sort if no sorts are set
                 $query->orderBy('plate_number', 'asc');
+            })
+            ->when($this->showDeleted, function ($query) {
+                $query->orderBy('deleted_at', 'desc');
             })
             ->paginate(10);
 
@@ -359,5 +371,113 @@ class PlateNumbers extends Component
             'filtersActive' => $filtersActive,
             'availableStatuses' => $this->availableStatuses,
         ]);
+    }
+
+    public function getExportData()
+    {
+        $query = $this->showDeleted 
+            ? Truck::onlyTrashed()
+            : Truck::whereNull('deleted_at');
+        
+        return $query->when($this->search, function ($query) {
+                $searchTerm = trim($this->search);
+                $searchTerm = preg_replace('/[%_]/', '', $searchTerm);
+                if (empty($searchTerm)) {
+                    return $query;
+                }
+                $escapedSearchTerm = str_replace(['%', '_'], ['\%', '\_'], $searchTerm);
+                $query->where('plate_number', 'like', '%' . $escapedSearchTerm . '%');
+                return $query;
+            })
+            ->when($this->appliedCreatedFrom, function ($query) {
+                $query->whereDate('created_at', '>=', $this->appliedCreatedFrom);
+            })
+            ->when($this->appliedCreatedTo, function ($query) {
+                $query->whereDate('created_at', '<=', $this->appliedCreatedTo);
+            })
+            ->when($this->appliedStatus !== null && !$this->showDeleted, function ($query) {
+                if ($this->appliedStatus === 0) {
+                    $query->where('disabled', false);
+                } elseif ($this->appliedStatus === 1) {
+                    $query->where('disabled', true);
+                }
+            })
+            ->when(!$this->showDeleted, function ($query) {
+                $query->orderBy('plate_number', 'asc');
+            })
+            ->when($this->showDeleted, function ($query) {
+                $query->orderBy('deleted_at', 'desc');
+            })
+            ->get();
+    }
+
+    public function exportCSV()
+    {
+        if ($this->showDeleted) {
+            return;
+        }
+        
+        $data = $this->getExportData();
+        $filename = 'plate_numbers_' . date('Y-m-d_His') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function() use ($data) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            fputcsv($file, ['Plate Number', 'Status', 'Created Date']);
+            
+            foreach ($data as $truck) {
+                $status = $truck->disabled ? 'Disabled' : 'Enabled';
+                fputcsv($file, [
+                    $truck->plate_number,
+                    $status,
+                    $truck->created_at->format('Y-m-d H:i:s')
+                ]);
+            }
+            
+            fclose($file);
+        };
+
+        return Response::stream($callback, 200, $headers);
+    }
+
+    public function openPrintView()
+    {
+        if ($this->showDeleted) {
+            return;
+        }
+        
+        $data = $this->getExportData();
+        $exportData = $data->map(function($truck) {
+            return [
+                'plate_number' => $truck->plate_number,
+                'disabled' => $truck->disabled,
+                'created_at' => $truck->created_at->toIso8601String(),
+            ];
+        })->toArray();
+        
+        $filters = [
+            'search' => $this->search,
+            'status' => $this->appliedStatus,
+            'created_from' => $this->appliedCreatedFrom,
+            'created_to' => $this->appliedCreatedTo,
+        ];
+        
+        $sorting = $this->sortColumns ?? ['plate_number' => 'asc'];
+        
+        $token = Str::random(32);
+        Session::put("export_data_{$token}", $exportData);
+        Session::put("export_filters_{$token}", $filters);
+        Session::put("export_sorting_{$token}", $sorting);
+        Session::put("export_data_{$token}_expires", now()->addMinutes(10));
+        
+        $printUrl = route('superadmin.print.plate-numbers', ['token' => $token]);
+        
+        $this->dispatch('open-print-window', ['url' => $printUrl]);
     }
 }

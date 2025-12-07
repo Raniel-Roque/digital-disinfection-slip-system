@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50 p-6" wire:poll>
+<div class="min-h-screen bg-gray-50 p-6" @if(!$showFilters) wire:poll.keep-alive @endif>
     <div class="max-w-7xl mx-auto">
 
         {{-- Simple Header --}}
@@ -33,18 +33,17 @@
                         @endif
                     </div>
 
-                    {{-- Filter Button --}}
-                    <button wire:click="$toggle('showFilters')"
-                        class="inline-flex items-center px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 relative">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {{-- Filter Button (Icon only with tooltip) --}}
+                    <button wire:click="$toggle('showFilters')" title="Filters"
+                        class="inline-flex items-center justify-center w-10 h-10 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 relative">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
                             </path>
                         </svg>
-                        Filters
                     </button>
 
-                    {{-- Create Button --}}
+                    {{-- Create Button (Primary action - Icon + Text) --}}
                     <button wire:click="openCreateModal"
                         class="inline-flex items-center px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,6 +51,26 @@
                             </path>
                         </svg>
                         Create Slip
+                    </button>
+
+                    {{-- Export CSV Button (Icon only with tooltip) --}}
+                    <button wire:click="exportCSV" title="Export as CSV"
+                        class="inline-flex items-center justify-center w-10 h-10 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                    </button>
+
+                    {{-- Print Button (Icon only with tooltip) --}}
+                    <button wire:click="openPrintView" title="Print / PDF"
+                        class="inline-flex items-center justify-center w-10 h-10 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+                            </path>
+                        </svg>
                     </button>
                 </div>
             </div>
@@ -489,6 +508,11 @@
 
         {{-- Admin Edit Modal --}}
         @if ($selectedSlip)
+            {{-- Delete Confirmation Modal --}}
+            <x-modals.delete-confirmation show="showDeleteConfirmation" title="DELETE SLIP?"
+                message="Delete this disinfection slip?" :details="'Slip No: <span class=\'font-semibold\'>' . ($selectedSlip?->slip_id ?? '') . '</span>'" warning="This action cannot be undone!"
+                onConfirm="deleteSlip" />
+
             <x-modals.admin-slip-edit-modal :trucks="$trucks" :locations="$locations" :drivers="$drivers" :guards="$guards"
                 :available-origins-options="$editAvailableOriginsOptions" :available-destinations-options="$editAvailableDestinationsOptions" :edit-truck-options="$editTruckOptions" :edit-driver-options="$editDriverOptions" :edit-guard-options="$editGuardOptions"
                 :edit-received-guard-options="$editReceivedGuardOptions" :slip-status="$selectedSlip->status" :selected-slip="$selectedSlip" />
@@ -496,3 +520,14 @@
 
     </div>
 </div>
+
+<script>
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('open-print-window', (event) => {
+            const url = event.url || (Array.isArray(event) ? event[0]?.url : null);
+            if (url) {
+                window.open(url, '_blank');
+            }
+        });
+    });
+</script>

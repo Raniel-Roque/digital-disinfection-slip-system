@@ -6,6 +6,9 @@ use App\Models\Truck;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Str;
 
 class PlateNumbers extends Component
 {
@@ -359,5 +362,95 @@ class PlateNumbers extends Component
             'filtersActive' => $filtersActive,
             'availableStatuses' => $this->availableStatuses,
         ]);
+    }
+
+    public function getExportData()
+    {
+        return Truck::when($this->search, function ($query) {
+                $searchTerm = trim($this->search);
+                $searchTerm = preg_replace('/[%_]/', '', $searchTerm);
+                if (empty($searchTerm)) {
+                    return;
+                }
+                $escapedSearchTerm = str_replace(['%', '_'], ['\%', '\_'], $searchTerm);
+                $query->where('plate_number', 'like', '%' . $escapedSearchTerm . '%');
+            })
+            ->when($this->appliedCreatedFrom, function ($query) {
+                $query->whereDate('created_at', '>=', $this->appliedCreatedFrom);
+            })
+            ->when($this->appliedCreatedTo, function ($query) {
+                $query->whereDate('created_at', '<=', $this->appliedCreatedTo);
+            })
+            ->when($this->appliedStatus !== null, function ($query) {
+                if ($this->appliedStatus === 0) {
+                    $query->where('disabled', false);
+                } elseif ($this->appliedStatus === 1) {
+                    $query->where('disabled', true);
+                }
+            })
+            ->orderBy('plate_number', 'asc')
+            ->get();
+    }
+
+    public function exportCSV()
+    {
+        $data = $this->getExportData();
+        $filename = 'plate_numbers_' . date('Y-m-d_His') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function() use ($data) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            fputcsv($file, ['Plate Number', 'Status', 'Created Date']);
+            
+            foreach ($data as $truck) {
+                $status = $truck->disabled ? 'Disabled' : 'Enabled';
+                fputcsv($file, [
+                    $truck->plate_number,
+                    $status,
+                    $truck->created_at->format('Y-m-d H:i:s')
+                ]);
+            }
+            
+            fclose($file);
+        };
+
+        return Response::stream($callback, 200, $headers);
+    }
+
+    public function openPrintView()
+    {
+        $data = $this->getExportData();
+        $exportData = $data->map(function($truck) {
+            return [
+                'plate_number' => $truck->plate_number,
+                'disabled' => $truck->disabled,
+                'created_at' => $truck->created_at->toIso8601String(),
+            ];
+        })->toArray();
+        
+        $filters = [
+            'search' => $this->search,
+            'status' => $this->appliedStatus,
+            'created_from' => $this->appliedCreatedFrom,
+            'created_to' => $this->appliedCreatedTo,
+        ];
+        
+        $sorting = $this->sortColumns ?? ['plate_number' => 'asc'];
+        
+        $token = Str::random(32);
+        Session::put("export_data_{$token}", $exportData);
+        Session::put("export_filters_{$token}", $filters);
+        Session::put("export_sorting_{$token}", $sorting);
+        Session::put("export_data_{$token}_expires", now()->addMinutes(10));
+        
+        $printUrl = route('admin.print.plate-numbers', ['token' => $token]);
+        
+        $this->dispatch('open-print-window', ['url' => $printUrl]);
     }
 }

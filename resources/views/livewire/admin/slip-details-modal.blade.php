@@ -51,15 +51,13 @@
             </div>
         </div>
 
-        {{-- Origin (only show if status is 0) --}}
-        @if ($selectedSlip->status == 0)
-            <div class="grid grid-cols-3 mb-2">
-                <div class="font-semibold text-gray-700">Origin:</div>
-                <div class="col-span-2 text-gray-900">
-                    {{ $selectedSlip->location->location_name ?? 'N/A' }}
-                </div>
+        {{-- Origin --}}
+        <div class="grid grid-cols-3 mb-2">
+            <div class="font-semibold text-gray-700">Origin:</div>
+            <div class="col-span-2 text-gray-900">
+                {{ $selectedSlip->location->location_name ?? 'N/A' }}
             </div>
-        @endif
+        </div>
 
         {{-- Destination --}}
         <div class="grid grid-cols-3 mb-2">
@@ -133,7 +131,7 @@
                     Close
                 </x-buttons.submit-button>
 
-                {{-- Edit Button (Only if not completed) --}}
+                {{-- Edit Button --}}
                 @if ($this->canEdit())
                     <x-buttons.submit-button wire:click="openEditModal" color="blue">
                         Edit
@@ -143,11 +141,6 @@
         </x-slot>
 
     </x-modals.modal-template>
-
-    {{-- Delete Confirmation Modal --}}
-    <x-modals.delete-confirmation show="showDeleteConfirmation" title="DELETE SLIP?"
-        message="Delete this disinfection slip?" :details="'Slip No: <span class=\'font-semibold\'>' . ($selectedSlip->slip_id ?? '') . '</span>'" warning="This action cannot be undone!"
-        onConfirm="deleteSlip" />
 
     {{-- Attachment Modal --}}
     @if ($attachmentFile)

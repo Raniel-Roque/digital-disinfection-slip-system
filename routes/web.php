@@ -40,6 +40,11 @@ Route::middleware(['auth', 'user.type:1'])->prefix('admin')->name('admin.')->gro
     Route::get('/locations', [AdminController::class, 'locations'])->name('locations');
     Route::get('/plate-numbers', [AdminController::class, 'plateNumbers'])->name('plate-numbers');
     Route::get('/trucks', [AdminController::class, 'trucks'])->name('trucks');
+    Route::get('/print/guards', [AdminController::class, 'printGuards'])->name('print.guards');
+    Route::get('/print/drivers', [AdminController::class, 'printDrivers'])->name('print.drivers');
+    Route::get('/print/locations', [AdminController::class, 'printLocations'])->name('print.locations');
+    Route::get('/print/plate-numbers', [AdminController::class, 'printPlateNumbers'])->name('print.plate-numbers');
+    Route::get('/print/trucks', [AdminController::class, 'printTrucks'])->name('print.trucks');
 });
 
 Route::middleware(['auth', 'user.type:2'])->prefix('superadmin')->name('superadmin.')->group(function () {
@@ -51,5 +56,11 @@ Route::middleware(['auth', 'user.type:2'])->prefix('superadmin')->name('superadm
     Route::get('/plate-numbers', [SuperAdminController::class, 'plateNumbers'])->name('plate-numbers');
     Route::get('/trucks', [SuperAdminController::class, 'trucks'])->name('trucks');
     Route::get('/settings', [SuperAdminController::class, 'settings'])->name('settings');
+    Route::get('/print/guards', [SuperAdminController::class, 'printGuards'])->name('print.guards');
+    Route::get('/print/admins', [SuperAdminController::class, 'printAdmins'])->name('print.admins');
+    Route::get('/print/drivers', [SuperAdminController::class, 'printDrivers'])->name('print.drivers');
+    Route::get('/print/locations', [SuperAdminController::class, 'printLocations'])->name('print.locations');
+    Route::get('/print/plate-numbers', [SuperAdminController::class, 'printPlateNumbers'])->name('print.plate-numbers');
+    Route::get('/print/trucks', [SuperAdminController::class, 'printTrucks'])->name('print.trucks');
 });
 

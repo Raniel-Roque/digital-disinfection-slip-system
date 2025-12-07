@@ -12,6 +12,8 @@ use App\Models\User;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
 class Trucks extends Component
@@ -22,7 +24,7 @@ class Trucks extends Component
     public $showFilters = false;
     
     // Sorting properties
-    public $sortBy = 'created_at'; // Default sort by created_at
+    public $sortBy = 'slip_id'; // Default sort by slip_id
     public $sortDirection = 'desc'; // Default descending
     
     // Filter fields
@@ -996,8 +998,8 @@ class Trucks extends Component
             return false;
         }
 
-        // Admin can edit if not completed
-        return $this->selectedSlip->status != 2;
+        // Admin can edit any slip, including completed ones
+        return true;
     }
 
     public function canDelete()
@@ -1006,8 +1008,8 @@ class Trucks extends Component
             return false;
         }
 
-        // Admin can delete if not completed
-        return $this->selectedSlip->status != 2;
+        // Admin can delete any slip, including completed ones
+        return true;
     }
 
     public function canRemoveAttachment()
@@ -1016,18 +1018,12 @@ class Trucks extends Component
             return false;
         }
 
-        // Admin can only REMOVE attachment (not add), and only if not completed
-        return $this->selectedSlip->attachment_id !== null 
-            && $this->selectedSlip->status != 2;
+        // Admin can remove attachment from any slip, including completed ones
+        return $this->selectedSlip->attachment_id !== null;
     }
 
     public function openEditModal()
     {
-        if (!$this->canEdit()) {
-            $this->dispatch('toast', message: 'Cannot edit a completed slip.', type: 'error');
-            return;
-        }
-
         // Load slip data into edit fields
         $this->editTruckId = $this->selectedSlip->truck_id;
         $this->editLocationId = $this->selectedSlip->location_id;
@@ -1106,11 +1102,6 @@ class Trucks extends Component
 
     public function saveEdit()
     {
-        if (!$this->canEdit()) {
-            $this->dispatch('toast', message: 'Cannot edit a completed slip.', type: 'error');
-            return;
-        }
-
         $status = $this->selectedSlip->status;
         
         // Build validation rules based on status
@@ -1821,5 +1812,163 @@ class Trucks extends Component
             'editAvailableOriginsOptions' => $this->editAvailableOriginsOptions,
             'editAvailableDestinationsOptions' => $this->editAvailableDestinationsOptions,
         ]);
+    }
+
+    public function getExportData()
+    {
+        return DisinfectionSlipModel::with(['truck', 'location', 'destination', 'driver', 'hatcheryGuard', 'receivedGuard'])
+            ->when($this->search, function ($query) {
+                $searchTerm = trim($this->search);
+                $searchTerm = preg_replace('/[%_]/', '', $searchTerm);
+                if (empty($searchTerm)) {
+                    return;
+                }
+                $escapedSearchTerm = str_replace(['%', '_'], ['\%', '\_'], $searchTerm);
+                $query->where(function($q) use ($escapedSearchTerm) {
+                    $q->where('slip_id', 'like', '%' . $escapedSearchTerm . '%')
+                        ->orWhereHas('truck', function($truckQuery) use ($escapedSearchTerm) {
+                            $truckQuery->where('plate_number', 'like', '%' . $escapedSearchTerm . '%');
+                        })
+                        ->orWhereHas('driver', function($driverQuery) use ($escapedSearchTerm) {
+                            $driverQuery->where('first_name', 'like', '%' . $escapedSearchTerm . '%')
+                                ->orWhere('middle_name', 'like', '%' . $escapedSearchTerm . '%')
+                                ->orWhere('last_name', 'like', '%' . $escapedSearchTerm . '%')
+                                ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%'])
+                                ->orWhereRaw("CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%']);
+                        })
+                        ->orWhereHas('location', function($locationQuery) use ($escapedSearchTerm) {
+                            $locationQuery->where('location_name', 'like', '%' . $escapedSearchTerm . '%');
+                        })
+                        ->orWhereHas('destination', function($destinationQuery) use ($escapedSearchTerm) {
+                            $destinationQuery->where('location_name', 'like', '%' . $escapedSearchTerm . '%');
+                        });
+                });
+            })
+            ->when($this->appliedStatus !== null, function($query) {
+                $query->where('status', $this->appliedStatus);
+            })
+            ->when(!empty($this->appliedOrigin), function($query) {
+                $query->whereIn('location_id', $this->appliedOrigin);
+            })
+            ->when(!empty($this->appliedDestination), function($query) {
+                $query->whereIn('destination_id', $this->appliedDestination);
+            })
+            ->when(!empty($this->appliedDriver), function($query) {
+                $query->whereIn('driver_id', $this->appliedDriver);
+            })
+            ->when(!empty($this->appliedPlateNumber), function($query) {
+                $query->whereIn('truck_id', $this->appliedPlateNumber);
+            })
+            ->when(!empty($this->appliedHatcheryGuard), function($query) {
+                $query->whereIn('hatchery_guard_id', $this->appliedHatcheryGuard);
+            })
+            ->when(!empty($this->appliedReceivedGuard), function($query) {
+                $query->whereIn('received_guard_id', $this->appliedReceivedGuard);
+            })
+            ->when($this->appliedCreatedFrom, function($query) {
+                $query->whereDate('created_at', '>=', $this->appliedCreatedFrom);
+            })
+            ->when($this->appliedCreatedTo, function($query) {
+                $query->whereDate('created_at', '<=', $this->appliedCreatedTo);
+            })
+            ->when($this->sortBy === 'slip_id', function($query) {
+                $direction = strtoupper($this->sortDirection);
+                $query->orderByRaw("SUBSTRING(slip_id, 1, 2) " . $direction)
+                      ->orderByRaw("CAST(SUBSTRING(slip_id, 4) AS UNSIGNED) " . $direction);
+            })
+            ->when($this->sortBy !== 'slip_id', function($query) {
+                $query->orderBy($this->sortBy, $this->sortDirection);
+            })
+            ->get();
+    }
+
+    public function exportCSV()
+    {
+        $data = $this->getExportData();
+        $filename = 'disinfection_slips_' . date('Y-m-d_His') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function() use ($data) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            fputcsv($file, ['Slip ID', 'Plate Number', 'Origin', 'Destination', 'Driver', 'Status', 'Hatchery Guard', 'Received Guard', 'Created Date', 'Completed Date']);
+            
+            foreach ($data as $slip) {
+                $statuses = ['Ongoing', 'Disinfecting', 'Completed'];
+                $status = $statuses[$slip->status] ?? 'Unknown';
+                $hatcheryGuard = $slip->hatcheryGuard ? trim(implode(' ', array_filter([$slip->hatcheryGuard->first_name, $slip->hatcheryGuard->middle_name, $slip->hatcheryGuard->last_name]))) : 'N/A';
+                $receivedGuard = $slip->receivedGuard ? trim(implode(' ', array_filter([$slip->receivedGuard->first_name, $slip->receivedGuard->middle_name, $slip->receivedGuard->last_name]))) : 'N/A';
+                $driver = $slip->driver ? trim(implode(' ', array_filter([$slip->driver->first_name, $slip->driver->middle_name, $slip->driver->last_name]))) : 'N/A';
+                
+                fputcsv($file, [
+                    $slip->slip_id,
+                    $slip->truck->plate_number ?? 'N/A',
+                    $slip->location->location_name ?? 'N/A',
+                    $slip->destination->location_name ?? 'N/A',
+                    $driver,
+                    $status,
+                    $hatcheryGuard,
+                    $receivedGuard,
+                    $slip->created_at->format('Y-m-d H:i:s'),
+                    $slip->completed_at ? \Carbon\Carbon::parse($slip->completed_at)->format('Y-m-d H:i:s') : 'N/A'
+                ]);
+            }
+            
+            fclose($file);
+        };
+
+        return Response::stream($callback, 200, $headers);
+    }
+
+    public function openPrintView()
+    {
+        $data = $this->getExportData();
+        $exportData = $data->map(function($slip) {
+            return [
+                'slip_id' => $slip->slip_id,
+                'plate_number' => $slip->truck->plate_number ?? 'N/A',
+                'origin' => $slip->location->location_name ?? 'N/A',
+                'destination' => $slip->destination->location_name ?? 'N/A',
+                'driver' => $slip->driver ? trim(implode(' ', array_filter([$slip->driver->first_name, $slip->driver->middle_name, $slip->driver->last_name]))) : 'N/A',
+                'status' => $slip->status,
+                'hatchery_guard' => $slip->hatcheryGuard ? trim(implode(' ', array_filter([$slip->hatcheryGuard->first_name, $slip->hatcheryGuard->middle_name, $slip->hatcheryGuard->last_name]))) : 'N/A',
+                'received_guard' => $slip->receivedGuard ? trim(implode(' ', array_filter([$slip->receivedGuard->first_name, $slip->receivedGuard->middle_name, $slip->receivedGuard->last_name]))) : 'N/A',
+                'created_at' => $slip->created_at->toIso8601String(),
+                'completed_at' => $slip->completed_at ? \Carbon\Carbon::parse($slip->completed_at)->toIso8601String() : null,
+            ];
+        })->toArray();
+        
+        $filters = [
+            'search' => $this->search,
+            'status' => $this->appliedStatus,
+            'origin' => $this->appliedOrigin,
+            'destination' => $this->appliedDestination,
+            'driver' => $this->appliedDriver,
+            'plate_number' => $this->appliedPlateNumber,
+            'hatchery_guard' => $this->appliedHatcheryGuard,
+            'received_guard' => $this->appliedReceivedGuard,
+            'created_from' => $this->appliedCreatedFrom,
+            'created_to' => $this->appliedCreatedTo,
+        ];
+        
+        $sorting = [
+            'sort_by' => $this->sortBy,
+            'sort_direction' => $this->sortDirection,
+        ];
+        
+        $token = Str::random(32);
+        Session::put("export_data_{$token}", $exportData);
+        Session::put("export_filters_{$token}", $filters);
+        Session::put("export_sorting_{$token}", $sorting);
+        Session::put("export_data_{$token}_expires", now()->addMinutes(10));
+        
+        $printUrl = route('admin.print.trucks', ['token' => $token]);
+        
+        $this->dispatch('open-print-window', ['url' => $printUrl]);
     }
 }

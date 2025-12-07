@@ -9,6 +9,9 @@ use Livewire\WithPagination;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Str;
 
 class Guards extends Component
 {
@@ -64,6 +67,10 @@ class Guards extends Component
     public $showResetPasswordModal = false;
     public $showCreateModal = false;
     public $showDeleteModal = false;
+    public $showRestoreModal = false;
+    public $showDeleted = false; // Toggle to show deleted items
+    public $selectedRestoreUserId = null;
+    public $selectedRestoreUserName = '';
 
     // Edit form fields
     public $first_name;
@@ -331,6 +338,28 @@ class Guards extends Component
         $this->dispatch('toast', message: "{$guardName} has been deleted.", type: 'success');
     }
 
+    public function toggleDeletedView()
+    {
+        $this->showDeleted = !$this->showDeleted;
+        $this->resetPage();
+    }
+
+    public function restoreUser($userId)
+    {
+        // Authorization check
+        if (Auth::user()->user_type < 2) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $user = User::onlyTrashed()->findOrFail($userId);
+        
+        if ($user && $user->user_type === 0) {
+            $user->restore();
+            $this->dispatch('toast', message: 'Guard restored successfully.', type: 'success');
+        }
+    }
+
+
     public function openCreateModal()
     {
         $this->reset(['create_first_name', 'create_middle_name', 'create_last_name']);
@@ -492,7 +521,11 @@ class Guards extends Component
 
     public function render()
     {
-        $users = User::where('user_type', 0)->whereNull('deleted_at')
+        $query = $this->showDeleted 
+            ? User::onlyTrashed()->where('user_type', 0)
+            : User::where('user_type', 0)->whereNull('deleted_at');
+        
+        $users = $query
             ->when($this->search, function ($query) {
                 $searchTerm = $this->search;
                 
@@ -531,7 +564,7 @@ class Guards extends Component
             ->when($this->appliedCreatedTo, function ($query) {
                 $query->whereDate('created_at', '<=', $this->appliedCreatedTo);
             })
-            ->when($this->appliedStatus !== null, function ($query) {
+            ->when($this->appliedStatus !== null && !$this->showDeleted, function ($query) {
                 if ($this->appliedStatus === 0) {
                     // Enabled (disabled = false)
                     $query->where('disabled', false);
@@ -573,5 +606,122 @@ class Guards extends Component
             'filtersActive' => $filtersActive,
             'availableStatuses' => $this->availableStatuses,
         ]);
+    }
+
+    public function getExportData()
+    {
+        return User::where('user_type', 0)->whereNull('deleted_at')
+            ->when($this->search, function ($query) {
+                $searchTerm = trim($this->search);
+                $searchTerm = preg_replace('/[%_]/', '', $searchTerm);
+                if (empty($searchTerm)) {
+                    return;
+                }
+                $escapedSearchTerm = str_replace(['%', '_'], ['\%', '\_'], $searchTerm);
+                if (str_starts_with($searchTerm, '@')) {
+                    $cleanedSearchTerm = ltrim($searchTerm, '@');
+                    $escapedCleanedSearchTerm = str_replace(['%', '_'], ['\%', '\_'], $cleanedSearchTerm);
+                    $query->where('username', 'like', '%' . $escapedCleanedSearchTerm . '%');
+                } else {
+                    $query->where(function ($q) use ($escapedSearchTerm) {
+                        $q->where('first_name', 'like', '%' . $escapedSearchTerm . '%')
+                          ->orWhere('middle_name', 'like', '%' . $escapedSearchTerm . '%')
+                          ->orWhere('last_name', 'like', '%' . $escapedSearchTerm . '%')
+                          ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%'])
+                          ->orWhereRaw("CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%']);
+                    });
+                }
+            })
+            ->when($this->appliedCreatedFrom, function ($query) {
+                $query->whereDate('created_at', '>=', $this->appliedCreatedFrom);
+            })
+            ->when($this->appliedCreatedTo, function ($query) {
+                $query->whereDate('created_at', '<=', $this->appliedCreatedTo);
+            })
+            ->when($this->appliedStatus !== null, function ($query) {
+                if ($this->appliedStatus === 0) {
+                    $query->where('disabled', false);
+                } elseif ($this->appliedStatus === 1) {
+                    $query->where('disabled', true);
+                }
+            })
+            ->orderBy('first_name', 'asc')
+            ->orderBy('last_name', 'asc')
+            ->get();
+    }
+
+    public function exportCSV()
+    {
+        if ($this->showDeleted) {
+            return;
+        }
+        
+        $data = $this->getExportData();
+        $filename = 'guards_' . date('Y-m-d_His') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function() use ($data) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            fputcsv($file, ['Name', 'Username', 'Status', 'Created Date']);
+            
+            foreach ($data as $user) {
+                $name = trim(implode(' ', array_filter([$user->first_name, $user->middle_name, $user->last_name])));
+                $status = $user->disabled ? 'Disabled' : 'Enabled';
+                fputcsv($file, [
+                    $name,
+                    $user->username,
+                    $status,
+                    $user->created_at->format('Y-m-d H:i:s')
+                ]);
+            }
+            
+            fclose($file);
+        };
+
+        return Response::stream($callback, 200, $headers);
+    }
+
+    public function openPrintView()
+    {
+        if ($this->showDeleted) {
+            return;
+        }
+        
+        $data = $this->getExportData();
+        $exportData = $data->map(function($user) {
+            return [
+                'first_name' => $user->first_name,
+                'middle_name' => $user->middle_name,
+                'last_name' => $user->last_name,
+                'username' => $user->username,
+                'disabled' => $user->disabled,
+                'created_at' => $user->created_at->toIso8601String(),
+            ];
+        })->toArray();
+        
+        $filters = [
+            'search' => $this->search,
+            'status' => $this->appliedStatus,
+            'created_from' => $this->appliedCreatedFrom,
+            'created_to' => $this->appliedCreatedTo,
+        ];
+        
+        $sorting = $this->sortColumns ?? ['first_name' => 'asc'];
+        
+        $token = Str::random(32);
+        Session::put("export_data_{$token}", $exportData);
+        Session::put("export_filters_{$token}", $filters);
+        Session::put("export_sorting_{$token}", $sorting);
+        Session::put("export_data_{$token}_expires", now()->addMinutes(10));
+        
+        $printUrl = route('superadmin.print.guards', ['token' => $token]);
+        
+        $this->dispatch('open-print-window', ['url' => $printUrl]);
     }
 }

@@ -6,6 +6,9 @@ use App\Models\Driver;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Str;
 
 class Drivers extends Component
 {
@@ -416,5 +419,124 @@ class Drivers extends Component
             'filtersActive' => $filtersActive,
             'availableStatuses' => $this->availableStatuses,
         ]);
+    }
+
+    public function getExportData()
+    {
+        return Driver::when($this->search, function ($query) {
+                $searchTerm = trim($this->search);
+                $searchTerm = preg_replace('/[%_]/', '', $searchTerm);
+                if (empty($searchTerm)) {
+                    return $query;
+                }
+                $escapedSearchTerm = str_replace(['%', '_'], ['\%', '\_'], $searchTerm);
+                $query->where(function ($q) use ($escapedSearchTerm) {
+                    $q->where('first_name', 'like', '%' . $escapedSearchTerm . '%')
+                      ->orWhere('middle_name', 'like', '%' . $escapedSearchTerm . '%')
+                      ->orWhere('last_name', 'like', '%' . $escapedSearchTerm . '%')
+                      ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%'])
+                      ->orWhereRaw("CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%']);
+                });
+                return $query;
+            })
+            ->when($this->appliedCreatedFrom, function ($query) {
+                $query->whereDate('created_at', '>=', $this->appliedCreatedFrom);
+            })
+            ->when($this->appliedCreatedTo, function ($query) {
+                $query->whereDate('created_at', '<=', $this->appliedCreatedTo);
+            })
+            ->when($this->appliedStatus !== null, function ($query) {
+                if ($this->appliedStatus === 0) {
+                    $query->where('disabled', false);
+                } elseif ($this->appliedStatus === 1) {
+                    $query->where('disabled', true);
+                }
+            })
+            ->when(!empty($this->sortColumns), function($query) {
+                if (!is_array($this->sortColumns)) {
+                    $this->sortColumns = ['first_name' => 'asc'];
+                }
+                
+                $firstSort = true;
+                foreach ($this->sortColumns as $column => $direction) {
+                    if ($column === 'created_at' && $firstSort) {
+                        $query->orderByRaw("CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) THEN 0 ELSE 1 END")
+                            ->orderByRaw("CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) THEN created_at END DESC")
+                            ->orderBy('created_at', $direction);
+                    } else {
+                        $query->orderBy($column, $direction);
+                    }
+                    $firstSort = false;
+                }
+            })
+            ->when(empty($this->sortColumns), function($query) {
+                $query->orderBy('first_name', 'asc');
+            })
+            ->get();
+    }
+
+    public function exportCSV()
+    {
+        $data = $this->getExportData();
+        $filename = 'drivers_' . date('Y-m-d_His') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function() use ($data) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            fputcsv($file, ['Name', 'Status', 'Created Date']);
+            
+            foreach ($data as $driver) {
+                $name = trim(implode(' ', array_filter([$driver->first_name, $driver->middle_name, $driver->last_name])));
+                $status = $driver->disabled ? 'Disabled' : 'Enabled';
+                fputcsv($file, [
+                    $name,
+                    $status,
+                    $driver->created_at->format('Y-m-d H:i:s')
+                ]);
+            }
+            
+            fclose($file);
+        };
+
+        return Response::stream($callback, 200, $headers);
+    }
+
+    public function openPrintView()
+    {
+        $data = $this->getExportData();
+        $exportData = $data->map(function($driver) {
+            return [
+                'first_name' => $driver->first_name,
+                'middle_name' => $driver->middle_name,
+                'last_name' => $driver->last_name,
+                'disabled' => $driver->disabled,
+                'created_at' => $driver->created_at->toIso8601String(),
+            ];
+        })->toArray();
+        
+        $filters = [
+            'search' => $this->search,
+            'status' => $this->appliedStatus,
+            'created_from' => $this->appliedCreatedFrom,
+            'created_to' => $this->appliedCreatedTo,
+        ];
+        
+        $sorting = $this->sortColumns ?? ['first_name' => 'asc'];
+        
+        $token = Str::random(32);
+        Session::put("export_data_{$token}", $exportData);
+        Session::put("export_filters_{$token}", $filters);
+        Session::put("export_sorting_{$token}", $sorting);
+        Session::put("export_data_{$token}_expires", now()->addMinutes(10));
+        
+        $printUrl = route('admin.print.drivers', ['token' => $token]);
+        
+        $this->dispatch('open-print-window', ['url' => $printUrl]);
     }
 }
