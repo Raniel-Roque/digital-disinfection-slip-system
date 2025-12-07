@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SessionController;
@@ -42,6 +43,13 @@ Route::middleware(['auth', 'user.type:1'])->prefix('admin')->name('admin.')->gro
 });
 
 Route::middleware(['auth', 'user.type:2'])->prefix('superadmin')->name('superadmin.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'superadmin'])->name('dashboard');
+    Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/guards', [SuperAdminController::class, 'guards'])->name('guards');
+    Route::get('/admins', [SuperAdminController::class, 'admins'])->name('admins');
+    Route::get('/drivers', [SuperAdminController::class, 'drivers'])->name('drivers');
+    Route::get('/locations', [SuperAdminController::class, 'locations'])->name('locations');
+    Route::get('/plate-numbers', [SuperAdminController::class, 'plateNumbers'])->name('plate-numbers');
+    Route::get('/trucks', [SuperAdminController::class, 'trucks'])->name('trucks');
+    Route::get('/settings', [SuperAdminController::class, 'settings'])->name('settings');
 });
 

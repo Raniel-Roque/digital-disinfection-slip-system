@@ -7,11 +7,11 @@
                 @break
 
                 @case(1)
-                    <livewire:sidebar.sidebar-admin />
+                    <livewire:sidebar.sidebar-admin :currentRoute="Route::currentRouteName()" />
                 @break
 
                 @case(2)
-                    <livewire:sidebar.sidebar-super-admin />
+                    <livewire:sidebar.sidebar-superadmin :currentRoute="Route::currentRouteName()" />
                 @break
             @endswitch
         </x-slot:sidebar>
