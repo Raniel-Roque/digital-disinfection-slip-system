@@ -13,7 +13,7 @@
 
                 <!-- Incoming Trucks Card -->
                 <a href="{{ route('user.incoming-trucks') }}"
-                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-green-400">
+                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl hover:cursor-pointer transition-all duration-300 border border-gray-200 hover:border-green-400">
                     <div class="p-6" wire:poll>
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex items-center gap-3">
@@ -48,7 +48,7 @@
 
                 <!-- Outgoing Trucks Card -->
                 <a href="{{ route('user.outgoing-trucks') }}"
-                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-red-400">
+                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl hover:cursor-pointer transition-all duration-300 border border-gray-200 hover:border-red-400">
                     <div class="p-6" wire:poll>
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex items-center gap-3">
@@ -83,7 +83,7 @@
 
                 <!-- Create Slip Action Card -->
                 <a href="{{ route('user.outgoing-trucks', ['openCreate' => true]) }}"
-                    class="group relative overflow-hidden bg-linear-to-br from-blue-500 to-blue-600 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-blue-400 hover:scale-105">
+                    class="group relative overflow-hidden bg-linear-to-br from-blue-500 to-blue-600 rounded-2xl shadow-md hover:shadow-xl hover:cursor-pointer transition-all duration-300 border border-blue-400 hover:scale-105">
                     <div class="p-6 h-full flex flex-col justify-between">
                         <div class="flex items-start justify-between mb-4">
                             <div
@@ -175,7 +175,7 @@
                 <h2 class="text-lg font-bold text-gray-800 mb-4">Quick Links</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <a href="{{ route('user.incoming-trucks') }}"
-                        class="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-green-300 hover:bg-green-50 transition-all group">
+                        class="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-green-300 hover:bg-green-50 hover:cursor-pointer transition-all group">
                         <div class="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
                             <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
@@ -187,7 +187,7 @@
                             Trucks</span>
                     </a>
                     <a href="{{ route('user.outgoing-trucks') }}"
-                        class="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-red-300 hover:bg-red-50 transition-all group">
+                        class="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-red-300 hover:bg-red-50 hover:cursor-pointer transition-all group">
                         <div class="p-2 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
                             <svg class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">

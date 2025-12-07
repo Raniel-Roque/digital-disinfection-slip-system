@@ -16,7 +16,7 @@
     <div wire:poll class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         @forelse ($locations as $location)
             <a href="{{ route('location.login', $location->id) }}"
-                class="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-gray-100 hover:border-orange-300"
+                class="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-gray-100 hover:border-orange-300 cursor-pointer"
                 wire:key="location-{{ $location->id }}">
 
                 <!-- Desktop/Tablet View -->

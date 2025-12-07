@@ -44,8 +44,8 @@
     $sizeClass = $sizes[$size] ?? $sizes['default'];
     $widthClass = $fullWidth ? 'w-full' : '';
     $baseClasses = $fullWidth
-        ? 'rounded-lg focus:ring-2 transition-all duration-200 hover:cursor-pointer'
-        : 'inline-flex items-center gap-1.5 rounded-lg focus:ring-2 focus:ring-offset-2 transition-colors duration-150';
+        ? 'rounded-lg focus:ring-2 transition-all duration-200 hover:cursor-pointer cursor-pointer'
+        : 'inline-flex items-center gap-1.5 rounded-lg focus:ring-2 focus:ring-offset-2 transition-colors duration-150 hover:cursor-pointer cursor-pointer';
 @endphp
 
 @if ($fullWidth)
@@ -58,9 +58,10 @@
         </button>
     </div>
 @else
-    <button {{ $attributes->merge([
-        'class' => "$baseClasses $sizeClass $preset",
-    ]) }}>
+    <button
+        {{ $attributes->merge([
+            'class' => "$baseClasses $sizeClass $preset hover:cursor-pointer",
+        ]) }}>
         {{ $slot }}
     </button>
 @endif

@@ -98,8 +98,8 @@
 
 <body>
     <div class="no-print print-actions">
-        <button class="btn btn-print" onclick="window.print()">Print / Save as PDF</button>
-        <button class="btn btn-close" onclick="window.close()">Close</button>
+        <button class="btn btn-print hover:cursor-pointer" onclick="window.print()">Print / Save as PDF</button>
+        <button class="btn btn-close hover:cursor-pointer" onclick="window.close()">Close</button>
     </div>
 
     <div class="header">

@@ -103,7 +103,7 @@
                     <!-- Back link below the login button with underline on hover -->
                     <div class="mt-4 text-center">
                         <a href="/"
-                            class="inline-flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:underline">
+                            class="inline-flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:underline hover:cursor-pointer cursor-pointer">
                             Back
                         </a>
                     </div>

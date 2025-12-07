@@ -288,7 +288,7 @@
 
                         <div class="space-y-3">
                             <a href="{{ route('superadmin.guards') }}"
-                                class="group block p-4 bg-linear-to-br from-blue-50 to-blue-100/50 rounded-2xl border-2 border-blue-200 hover:border-blue-400 hover:shadow-md transition-all duration-300">
+                                class="group block p-4 bg-linear-to-br from-blue-50 to-blue-100/50 rounded-2xl border-2 border-blue-200 hover:border-blue-400 hover:shadow-md hover:cursor-pointer transition-all duration-300">
                                 <div class="flex items-center gap-3">
                                     <div
                                         class="p-2.5 bg-blue-200 rounded-xl group-hover:bg-blue-300 transition-colors">
@@ -305,7 +305,7 @@
                             </a>
 
                             <a href="{{ route('superadmin.admins') }}"
-                                class="group block p-4 bg-linear-to-br from-indigo-50 to-indigo-100/50 rounded-2xl border-2 border-indigo-200 hover:border-indigo-400 hover:shadow-md transition-all duration-300">
+                                class="group block p-4 bg-linear-to-br from-indigo-50 to-indigo-100/50 rounded-2xl border-2 border-indigo-200 hover:border-indigo-400 hover:shadow-md hover:cursor-pointer transition-all duration-300">
                                 <div class="flex items-center gap-3">
                                     <div
                                         class="p-2.5 bg-indigo-200 rounded-xl group-hover:bg-indigo-300 transition-colors">
@@ -322,7 +322,7 @@
                             </a>
 
                             <a href="{{ route('superadmin.drivers') }}"
-                                class="group block p-4 bg-linear-to-br from-pink-50 to-pink-100/50 rounded-2xl border-2 border-pink-200 hover:border-pink-400 hover:shadow-md transition-all duration-300">
+                                class="group block p-4 bg-linear-to-br from-pink-50 to-pink-100/50 rounded-2xl border-2 border-pink-200 hover:border-pink-400 hover:shadow-md hover:cursor-pointer transition-all duration-300">
                                 <div class="flex items-center gap-3">
                                     <div
                                         class="p-2.5 bg-pink-200 rounded-xl group-hover:bg-pink-300 transition-colors">
@@ -339,7 +339,7 @@
                             </a>
 
                             <a href="{{ route('superadmin.plate-numbers') }}"
-                                class="group block p-4 bg-linear-to-br from-amber-50 to-amber-100/50 rounded-2xl border-2 border-amber-200 hover:border-amber-400 hover:shadow-md transition-all duration-300">
+                                class="group block p-4 bg-linear-to-br from-amber-50 to-amber-100/50 rounded-2xl border-2 border-amber-200 hover:border-amber-400 hover:shadow-md hover:cursor-pointer transition-all duration-300">
                                 <div class="flex items-center gap-3">
                                     <div
                                         class="p-2.5 bg-amber-200 rounded-xl group-hover:bg-amber-300 transition-colors">
@@ -356,7 +356,7 @@
                             </a>
 
                             <a href="{{ route('superadmin.locations') }}"
-                                class="group block p-4 bg-linear-to-br from-green-50 to-green-100/50 rounded-2xl border-2 border-green-200 hover:border-green-400 hover:shadow-md transition-all duration-300">
+                                class="group block p-4 bg-linear-to-br from-green-50 to-green-100/50 rounded-2xl border-2 border-green-200 hover:border-green-400 hover:shadow-md hover:cursor-pointer transition-all duration-300">
                                 <div class="flex items-center gap-3">
                                     <div
                                         class="p-2.5 bg-green-200 rounded-xl group-hover:bg-green-300 transition-colors">
@@ -375,7 +375,7 @@
                             </a>
 
                             <a href="{{ route('superadmin.trucks') }}"
-                                class="group block p-4 bg-linear-to-br from-purple-50 to-purple-100/50 rounded-2xl border-2 border-purple-200 hover:border-purple-400 hover:shadow-md transition-all duration-300">
+                                class="group block p-4 bg-linear-to-br from-purple-50 to-purple-100/50 rounded-2xl border-2 border-purple-200 hover:border-purple-400 hover:shadow-md hover:cursor-pointer transition-all duration-300">
                                 <div class="flex items-center gap-3">
                                     <div
                                         class="p-2.5 bg-purple-200 rounded-xl group-hover:bg-purple-300 transition-colors">

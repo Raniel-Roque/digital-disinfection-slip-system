@@ -147,7 +147,7 @@
         <button type="button" 
             x-on:click="open = !open"
             @disabled($disabled)
-            class="inline-flex justify-between w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="inline-flex justify-between w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer"
             :class="{ 'ring-2 ring-blue-500': open }">
             <span :class="{ 'text-gray-400': @if($multiple) localSelection.length === 0 @else !$wire.get('{{ $wireModel }}') @endif }">
                 <span x-text="

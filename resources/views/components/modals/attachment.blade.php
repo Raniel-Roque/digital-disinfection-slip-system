@@ -18,7 +18,7 @@
         {{-- NO PREVIEW — ONLY LINK --}}
         <p class="text-sm text-gray-600 text-center p-4">
             This file type cannot be previewed.<br>
-            <a href="{{ $fileUrl }}" target="_blank" class="text-orange-500 font-semibold underline">
+            <a href="{{ $fileUrl }}" target="_blank" class="text-orange-500 font-semibold underline hover:cursor-pointer cursor-pointer">
                 Download attachment
             </a>
         </p>

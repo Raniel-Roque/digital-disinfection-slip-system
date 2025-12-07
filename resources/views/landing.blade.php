@@ -4,7 +4,7 @@
         class="bg-linear-to-r from-orange-100 via-orange-50 to-orange-100 shadow-sm p-4 sm:p-6 fixed top-0 left-0 w-full z-20">
         <div class="flex justify-between items-center">
             <!-- Logo + Header Text -->
-            <a href="{{ url('/') }}" class="flex items-center space-x-3">
+            <a href="{{ url('/') }}" class="flex items-center space-x-3 hover:cursor-pointer">
                 <img src="{{ asset('storage/images/logo/BGC.png') }}" alt="Logo" class="h-10 w-auto">
                 <div class="font-bold text-gray-800 text-[clamp(1rem,1.8vw,1.5rem)] leading-none">
                     Digital Disinfection Slip System
@@ -47,7 +47,7 @@
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit"
-                            class="ml-4 text-sm font-medium text-blue-700 hover:text-blue-900 underline">
+                            class="ml-4 text-sm font-medium text-blue-700 hover:text-blue-900 underline hover:cursor-pointer cursor-pointer">
                             Logout
                         </button>
                     </form>

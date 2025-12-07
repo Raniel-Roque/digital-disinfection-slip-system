@@ -335,7 +335,8 @@ class Guards extends Component
         $this->showResetPasswordModal = false;
         $this->showCreateModal = false;
         $this->showDeleteModal = false;
-        $this->reset(['selectedUserId', 'selectedUserDisabled', 'selectedUserName', 'first_name', 'middle_name', 'last_name', 'create_first_name', 'create_middle_name', 'create_last_name']);
+        $this->showRestoreModal = false;
+        $this->reset(['selectedUserId', 'selectedUserDisabled', 'selectedUserName', 'selectedRestoreUserId', 'selectedRestoreUserName', 'first_name', 'middle_name', 'last_name', 'create_first_name', 'create_middle_name', 'create_last_name']);
         $this->resetValidation();
     }
 
@@ -391,28 +392,48 @@ class Guards extends Component
         $this->resetPage();
     }
 
-    public function restoreUser($userId)
+    public function openRestoreModal($userId)
+    {
+        $user = User::onlyTrashed()->findOrFail($userId);
+        $this->selectedUserId = $userId;
+        $this->selectedUserName = $this->getGuardFullName($user);
+        $this->showRestoreModal = true;
+    }
+
+    public function restoreUser()
     {
         // Authorization check
         if (Auth::user()->user_type < 2) {
             abort(403, 'Unauthorized action.');
         }
 
-        $user = User::onlyTrashed()->findOrFail($userId);
-        
-        if ($user && $user->user_type === 0) {
-            $user->restore();
-            $guardName = $this->getGuardFullName($user);
-            
-            // Log the restore action
-            Logger::restore(
-                User::class,
-                $user->id,
-                "Restored guard {$guardName}"
-            );
-            
-            $this->dispatch('toast', message: 'Guard restored successfully.', type: 'success');
+        if (!$this->selectedUserId) {
+            return;
         }
+
+        $user = User::onlyTrashed()->findOrFail($this->selectedUserId);
+        
+        // Verify the user is a guard (user_type = 0)
+        if ($user->user_type !== 0) {
+            $this->showRestoreModal = false;
+            $this->reset(['selectedUserId', 'selectedUserName']);
+            $this->dispatch('toast', message: 'Cannot restore this user.', type: 'error');
+            return;
+        }
+
+        $guardName = $this->getGuardFullName($user);
+        $user->restore();
+        
+        // Log the restore action
+        Logger::restore(
+            User::class,
+            $user->id,
+            "Restored guard {$guardName}"
+        );
+        
+        $this->showRestoreModal = false;
+        $this->reset(['selectedUserId', 'selectedUserName']);
+        $this->dispatch('toast', message: 'Guard restored successfully.', type: 'success');
     }
 
 

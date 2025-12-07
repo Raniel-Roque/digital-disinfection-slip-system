@@ -31,7 +31,7 @@
                             class="block w-full pl-10 pr-10 py-2.5 border {{ $errors->has('currentPassword') ? 'border-red-300' : 'border-gray-300' }} rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors text-sm"
                             placeholder="Enter your current password">
                         <button type="button" @click="showCurrent = !showCurrent"
-                            class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center hover:cursor-pointer">
                             <svg x-show="!showCurrent" class="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -68,7 +68,7 @@
                             class="block w-full pl-10 pr-10 py-2.5 border {{ $errors->has('newPassword') ? 'border-red-300' : 'border-gray-300' }} rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors text-sm"
                             placeholder="Enter new password (min. 8 characters)">
                         <button type="button" @click="showNew = !showNew"
-                            class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center hover:cursor-pointer">
                             <svg x-show="!showNew" class="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -106,7 +106,7 @@
                             class="block w-full pl-10 pr-10 py-2.5 border {{ $errors->has('newPasswordConfirmation') ? 'border-red-300' : 'border-gray-300' }} rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors text-sm"
                             placeholder="Confirm new password">
                         <button type="button" @click="showConfirm = !showConfirm"
-                            class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center hover:cursor-pointer">
                             <svg x-show="!showConfirm" class="h-5 w-5 text-gray-400 hover:text-gray-600"
                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -129,11 +129,11 @@
                 <!-- Action Buttons -->
                 <div class="flex flex-col sm:flex-row gap-3 pt-2">
                     <a href="{{ route(auth()->user()->dashboardRoute()) }}"
-                        class="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-center">
+                        class="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 hover:cursor-pointer transition-colors text-center">
                         Cancel
                     </a>
                     <button type="submit"
-                        class="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-[#EC8B18] rounded-lg hover:bg-[#d67a15] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        class="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-[#EC8B18] rounded-lg hover:bg-[#d67a15] hover:cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         wire:loading.attr="disabled">
                         <span wire:loading.remove>Change Password</span>
                         <span wire:loading>Changing...</span>

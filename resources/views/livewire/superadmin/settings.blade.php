@@ -87,7 +87,7 @@
                             <div class="grid grid-cols-2 gap-4 mb-3">
                                 <div>
                                     <label
-                                        class="cursor-pointer inline-flex items-center w-full justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        class="cursor-pointer inline-flex items-center w-full justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:cursor-pointer transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -104,7 +104,7 @@
                                             {{ $default_logo_file->getClientOriginalName() }}
                                         </p>
                                         <button wire:click="clearLogo" type="button"
-                                            class="mt-1 text-xs text-red-600 hover:text-red-800">
+                                            class="mt-1 text-xs text-red-600 hover:text-red-800 hover:cursor-pointer">
                                             Clear
                                         </button>
                                     @elseif ($this->defaultLogoPath)
@@ -144,7 +144,7 @@
                     {{-- Form Footer --}}
                     <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
                         <button type="submit"
-                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             Save Settings
                         </button>
                     </div>
