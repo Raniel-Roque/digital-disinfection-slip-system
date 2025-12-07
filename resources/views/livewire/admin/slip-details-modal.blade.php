@@ -157,11 +157,12 @@
             $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
         @endphp
 
-        <x-modals.modal-template show="showAttachmentModal" title="Attachment Preview" max-width="max-w-4xl">
+        <x-modals.modal-template show="showAttachmentModal" title="Attachment Preview" max-width="max-w-xl">
 
             @if (in_array($extension, $imageExtensions))
                 {{-- IMAGE PREVIEW ONLY --}}
-                <img src="{{ $fileUrl }}" class="border shadow-md max-h-[80vh] object-contain mx-auto rounded-lg"
+                <img src="{{ $fileUrl }}"
+                    class="border shadow-md max-h-[50vh] max-w-full object-contain mx-auto rounded-lg"
                     alt="Attachment Preview">
             @else
                 {{-- NO PREVIEW – ONLY LINK --}}
