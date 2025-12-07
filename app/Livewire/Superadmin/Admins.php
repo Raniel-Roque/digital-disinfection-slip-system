@@ -273,11 +273,21 @@ class Admins extends Component
         $user->refresh();
         $adminName = $this->getAdminFullName($user);
         
+        // Generate description based on what changed
+        $changedFields = [];
+        if ($user->first_name !== $firstName || $user->last_name !== $lastName) {
+            $changedFields[] = "name to \"{$adminName}\"";
+        }
+        if (isset($updateData['username']) && $user->username !== $updateData['username']) {
+            $changedFields[] = "username";
+        }
+        $description = !empty($changedFields) ? "Updated " . implode(" and ", $changedFields) : "Updated \"{$adminName}\"";
+        
         // Log the update action
         Logger::update(
             User::class,
             $user->id,
-            "Updated admin {$adminName}",
+            $description,
             $oldValues,
             $updateData
         );
@@ -319,7 +329,7 @@ class Admins extends Component
         Logger::update(
             User::class,
             $user->id,
-            "{$action} admin {$adminName}",
+            ucfirst($action) . " \"{$adminName}\"",
             $oldValues,
             ['disabled' => $newStatus]
         );
@@ -408,7 +418,7 @@ class Admins extends Component
         Logger::delete(
             User::class,
             $userIdForLog,
-            "Deleted admin {$adminName}",
+            "Deleted \"{$adminName}\"",
             $oldValues
         );
 
@@ -636,7 +646,7 @@ class Admins extends Component
         Logger::create(
             User::class,
             $user->id,
-            "Created admin {$adminName}",
+            "Created \"{$adminName}\"",
             $user->only([
                 'first_name',
                 'middle_name',

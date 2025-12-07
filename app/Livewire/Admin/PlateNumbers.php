@@ -328,7 +328,7 @@ class PlateNumbers extends Component
         Logger::create(
             Truck::class,
             $truck->id,
-            "Created plate number {$plateNumber}",
+            "Created \"{$plateNumber}\"",
             $newValues
         );
 

@@ -1314,7 +1314,7 @@ class Trucks extends Component
         Logger::update(
             DisinfectionSlipModel::class,
             $this->selectedSlip->id,
-            "Updated disinfection slip {$slipId}",
+            "Updated slip {$slipId}",
             $oldValues,
             $updateData
         );
@@ -1354,7 +1354,7 @@ class Trucks extends Component
         Logger::delete(
             DisinfectionSlipModel::class,
             $slipIdForLog,
-            "Deleted disinfection slip {$slipId}",
+            "Deleted slip {$slipId}",
             $oldValues
         );
         
@@ -1563,7 +1563,7 @@ class Trucks extends Component
         Logger::create(
             DisinfectionSlipModel::class,
             $slip->id,
-            "Created disinfection slip {$slipId}",
+            "Created slip {$slipId}",
             $slip->only([
                 'truck_id',
                 'location_id',

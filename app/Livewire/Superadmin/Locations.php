@@ -277,11 +277,25 @@ class Locations extends Component
             'attachment_id' => $attachmentId,
         ]);
         
+        // Generate specific description based on what changed
+        $descriptionParts = [];
+        if ($nameChanged) {
+            $descriptionParts[] = "name to \"{$locationName}\"";
+        }
+        if ($attachmentChanged) {
+            if ($attachmentId === null) {
+                $descriptionParts[] = "removed logo";
+            } else {
+                $descriptionParts[] = "updated logo";
+            }
+        }
+        $description = "Updated " . implode(" and ", $descriptionParts);
+        
         // Log the update action
         Logger::update(
             Location::class,
             $location->id,
-            "Updated location {$locationName}",
+            $description,
             $oldValues,
             ['location_name' => $locationName, 'attachment_id' => $attachmentId]
         );
@@ -377,7 +391,7 @@ class Locations extends Component
         Logger::delete(
             Location::class,
             $locationIdForLog,
-            "Deleted location {$locationName}",
+            "Deleted \"{$locationName}\"",
             $oldValues
         );
 
@@ -495,7 +509,7 @@ class Locations extends Component
         Logger::create(
             Location::class,
             $location->id,
-            "Created location {$locationName}",
+            "Created \"{$locationName}\"",
             $location->only(['location_name', 'attachment_id', 'disabled'])
         );
 

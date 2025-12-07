@@ -269,12 +269,22 @@ class Guards extends Component
         $user->refresh();
         $guardName = $this->getGuardFullName($user);
         
-        // Log the update
+        // Generate description based on what changed
+        $changedFields = [];
+        if ($user->first_name !== $firstName || $user->last_name !== $lastName) {
+            $changedFields[] = "name to \"{$guardName}\"";
+        }
         $newValues = $user->only(['first_name', 'middle_name', 'last_name', 'username']);
+        if (isset($newValues['username']) && $oldValues['username'] !== $newValues['username']) {
+            $changedFields[] = "username";
+        }
+        $description = !empty($changedFields) ? "Updated " . implode(" and ", $changedFields) : "Updated \"{$guardName}\"";
+        
+        // Log the update
         Logger::update(
             User::class,
             $user->id,
-            "Updated guard {$guardName}",
+            $description,
             $oldValues,
             $newValues
         );
@@ -532,7 +542,7 @@ class Guards extends Component
         Logger::create(
             User::class,
             $user->id,
-            "Created guard {$guardName}",
+            "Created \"{$guardName}\"",
             $newValues
         );
 

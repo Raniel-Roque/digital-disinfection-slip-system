@@ -212,7 +212,7 @@ class PlateNumbers extends Component
         Logger::update(
             Truck::class,
             $truck->id,
-            "Updated plate number {$plateNumber}",
+            "Updated to \"{$plateNumber}\"",
             $oldValues,
             ['plate_number' => $plateNumber]
         );
@@ -287,7 +287,7 @@ class PlateNumbers extends Component
         Logger::delete(
             Truck::class,
             $truckIdForLog,
-            "Deleted plate number {$plateNumber}",
+            "Deleted \"{$plateNumber}\"",
             $oldValues
         );
 
@@ -376,7 +376,7 @@ class PlateNumbers extends Component
         Logger::create(
             Truck::class,
             $truck->id,
-            "Created plate number {$plateNumber}",
+            "Created \"{$plateNumber}\"",
             $truck->only(['plate_number', 'disabled'])
         );
 

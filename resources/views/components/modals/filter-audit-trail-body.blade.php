@@ -11,7 +11,7 @@
         open: false,
         options: @js($availableActions),
         selected: @entangle('filterAction').live,
-        placeholder: 'All Actions',
+        placeholder: 'Select action',
         get displayText() {
             if (!this.selected) {
                 return this.placeholder;
@@ -67,8 +67,8 @@
                 style="display: none;" x-cloak @click.stop>
                 <a href="#" @click.prevent="selected = null; closeDropdown();"
                     class="block px-4 py-2 text-gray-700 hover:bg-gray-100 active:bg-blue-100 cursor-pointer rounded-md transition-colors"
-                    :class="{ 'bg-blue-50 text-blue-700': !selected }">
-                    <span>All Actions</span>
+                    :class="{ 'bg-blue-50 text-blue-700': !selected || selected === null }">
+                    <span>Select action</span>
                 </a>
                 <template x-for="[value, label] in Object.entries(options)" :key="value">
                     <a href="#"

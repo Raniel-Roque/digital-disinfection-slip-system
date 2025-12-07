@@ -250,7 +250,7 @@ class Drivers extends Component
         Logger::update(
             Driver::class,
             $driver->id,
-            "Updated driver {$driverName}",
+            "Updated name to \"{$driverName}\"",
             $oldValues,
             $newValues
         );
@@ -403,7 +403,7 @@ class Drivers extends Component
         Logger::create(
             Driver::class,
             $driver->id,
-            "Created driver {$driverName}",
+            "Created \"{$driverName}\"",
             $newValues
         );
 

@@ -252,7 +252,7 @@ class Drivers extends Component
         Logger::update(
             Driver::class,
             $driver->id,
-            "Updated driver {$driverName}",
+            "Updated name to \"{$driverName}\"",
             $oldValues,
             ['first_name' => $firstName, 'middle_name' => $middleName, 'last_name' => $lastName]
         );
@@ -294,7 +294,7 @@ class Drivers extends Component
         Logger::update(
             Driver::class,
             $driver->id,
-            "{$action} driver {$driverName}",
+            ucfirst($action) . " \"{$driverName}\"",
             $oldValues,
             ['disabled' => $newStatus]
         );
@@ -348,7 +348,7 @@ class Drivers extends Component
         Logger::delete(
             Driver::class,
             $driverIdForLog,
-            "Deleted driver {$driverName}",
+            "Deleted \"{$driverName}\"",
             $oldValues
         );
 
@@ -449,7 +449,7 @@ class Drivers extends Component
         Logger::create(
             Driver::class,
             $driver->id,
-            "Created driver {$driverName}",
+            "Created \"{$driverName}\"",
             $driver->only(['first_name', 'middle_name', 'last_name', 'disabled'])
         );
 
