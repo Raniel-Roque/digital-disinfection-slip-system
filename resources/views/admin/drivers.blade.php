@@ -5,4 +5,5 @@
         </x-slot:sidebar>
     </x-navigation.navbar>
 
+    <livewire:admin.drivers />
 </x-layout>
