@@ -56,13 +56,18 @@ class CleanAttachments extends Command
             }
 
             try {
+                // First, remove the attachment reference from any disinfection slips
+                // This ensures data consistency before deletion (even though nullOnDelete() handles it)
+                DisinfectionSlip::where('attachment_id', $attachment->id)
+                    ->update(['attachment_id' => null]);
+
                 // Delete the physical file from storage
                 if (Storage::disk('public')->exists($attachment->file_path)) {
                     Storage::disk('public')->delete($attachment->file_path);
                 }
 
-                // Delete the attachment record (even if used by DisinfectionSlip)
-                $attachment->delete();
+                // Hard delete the attachment record
+                $attachment->forceDelete();
 
                 $deletedCount++;
             } catch (\Exception $e) {
