@@ -77,27 +77,21 @@ class Trucks extends Component
     // Details Modal
     public $showDetailsModal = false;
     public $showAttachmentModal = false;
-    public $showCancelConfirmation = false;
     public $showDeleteConfirmation = false;
     public $showRemoveAttachmentConfirmation = false;
     public $selectedSlip = null;
     public $attachmentFile = null;
-    public $isEditing = false;
-
-    // Editable fields
-    public $truck_id;
-    public $destination_id;
-    public $driver_id;
-    public $reason_for_disinfection;
-
-    // Original values for cancel
-    private $originalValues = [];
 
     // Create Modal
     public $showCreateModal = false;
     public $showCancelCreateConfirmation = false;
+    public $truck_id;
     public $location_id; // Origin
+    public $destination_id;
+    public $driver_id;
     public $hatchery_guard_id;
+    public $received_guard_id = null; // Optional receiving guard for creation
+    public $reason_for_disinfection;
     
     // Search properties for dropdowns (create modal)
     public $searchOrigin = '';
@@ -105,11 +99,31 @@ class Trucks extends Component
     public $searchTruck = '';
     public $searchDriver = '';
     public $searchHatcheryGuard = '';
+    public $searchReceivedGuard = '';
     
     // Search properties for details modal
     public $searchDetailsTruck = '';
     public $searchDetailsDestination = '';
     public $searchDetailsDriver = '';
+    
+    // Edit Modal
+    public $showEditModal = false;
+    public $showCancelEditConfirmation = false;
+    public $editTruckId;
+    public $editLocationId; // Origin (for status 0)
+    public $editDestinationId;
+    public $editDriverId;
+    public $editHatcheryGuardId; // For status 0
+    public $editReceivedGuardId = null;
+    public $editReasonForDisinfection;
+    
+    // Search properties for edit modal
+    public $searchEditTruck = '';
+    public $searchEditOrigin = '';
+    public $searchEditDestination = '';
+    public $searchEditDriver = '';
+    public $searchEditHatcheryGuard = '';
+    public $searchEditReceivedGuard = '';
     
     // Note: availableOriginsOptions and availableDestinationsOptions are now computed properties
     
@@ -370,13 +384,48 @@ class Trucks extends Component
         $guards = $this->getCachedGuards();
         $allOptions = $guards;
         
+        // Exclude receiving guard from hatchery guard options
+        if ($this->received_guard_id) {
+            $guards = $guards->filter(function ($value, $key) {
+                return $key != $this->received_guard_id;
+            });
+        }
+        
         if (!empty($this->searchHatcheryGuard)) {
             $searchTerm = strtolower($this->searchHatcheryGuard);
             $guards = $guards->filter(function ($label) use ($searchTerm) {
                 return str_contains(strtolower($label), $searchTerm);
             });
-            // Ensure selected value is always included
-            $guards = $this->ensureSelectedInOptions($guards, $this->hatchery_guard_id, $allOptions);
+            // Ensure selected value is always included (if it's not the receiving guard)
+            if ($this->hatchery_guard_id && $this->hatchery_guard_id != $this->received_guard_id) {
+                $guards = $this->ensureSelectedInOptions($guards, $this->hatchery_guard_id, $allOptions);
+            }
+        }
+        
+        return $guards->toArray();
+    }
+    
+    public function getCreateReceivedGuardOptionsProperty()
+    {
+        $guards = $this->getCachedGuards();
+        $allOptions = $guards;
+        
+        // Exclude hatchery guard from receiving guard options
+        if ($this->hatchery_guard_id) {
+            $guards = $guards->filter(function ($value, $key) {
+                return $key != $this->hatchery_guard_id;
+            });
+        }
+        
+        if (!empty($this->searchReceivedGuard)) {
+            $searchTerm = strtolower($this->searchReceivedGuard);
+            $guards = $guards->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+            // Ensure selected value is always included (if it's not the hatchery guard)
+            if ($this->received_guard_id && $this->received_guard_id != $this->hatchery_guard_id) {
+                $guards = $this->ensureSelectedInOptions($guards, $this->received_guard_id, $allOptions);
+            }
         }
         
         return $guards->toArray();
@@ -435,6 +484,149 @@ class Trucks extends Component
         }
         
         return $options->toArray();
+    }
+    
+    // Computed properties for edit modal filtered options
+    public function getEditTruckOptionsProperty()
+    {
+        $trucks = $this->getCachedTrucks();
+        $allOptions = $trucks->pluck('plate_number', 'id');
+        $options = $allOptions;
+        
+        if (!empty($this->searchEditTruck)) {
+            $searchTerm = strtolower($this->searchEditTruck);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+            // Ensure selected value is always included
+            $options = $this->ensureSelectedInOptions($options, $this->editTruckId, $allOptions);
+        }
+        
+        return $options->toArray();
+    }
+    
+    public function getEditDriverOptionsProperty()
+    {
+        $drivers = $this->getCachedDrivers();
+        $allOptions = $drivers->pluck('full_name', 'id');
+        $options = $allOptions;
+        
+        if (!empty($this->searchEditDriver)) {
+            $searchTerm = strtolower($this->searchEditDriver);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+            // Ensure selected value is always included
+            $options = $this->ensureSelectedInOptions($options, $this->editDriverId, $allOptions);
+        }
+        
+        return $options->toArray();
+    }
+    
+    public function getEditGuardOptionsProperty()
+    {
+        $guards = $this->getCachedGuards();
+        $allOptions = $guards;
+        
+        // Exclude receiving guard from hatchery guard options
+        if ($this->editReceivedGuardId) {
+            $guards = $guards->filter(function ($value, $key) {
+                return $key != $this->editReceivedGuardId;
+            });
+        }
+        
+        if (!empty($this->searchEditHatcheryGuard)) {
+            $searchTerm = strtolower($this->searchEditHatcheryGuard);
+            $guards = $guards->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+            // Ensure selected value is always included (if it's not the receiving guard)
+            if ($this->editHatcheryGuardId && $this->editHatcheryGuardId != $this->editReceivedGuardId) {
+                $guards = $this->ensureSelectedInOptions($guards, $this->editHatcheryGuardId, $allOptions);
+            }
+        }
+        
+        return $guards->toArray();
+    }
+    
+    public function getEditReceivedGuardOptionsProperty()
+    {
+        $guards = $this->getCachedGuards();
+        $allOptions = $guards;
+        
+        // Exclude hatchery guard from receiving guard options
+        if ($this->editHatcheryGuardId) {
+            $guards = $guards->filter(function ($value, $key) {
+                return $key != $this->editHatcheryGuardId;
+            });
+        }
+        
+        if (!empty($this->searchEditReceivedGuard)) {
+            $searchTerm = strtolower($this->searchEditReceivedGuard);
+            $guards = $guards->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+            // Ensure selected value is always included (if it's not the hatchery guard)
+            if ($this->editReceivedGuardId && $this->editReceivedGuardId != $this->editHatcheryGuardId) {
+                $guards = $this->ensureSelectedInOptions($guards, $this->editReceivedGuardId, $allOptions);
+            }
+        }
+        
+        return $guards->toArray();
+    }
+    
+    public function getEditAvailableOriginsOptionsProperty()
+    {
+        $locations = $this->getCachedLocations();
+        
+        // Exclude selected destination from origins
+        $originOptions = $locations;
+        if ($this->editDestinationId) {
+            $originOptions = $originOptions->where('id', '!=', $this->editDestinationId);
+        }
+        $originOptions = $originOptions->pluck('location_name', 'id');
+        
+        // Apply search filter
+        if (!empty($this->searchEditOrigin)) {
+            $searchTerm = strtolower($this->searchEditOrigin);
+            $originOptions = $originOptions->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+            // Ensure selected value is always included (if it's not the destination)
+            if ($this->editLocationId && $this->editLocationId != $this->editDestinationId) {
+                $allOptions = $locations->pluck('location_name', 'id');
+                $originOptions = $this->ensureSelectedInOptions($originOptions, $this->editLocationId, $allOptions);
+            }
+        }
+        
+        return $originOptions->toArray();
+    }
+    
+    public function getEditAvailableDestinationsOptionsProperty()
+    {
+        $locations = $this->getCachedLocations();
+        
+        // Exclude selected origin from destinations
+        $destinationOptions = $locations;
+        if ($this->editLocationId) {
+            $destinationOptions = $destinationOptions->where('id', '!=', $this->editLocationId);
+        }
+        $destinationOptions = $destinationOptions->pluck('location_name', 'id');
+        
+        // Apply search filter
+        if (!empty($this->searchEditDestination)) {
+            $searchTerm = strtolower($this->searchEditDestination);
+            $destinationOptions = $destinationOptions->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+            // Ensure selected value is always included (if it's not the origin)
+            if ($this->editDestinationId && $this->editDestinationId != $this->editLocationId) {
+                $allOptions = $locations->pluck('location_name', 'id');
+                $destinationOptions = $this->ensureSelectedInOptions($destinationOptions, $this->editDestinationId, $allOptions);
+            }
+        }
+        
+        return $destinationOptions->toArray();
     }
     
     // Computed properties for available origins and destinations (reactive)
@@ -647,13 +839,6 @@ class Trucks extends Component
             'receivedGuard'
         ])->find($id);
 
-        // Preload fields for editing
-        $this->truck_id                = $this->selectedSlip->truck_id;
-        $this->destination_id          = $this->selectedSlip->destination_id;
-        $this->driver_id               = $this->selectedSlip->driver_id;
-        $this->reason_for_disinfection = $this->selectedSlip->reason_for_disinfection;
-
-        $this->isEditing = false;
         $this->showDetailsModal = true;
     }
 
@@ -688,46 +873,82 @@ class Trucks extends Component
             && $this->selectedSlip->status != 2;
     }
 
-    public function editDetailsModal()
+    public function openEditModal()
     {
         if (!$this->canEdit()) {
             $this->dispatch('toast', message: 'Cannot edit a completed slip.', type: 'error');
             return;
         }
 
-        $this->isEditing = true;
+        // Load slip data into edit fields
+        $this->editTruckId = $this->selectedSlip->truck_id;
+        $this->editLocationId = $this->selectedSlip->location_id;
+        $this->editDestinationId = $this->selectedSlip->destination_id;
+        $this->editDriverId = $this->selectedSlip->driver_id;
+        $this->editHatcheryGuardId = $this->selectedSlip->hatchery_guard_id;
+        $this->editReceivedGuardId = $this->selectedSlip->received_guard_id;
+        $this->editReasonForDisinfection = $this->selectedSlip->reason_for_disinfection;
         
-        // Store original values before editing
-        $this->originalValues = [
-            'truck_id'                => $this->truck_id,
-            'destination_id'          => $this->destination_id,
-            'driver_id'               => $this->driver_id,
-            'reason_for_disinfection' => $this->reason_for_disinfection,
-        ];
+        // Reset search properties
+        $this->searchEditTruck = '';
+        $this->searchEditOrigin = '';
+        $this->searchEditDestination = '';
+        $this->searchEditDriver = '';
+        $this->searchEditHatcheryGuard = '';
+        $this->searchEditReceivedGuard = '';
+        
+        $this->showEditModal = true;
     }
 
-    public function confirmCancelEdit()
+    public function closeEditModal()
     {
-        $this->showCancelConfirmation = true;
+        // Check if form has unsaved changes
+        if ($this->hasEditUnsavedChanges()) {
+            $this->showCancelEditConfirmation = true;
+        } else {
+            $this->resetEditForm();
+            $this->showEditModal = false;
+        }
     }
 
     public function cancelEdit()
     {
-        // Restore original values
-        $this->truck_id                = $this->originalValues['truck_id'] ?? $this->selectedSlip->truck_id;
-        $this->destination_id          = $this->originalValues['destination_id'] ?? $this->selectedSlip->destination_id;
-        $this->driver_id               = $this->originalValues['driver_id'] ?? $this->selectedSlip->driver_id;
-        $this->reason_for_disinfection = $this->originalValues['reason_for_disinfection'] ?? $this->selectedSlip->reason_for_disinfection;
+        $this->resetEditForm();
+        $this->showCancelEditConfirmation = false;
+        $this->showEditModal = false;
+    }
+
+    public function resetEditForm()
+    {
+        $this->editTruckId = null;
+        $this->editLocationId = null;
+        $this->editDestinationId = null;
+        $this->editDriverId = null;
+        $this->editHatcheryGuardId = null;
+        $this->editReceivedGuardId = null;
+        $this->editReasonForDisinfection = null;
+        $this->searchEditTruck = '';
+        $this->searchEditOrigin = '';
+        $this->searchEditDestination = '';
+        $this->searchEditDriver = '';
+        $this->searchEditHatcheryGuard = '';
+        $this->searchEditReceivedGuard = '';
+        $this->resetErrorBag();
+    }
+
+    public function hasEditUnsavedChanges()
+    {
+        if (!$this->selectedSlip) {
+            return false;
+        }
         
-        // Reset search properties
-        $this->searchDetailsTruck = '';
-        $this->searchDetailsDestination = '';
-        $this->searchDetailsDriver = '';
-        
-        // Reset states
-        $this->isEditing = false;
-        $this->showCancelConfirmation = false;
-        $this->originalValues = [];
+        return $this->editTruckId != $this->selectedSlip->truck_id ||
+               $this->editLocationId != $this->selectedSlip->location_id ||
+               $this->editDestinationId != $this->selectedSlip->destination_id ||
+               $this->editDriverId != $this->selectedSlip->driver_id ||
+               $this->editHatcheryGuardId != $this->selectedSlip->hatchery_guard_id ||
+               $this->editReceivedGuardId != $this->selectedSlip->received_guard_id ||
+               $this->editReasonForDisinfection != $this->selectedSlip->reason_for_disinfection;
     }
 
     public function confirmDeleteSlip()
@@ -735,26 +956,110 @@ class Trucks extends Component
         $this->showDeleteConfirmation = true;
     }
 
-    public function save()
+    public function saveEdit()
     {
         if (!$this->canEdit()) {
             $this->dispatch('toast', message: 'Cannot edit a completed slip.', type: 'error');
             return;
         }
 
-        $this->validate([
-            'truck_id'                => 'required|exists:trucks,id',
-            'destination_id'          => 'required|exists:locations,id',
-            'driver_id'               => 'required|exists:drivers,id',
-            'reason_for_disinfection' => 'required|string|max:500',
+        $status = $this->selectedSlip->status;
+        
+        // Build validation rules based on status
+        $rules = [
+            'editTruckId' => 'required|exists:trucks,id',
+            'editDestinationId' => [
+                'required',
+                'exists:locations,id',
+                function ($attribute, $value, $fail) {
+                    if ($value == $this->editLocationId) {
+                        $fail('The destination cannot be the same as the origin.');
+                    }
+                },
+            ],
+            'editDriverId' => 'required|exists:drivers,id',
+            'editReasonForDisinfection' => 'nullable|string|max:1000',
+        ];
+
+        // Status 0 (Ongoing): Origin and Hatchery Guard are required, Receiving Guard is optional
+        if ($status == 0) {
+            $rules['editLocationId'] = [
+                'required',
+                'exists:locations,id',
+                function ($attribute, $value, $fail) {
+                    if ($value == $this->editDestinationId) {
+                        $fail('The origin cannot be the same as the destination.');
+                    }
+                },
+            ];
+            $rules['editHatcheryGuardId'] = 'required|exists:users,id';
+            $rules['editReceivedGuardId'] = [
+                'nullable',
+                'exists:users,id',
+                function ($attribute, $value, $fail) {
+                    if ($value && $value == $this->editHatcheryGuardId) {
+                        $fail('The receiving guard cannot be the same as the hatchery guard.');
+                    }
+                },
+            ];
+        }
+        
+        // Status 1 (Disinfecting): Origin, Hatchery Guard, and Receiving Guard are all editable
+        if ($status == 1) {
+            $rules['editLocationId'] = [
+                'required',
+                'exists:locations,id',
+                function ($attribute, $value, $fail) {
+                    if ($value == $this->editDestinationId) {
+                        $fail('The origin cannot be the same as the destination.');
+                    }
+                },
+            ];
+            $rules['editHatcheryGuardId'] = 'required|exists:users,id';
+            $rules['editReceivedGuardId'] = [
+                'required',
+                'exists:users,id',
+                function ($attribute, $value, $fail) {
+                    if ($value && $value == $this->editHatcheryGuardId) {
+                        $fail('The receiving guard cannot be the same as the hatchery guard.');
+                    }
+                },
+            ];
+        }
+
+        $this->validate($rules, [], [
+            'editTruckId' => 'Plate Number',
+            'editLocationId' => 'Origin',
+            'editDestinationId' => 'Destination',
+            'editDriverId' => 'Driver',
+            'editHatcheryGuardId' => 'Hatchery Guard',
+            'editReceivedGuardId' => 'Receiving Guard',
+            'editReasonForDisinfection' => 'Reason for Disinfection',
         ]);
 
-        $this->selectedSlip->update([
-            'truck_id'                => $this->truck_id,
-            'destination_id'          => $this->destination_id,
-            'driver_id'               => $this->driver_id,
-            'reason_for_disinfection' => $this->reason_for_disinfection,
-        ]);
+        // Build update data based on status
+        $updateData = [
+            'truck_id' => $this->editTruckId,
+            'destination_id' => $this->editDestinationId,
+            'driver_id' => $this->editDriverId,
+            'reason_for_disinfection' => $this->editReasonForDisinfection,
+        ];
+
+        // Status 0: Update origin and hatchery guard
+        if ($status == 0) {
+            $updateData['location_id'] = $this->editLocationId;
+            $updateData['hatchery_guard_id'] = $this->editHatcheryGuardId;
+            $updateData['received_guard_id'] = $this->editReceivedGuardId;
+        }
+        
+        // Status 1: Update origin, hatchery guard, and receiving guard
+        if ($status == 1) {
+            $updateData['location_id'] = $this->editLocationId;
+            $updateData['hatchery_guard_id'] = $this->editHatcheryGuardId;
+            $updateData['received_guard_id'] = $this->editReceivedGuardId;
+        }
+
+        $this->selectedSlip->update($updateData);
 
         // Refresh the slip with relationships
         $this->selectedSlip->refresh();
@@ -768,8 +1073,8 @@ class Trucks extends Component
             'receivedGuard'
         ]);
 
-        $this->isEditing = false;
-        $this->originalValues = [];
+        $this->resetEditForm();
+        $this->showEditModal = false;
         $this->dispatch('toast', message: 'Slip updated successfully!', type: 'success');
     }
 
@@ -801,11 +1106,8 @@ class Trucks extends Component
 
     public function closeDetailsModal()
     {
-        $this->isEditing = false;
-        $this->showCancelConfirmation = false;
         $this->showDeleteConfirmation = false;
         $this->showRemoveAttachmentConfirmation = false;
-        $this->originalValues = [];
         $this->showDetailsModal = false;
         $this->js('setTimeout(() => $wire.clearSelectedSlip(), 300)');
     }
@@ -848,12 +1150,14 @@ class Trucks extends Component
         $this->destination_id = null;
         $this->driver_id = null;
         $this->hatchery_guard_id = null;
+        $this->received_guard_id = null;
         $this->reason_for_disinfection = null;
         $this->searchOrigin = '';
         $this->searchDestination = '';
         $this->searchTruck = '';
         $this->searchDriver = '';
         $this->searchHatcheryGuard = '';
+        $this->searchReceivedGuard = '';
         $this->resetErrorBag();
     }
 
@@ -864,6 +1168,7 @@ class Trucks extends Component
                !empty($this->destination_id) || 
                !empty($this->driver_id) || 
                !empty($this->hatchery_guard_id) || 
+               !empty($this->received_guard_id) || 
                !empty($this->reason_for_disinfection);
     }
 
@@ -891,6 +1196,15 @@ class Trucks extends Component
             ],
             'driver_id' => 'required|exists:drivers,id',
             'hatchery_guard_id' => 'required|exists:users,id',
+            'received_guard_id' => [
+                'nullable',
+                'exists:users,id',
+                function ($attribute, $value, $fail) {
+                    if ($value && $value == $this->hatchery_guard_id) {
+                        $fail('The receiving guard cannot be the same as the hatchery guard.');
+                    }
+                },
+            ],
             'reason_for_disinfection' => 'nullable|string|max:1000',
         ], [], [
             'location_id' => 'Origin',
@@ -898,6 +1212,7 @@ class Trucks extends Component
             'truck_id' => 'Truck',
             'driver_id' => 'Driver',
             'hatchery_guard_id' => 'Hatchery Guard',
+            'received_guard_id' => 'Receiving Guard',
             'reason_for_disinfection' => 'Reason for Disinfection',
         ]);
 
@@ -907,6 +1222,7 @@ class Trucks extends Component
             'destination_id' => $this->destination_id,
             'driver_id' => $this->driver_id,
             'hatchery_guard_id' => $this->hatchery_guard_id,
+            'received_guard_id' => $this->received_guard_id,
             'reason_for_disinfection' => $this->reason_for_disinfection,
             'status' => 0, // Ongoing
         ]);
@@ -940,6 +1256,70 @@ class Trucks extends Component
         // Clear search when selection changes to show all options
         $this->searchOrigin = '';
         $this->searchDestination = '';
+    }
+
+    public function updatedHatcheryGuardId()
+    {
+        // If receiving guard is the same as hatchery guard, clear it
+        if ($this->received_guard_id == $this->hatchery_guard_id) {
+            $this->received_guard_id = null;
+        }
+        // Clear search when selection changes
+        $this->searchHatcheryGuard = '';
+        $this->searchReceivedGuard = '';
+    }
+
+    public function updatedReceivedGuardId()
+    {
+        // If receiving guard is set to hatchery guard, clear the hatchery guard
+        if ($this->received_guard_id == $this->hatchery_guard_id) {
+            $this->hatchery_guard_id = null;
+        }
+        // Clear search when selection changes
+        $this->searchReceivedGuard = '';
+    }
+
+    public function updatedEditLocationId()
+    {
+        // If destination is the same as origin, clear it
+        if ($this->editDestinationId == $this->editLocationId) {
+            $this->editDestinationId = null;
+        }
+        // Clear search when selection changes to show all options
+        $this->searchEditOrigin = '';
+        $this->searchEditDestination = '';
+    }
+
+    public function updatedEditDestinationId()
+    {
+        // If origin is the same as destination, clear it
+        if ($this->editLocationId == $this->editDestinationId) {
+            $this->editLocationId = null;
+        }
+        // Clear search when selection changes to show all options
+        $this->searchEditOrigin = '';
+        $this->searchEditDestination = '';
+    }
+
+    public function updatedEditHatcheryGuardId()
+    {
+        // If receiving guard is the same as hatchery guard, clear it
+        if ($this->editReceivedGuardId == $this->editHatcheryGuardId) {
+            $this->editReceivedGuardId = null;
+        }
+        // Clear search when selection changes
+        $this->searchEditHatcheryGuard = '';
+        $this->searchEditReceivedGuard = '';
+    }
+
+    public function updatedEditReceivedGuardId()
+    {
+        // If receiving guard is set to hatchery guard, clear the hatchery guard
+        if ($this->editReceivedGuardId == $this->editHatcheryGuardId) {
+            $this->editHatcheryGuardId = null;
+        }
+        // Clear search when selection changes
+        $this->searchEditReceivedGuard = '';
     }
 
     public function openAttachmentModal($file)
@@ -1081,9 +1461,16 @@ class Trucks extends Component
             'createTruckOptions' => $this->createTruckOptions,
             'createDriverOptions' => $this->createDriverOptions,
             'createGuardOptions' => $this->createGuardOptions,
+            'createReceivedGuardOptions' => $this->createReceivedGuardOptions,
             'detailsTruckOptions' => $this->detailsTruckOptions,
             'detailsLocationOptions' => $this->detailsLocationOptions,
             'detailsDriverOptions' => $this->detailsDriverOptions,
+            'editTruckOptions' => $this->editTruckOptions,
+            'editDriverOptions' => $this->editDriverOptions,
+            'editGuardOptions' => $this->editGuardOptions,
+            'editReceivedGuardOptions' => $this->editReceivedGuardOptions,
+            'editAvailableOriginsOptions' => $this->editAvailableOriginsOptions,
+            'editAvailableDestinationsOptions' => $this->editAvailableDestinationsOptions,
         ]);
     }
 }

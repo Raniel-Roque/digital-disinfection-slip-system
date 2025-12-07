@@ -364,7 +364,15 @@
 
         {{-- Admin Create Modal --}}
         <x-modals.admin-slip-creation-modal :trucks="$trucks" :locations="$locations" :drivers="$drivers" :guards="$guards"
-            :available-origins-options="$availableOriginsOptions" :available-destinations-options="$availableDestinationsOptions" :create-truck-options="$createTruckOptions" :create-driver-options="$createDriverOptions" :create-guard-options="$createGuardOptions" />
+            :available-origins-options="$availableOriginsOptions" :available-destinations-options="$availableDestinationsOptions" :create-truck-options="$createTruckOptions" :create-driver-options="$createDriverOptions" :create-guard-options="$createGuardOptions"
+            :create-received-guard-options="$createReceivedGuardOptions" />
+
+        {{-- Admin Edit Modal --}}
+        @if ($selectedSlip)
+            <x-modals.admin-slip-edit-modal :trucks="$trucks" :locations="$locations" :drivers="$drivers" :guards="$guards"
+                :available-origins-options="$editAvailableOriginsOptions" :available-destinations-options="$editAvailableDestinationsOptions" :edit-truck-options="$editTruckOptions" :edit-driver-options="$editDriverOptions" :edit-guard-options="$editGuardOptions"
+                :edit-received-guard-options="$editReceivedGuardOptions" :slip-status="$selectedSlip->status" :selected-slip="$selectedSlip" />
+        @endif
 
     </div>
 </div>

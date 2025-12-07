@@ -11,7 +11,7 @@
                 @if ($selectedSlip->status == 0)
                     <span
                         class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-800">
-                        Pending
+                        Ongoing
                     </span>
                 @elseif ($selectedSlip->status == 1)
                     <span
@@ -47,27 +47,25 @@
         <div class="grid grid-cols-3 mb-2">
             <div class="font-semibold text-gray-700">Plate No:</div>
             <div class="col-span-2 text-gray-900">
-                @if ($isEditing)
-                    <x-forms.searchable-dropdown wire-model="truck_id" :options="$this->detailsTruckOptions"
-                        search-property="searchDetailsTruck" placeholder="Select plate number..."
-                        search-placeholder="Search plates..." />
-                @else
-                    {{ $selectedSlip->truck->plate_number ?? 'N/A' }}
-                @endif
+                {{ $selectedSlip->truck->plate_number ?? 'N/A' }}
             </div>
         </div>
+
+        {{-- Origin (only show if status is 0) --}}
+        @if ($selectedSlip->status == 0)
+            <div class="grid grid-cols-3 mb-2">
+                <div class="font-semibold text-gray-700">Origin:</div>
+                <div class="col-span-2 text-gray-900">
+                    {{ $selectedSlip->location->location_name ?? 'N/A' }}
+                </div>
+            </div>
+        @endif
 
         {{-- Destination --}}
         <div class="grid grid-cols-3 mb-2">
             <div class="font-semibold text-gray-700">Destination:</div>
             <div class="col-span-2 text-gray-900">
-                @if ($isEditing)
-                    <x-forms.searchable-dropdown wire-model="destination_id" :options="$this->detailsLocationOptions"
-                        search-property="searchDetailsDestination" placeholder="Select destination..."
-                        search-placeholder="Search locations..." />
-                @else
-                    {{ $selectedSlip->destination->location_name ?? 'N/A' }}
-                @endif
+                {{ $selectedSlip->destination->location_name ?? 'N/A' }}
             </div>
         </div>
 
@@ -75,113 +73,76 @@
         <div class="grid grid-cols-3 mb-2">
             <div class="font-semibold text-gray-700">Driver Name:</div>
             <div class="col-span-2 text-gray-900">
-                @if ($isEditing)
-                    <x-forms.searchable-dropdown wire-model="driver_id" :options="$this->detailsDriverOptions"
-                        search-property="searchDetailsDriver" placeholder="Select driver..."
-                        search-placeholder="Search drivers..." />
-                @else
-                    {{ $selectedSlip->driver?->first_name . ' ' . $selectedSlip->driver?->last_name ?? 'N/A' }}
-                @endif
+                {{ $selectedSlip->driver?->first_name . ' ' . $selectedSlip->driver?->last_name ?? 'N/A' }}
             </div>
         </div>
 
-        {{-- Reason / textarea expands when editing --}}
+        {{-- Reason --}}
         <div class="grid grid-cols-3 mb-2">
             <div class="font-semibold text-gray-700">Reason:</div>
             <div class="col-span-2 text-gray-900">
-                @if ($isEditing)
-                    <textarea wire:model="reason_for_disinfection" class="w-full border rounded px-2 py-1 text-sm" rows="6"></textarea>
+                {{ $selectedSlip->reason_for_disinfection ?? 'N/A' }}
+            </div>
+        </div>
+
+        {{-- Hatchery Guard --}}
+        <div class="grid grid-cols-3 mb-2">
+            <div class="font-semibold text-gray-700">Hatchery Guard:</div>
+            <div class="col-span-2 text-gray-900">
+                {{ $selectedSlip->hatcheryGuard?->first_name . ' ' . $selectedSlip->hatcheryGuard?->last_name ?? 'N/A' }}
+            </div>
+        </div>
+
+        {{-- Received By --}}
+        <div class="grid grid-cols-3 mb-2">
+            <div class="font-semibold text-gray-700">Received By:</div>
+            <div class="col-span-2 text-gray-900">
+                {{ $selectedSlip->receivedGuard?->first_name && $selectedSlip->receivedGuard?->last_name ? $selectedSlip->receivedGuard->first_name . ' ' . $selectedSlip->receivedGuard->last_name : 'N/A' }}
+            </div>
+        </div>
+
+        {{-- Completion Date --}}
+        @if ($selectedSlip->completed_at)
+            <div class="grid grid-cols-3 mb-2">
+                <div class="font-semibold text-gray-700">Completion Date:</div>
+                <div class="col-span-2 text-gray-900">
+                    {{ \Carbon\Carbon::parse($selectedSlip->completed_at)->format('M d, Y - h:i A') }}
+                </div>
+            </div>
+        @endif
+
+        {{-- Attachment Section --}}
+        <div class="grid grid-cols-3 mb-2">
+            <div class="font-semibold text-gray-700">Attachment:</div>
+            <div class="col-span-2">
+                @if ($selectedSlip->attachment)
+                    <button wire:click="openAttachmentModal('{{ $selectedSlip->attachment->file_path }}')"
+                        class="text-orange-500 hover:text-orange-600 underline cursor-pointer">
+                        See Attachment
+                    </button>
                 @else
-                    {{ $selectedSlip->reason_for_disinfection ?? 'N/A' }}
+                    N/A
                 @endif
             </div>
         </div>
 
-        {{-- Hidden Display Info when NOT editing --}}
-        @if (!$isEditing)
-
-            <div class="grid grid-cols-3 mb-2">
-                <div class="font-semibold text-gray-700">Hatchery Guard:</div>
-                <div class="col-span-2 text-gray-900">
-                    {{ $selectedSlip->hatcheryGuard?->first_name . ' ' . $selectedSlip->hatcheryGuard?->last_name ?? 'N/A' }}
-                </div>
-            </div>
-
-            <div class="grid grid-cols-3 mb-2">
-                <div class="font-semibold text-gray-700">Received By:</div>
-                <div class="col-span-2 text-gray-900">
-                    {{ $selectedSlip->receivedGuard?->first_name && $selectedSlip->receivedGuard?->last_name ? $selectedSlip->receivedGuard->first_name . ' ' . $selectedSlip->receivedGuard->last_name : 'N/A' }}
-                </div>
-            </div>
-
-            <div class="grid grid-cols-3 mb-2">
-                <div class="font-semibold text-gray-700">Completion Date:</div>
-                <div class="col-span-2 text-gray-900">
-                    {{ $selectedSlip->completed_at ? \Carbon\Carbon::parse($selectedSlip->completed_at)->format('M d, Y - h:i A') : 'N/A' }}
-                </div>
-            </div>
-
-            {{-- Attachment Section --}}
-            <div class="grid grid-cols-3 mb-2">
-                <div class="font-semibold text-gray-700">Attachment:</div>
-                <div class="col-span-2">
-                    @if ($selectedSlip->attachment)
-                        <button wire:click="openAttachmentModal('{{ $selectedSlip->attachment->file_path }}')"
-                            class="text-orange-500 hover:text-orange-600 underline cursor-pointer">
-                            See Attachment
-                        </button>
-                    @else
-                        N/A
-                    @endif
-                </div>
-            </div>
-
-        @endif
-
         {{-- Footer --}}
         <x-slot name="footer">
-            @if (!$isEditing)
-                <div class="flex justify-end w-full gap-2">
-                    <x-buttons.submit-button wire:click="closeDetailsModal" color="white">
-                        Close
+            <div class="flex justify-end w-full gap-2">
+                <x-buttons.submit-button wire:click="closeDetailsModal" color="white">
+                    Close
+                </x-buttons.submit-button>
+
+                {{-- Edit Button (Only if not completed) --}}
+                @if ($this->canEdit())
+                    <x-buttons.submit-button wire:click="openEditModal" color="blue">
+                        Edit
                     </x-buttons.submit-button>
-
-                    {{-- Edit Button (Only if not completed) --}}
-                    @if ($this->canEdit())
-                        <x-buttons.submit-button wire:click="editDetailsModal" color="blue">
-                            Edit
-                        </x-buttons.submit-button>
-                    @endif
-                </div>
-            @else
-                <div class="flex justify-between w-full">
-                    <div>
-                        {{-- Delete Button (Only if not completed) --}}
-                        @if ($this->canDelete())
-                            <x-buttons.submit-button wire:click="confirmDeleteSlip" color="red">
-                                Delete
-                            </x-buttons.submit-button>
-                        @endif
-                    </div>
-                    <div class="flex gap-2">
-                        <x-buttons.submit-button wire:click="confirmCancelEdit" color="white">
-                            Cancel
-                        </x-buttons.submit-button>
-
-                        <x-buttons.submit-button wire:click="save" color="green">
-                            Save
-                        </x-buttons.submit-button>
-                    </div>
-                </div>
-            @endif
+                @endif
+            </div>
         </x-slot>
 
     </x-modals.modal-template>
-
-    {{-- Cancel Confirmation Modal --}}
-    <x-modals.unsaved-confirmation show="showCancelConfirmation" title="DISCARD CHANGES?"
-        message="Are you sure you want to cancel?" warning="All unsaved changes will be lost." onConfirm="cancelEdit"
-        confirmText="Yes, Discard Changes" cancelText="Continue Editing" />
 
     {{-- Delete Confirmation Modal --}}
     <x-modals.delete-confirmation show="showDeleteConfirmation" title="DELETE SLIP?"
