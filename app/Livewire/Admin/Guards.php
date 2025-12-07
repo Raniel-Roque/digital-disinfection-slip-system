@@ -264,7 +264,9 @@ class Guards extends Component
             ->when($this->appliedCreatedTo, function ($query) {
                 $query->whereDate('created_at', '<=', $this->appliedCreatedTo);
             })
-            ->orderBy('created_at', 'desc')
+            ->orderByRaw("CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) THEN 0 ELSE 1 END")
+            ->orderByRaw("CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) THEN created_at END DESC")
+            ->orderBy('first_name', 'asc')
             ->paginate(10);
 
         $filtersActive = !empty($this->appliedCreatedFrom) || !empty($this->appliedCreatedTo);
