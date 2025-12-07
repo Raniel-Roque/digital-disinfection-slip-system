@@ -17,6 +17,9 @@ class Guards extends Component
     public $search = '';
     public $showFilters = false;
     
+    // Sorting properties - supports multiple columns
+    public $sortColumns = ['first_name' => 'asc']; // Default sort by first_name ascending
+    
     // Filter properties
     public $filterStatus = null; // null = All Guards, 0 = Enabled, 1 = Disabled
     public $filterCreatedFrom = '';
@@ -71,6 +74,50 @@ class Guards extends Component
     public $create_last_name;
 
     protected $queryString = ['search'];
+    
+    public function applySort($column)
+    {
+        // Initialize sortColumns if it's not an array (for backward compatibility)
+        if (!is_array($this->sortColumns)) {
+            $this->sortColumns = [];
+        }
+        
+        // Special handling: first_name and last_name are mutually exclusive
+        if ($column === 'first_name' || $column === 'last_name') {
+            // Remove the other name column if it exists
+            if ($column === 'first_name') {
+                unset($this->sortColumns['last_name']);
+            } else {
+                unset($this->sortColumns['first_name']);
+            }
+        }
+        
+        // If column is already in sort, toggle direction or remove if clicking same direction
+        if (isset($this->sortColumns[$column])) {
+            if ($this->sortColumns[$column] === 'asc') {
+                $this->sortColumns[$column] = 'desc';
+            } else {
+                // Remove from sort if clicking desc (cycle: asc -> desc -> remove)
+                unset($this->sortColumns[$column]);
+            }
+        } else {
+            // Add column with ascending direction
+            $this->sortColumns[$column] = 'asc';
+        }
+        
+        // If no sorts remain, default to first_name ascending
+        if (empty($this->sortColumns)) {
+            $this->sortColumns = ['first_name' => 'asc'];
+        }
+        
+        $this->resetPage();
+    }
+    
+    // Helper method to get sort direction for a column
+    public function getSortDirection($column)
+    {
+        return $this->sortColumns[$column] ?? null;
+    }
 
     /**
      * Get the default guard password (for display in views)
@@ -463,9 +510,30 @@ class Guards extends Component
                     $query->where('disabled', true);
                 }
             })
-            ->orderByRaw("CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) THEN 0 ELSE 1 END")
-            ->orderByRaw("CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) THEN created_at END DESC")
-            ->orderBy('first_name', 'asc')
+            // Apply multi-column sorting
+            ->when(!empty($this->sortColumns), function($query) {
+                // Initialize sortColumns if it's not an array
+                if (!is_array($this->sortColumns)) {
+                    $this->sortColumns = ['first_name' => 'asc'];
+                }
+                
+                $firstSort = true;
+                foreach ($this->sortColumns as $column => $direction) {
+                    if ($column === 'created_at' && $firstSort) {
+                        // Special handling for created_at when it's the primary sort
+                        $query->orderByRaw("CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) THEN 0 ELSE 1 END")
+                            ->orderByRaw("CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) THEN created_at END DESC")
+                            ->orderBy('created_at', $direction);
+                    } else {
+                        $query->orderBy($column, $direction);
+                    }
+                    $firstSort = false;
+                }
+            })
+            ->when(empty($this->sortColumns), function($query) {
+                // Default sort if no sorts are set
+                $query->orderBy('first_name', 'asc');
+            })
             ->paginate(10);
 
         $filtersActive = $this->appliedStatus !== null || !empty($this->appliedCreatedFrom) || !empty($this->appliedCreatedTo);

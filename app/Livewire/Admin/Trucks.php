@@ -21,6 +21,10 @@ class Trucks extends Component
     public $search = '';
     public $showFilters = false;
     
+    // Sorting properties
+    public $sortBy = 'created_at'; // Default sort by created_at
+    public $sortDirection = 'desc'; // Default descending
+    
     // Filter fields
     public $filterStatus = null; // null = All Statuses, 0 = Ongoing, 1 = Disinfecting, 2 = Completed
     
@@ -156,6 +160,14 @@ class Trucks extends Component
         $this->appliedPlateNumber = [];
         $this->appliedHatcheryGuard = [];
         $this->appliedReceivedGuard = [];
+        
+        // Set default filter to today's date
+        $today = now()->format('Y-m-d');
+        $this->filterCreatedFrom = $today;
+        $this->filterCreatedTo = $today;
+        $this->appliedCreatedFrom = $today;
+        $this->appliedCreatedTo = $today;
+        $this->filtersActive = true;
         
         // Options are now computed properties, no initialization needed
     }
@@ -767,6 +779,20 @@ class Trucks extends Component
     public function updatingSearch()
     {
         $this->resetPage();
+    }
+    
+    public function applySort($column)
+    {
+        if ($this->sortBy === $column) {
+            // Toggle direction if clicking the same column
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            // Set new column and default to ascending
+            $this->sortBy = $column;
+            $this->sortDirection = 'asc';
+        }
+        
+        $this->resetPage('page');
     }
 
     public function applyFilters()
@@ -1742,14 +1768,28 @@ class Trucks extends Component
                     $query->whereIn('received_guard_id', $guardIds);
                 }
             })
-            // Created date range filter
-            ->when($this->filtersActive && $this->appliedCreatedFrom, function($query) {
+            // Created date range filter (always apply if set, regardless of filtersActive flag)
+            ->when($this->appliedCreatedFrom, function($query) {
                 $query->whereDate('created_at', '>=', $this->appliedCreatedFrom);
             })
-            ->when($this->filtersActive && $this->appliedCreatedTo, function($query) {
+            ->when($this->appliedCreatedTo, function($query) {
                 $query->whereDate('created_at', '<=', $this->appliedCreatedTo);
             })
-            ->orderBy('created_at', 'desc')
+            // Apply sorting (works with all filters)
+            ->when($this->sortBy === 'slip_id', function($query) {
+                // For slip_id format "YY-00001", extract the numeric part (starts at position 4, after "YY-")
+                // Sort by year first, then by number within that year
+                $direction = strtoupper($this->sortDirection);
+                $query->orderByRaw("SUBSTRING(slip_id, 1, 2) " . $direction) // Year part
+                      ->orderByRaw("CAST(SUBSTRING(slip_id, 4) AS UNSIGNED) " . $direction); // Number part
+            })
+            ->when($this->sortBy !== 'slip_id', function($query) {
+                $query->orderBy($this->sortBy, $this->sortDirection);
+                // Add secondary sort by slip_id for consistent ordering when primary sort values are equal
+                $direction = strtoupper($this->sortDirection);
+                $query->orderByRaw("SUBSTRING(slip_id, 1, 2) " . $direction) // Year part
+                      ->orderByRaw("CAST(SUBSTRING(slip_id, 4) AS UNSIGNED) " . $direction); // Number part
+            })
             ->paginate(10);
 
         return view('livewire.admin.trucks', [

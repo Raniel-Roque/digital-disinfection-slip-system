@@ -118,7 +118,55 @@
                         <tr>
                             <th scope="col"
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Name
+                                <div class="flex items-center gap-2">
+                                    <span>Name</span>
+                                    <div
+                                        class="inline-flex items-center bg-gray-100 rounded-lg p-0.5 border border-gray-200">
+                                        <button wire:click.prevent="applySort('first_name')" type="button"
+                                            class="px-2 py-1 text-xs font-medium rounded transition-all duration-150 flex items-center gap-1 {{ $this->getSortDirection('first_name') ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}"
+                                            title="Sort by First Name">
+                                            <span>First</span>
+                                            @php
+                                                $firstDir = $this->getSortDirection('first_name');
+                                            @endphp
+                                            @if ($firstDir === 'asc')
+                                                <svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M5 15l7-7 7 7" />
+                                                </svg>
+                                            @elseif ($firstDir === 'desc')
+                                                <svg class="w-3 h-3 text-red-600" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            @endif
+                                        </button>
+                                        <div class="w-px h-4 bg-gray-300 mx-0.5"></div>
+                                        <button wire:click.prevent="applySort('last_name')" type="button"
+                                            class="px-2 py-1 text-xs font-medium rounded transition-all duration-150 flex items-center gap-1 {{ $this->getSortDirection('last_name') ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}"
+                                            title="Sort by Last Name">
+                                            <span>Last</span>
+                                            @php
+                                                $lastDir = $this->getSortDirection('last_name');
+                                            @endphp
+                                            @if ($lastDir === 'asc')
+                                                <svg class="w-3 h-3 text-green-600" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M5 15l7-7 7 7" />
+                                                </svg>
+                                            @elseif ($lastDir === 'desc')
+                                                <svg class="w-3 h-3 text-red-600" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            @endif
+                                        </button>
+                                    </div>
+                                </div>
                             </th>
                             <th scope="col"
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -126,7 +174,50 @@
                             </th>
                             <th scope="col"
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Created Date
+                                <div class="flex items-center gap-2">
+                                    <span>Created Date</span>
+                                    <button wire:click.prevent="applySort('created_at')" type="button"
+                                        class="inline-flex flex-col items-center text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 transition-colors p-0.5 rounded hover:bg-gray-200"
+                                        title="Sort by Created Date">
+                                        @php
+                                            $dateDir = $this->getSortDirection('created_at');
+                                        @endphp
+                                        @if ($dateDir === 'asc')
+                                            <svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M5 15l7-7 7 7" />
+                                            </svg>
+                                            <svg class="w-3 h-3 text-gray-300" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        @elseif ($dateDir === 'desc')
+                                            <svg class="w-3 h-3 text-gray-300" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M5 15l7-7 7 7" />
+                                            </svg>
+                                            <svg class="w-3 h-3 text-red-600" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        @else
+                                            <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M5 15l7-7 7 7" />
+                                            </svg>
+                                            <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        @endif
+                                    </button>
+                                </div>
                             </th>
                             <th scope="col"
                                 class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
