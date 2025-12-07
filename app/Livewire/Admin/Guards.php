@@ -18,12 +18,40 @@ class Guards extends Component
     public $showFilters = false;
     
     // Filter properties
+    public $filterStatus = null; // null = All Guards, 0 = Enabled, 1 = Disabled
     public $filterCreatedFrom = '';
     public $filterCreatedTo = '';
     
     // Applied filters
+    public $appliedStatus = null; // null = All Guards, 0 = Enabled, 1 = Disabled
     public $appliedCreatedFrom = '';
     public $appliedCreatedTo = '';
+    
+    public $availableStatuses = [
+        0 => 'Enabled',
+        1 => 'Disabled',
+    ];
+    
+    // Ensure filterStatus is properly typed when updated
+    public function updatedFilterStatus($value)
+    {
+        // Handle null, empty string, or numeric values (0, 1)
+        // null/empty = All Guards, 0 = Enabled, 1 = Disabled
+        // The select will send values as strings, so we convert to int
+        if ($value === null || $value === '' || $value === false) {
+            $this->filterStatus = null;
+        } elseif (is_numeric($value)) {
+            $intValue = (int)$value;
+            if ($intValue >= 0 && $intValue <= 1) {
+                // Store as integer (0 or 1)
+                $this->filterStatus = $intValue;
+            } else {
+                $this->filterStatus = null;
+            }
+        } else {
+            $this->filterStatus = null;
+        }
+    }
     
     public $selectedUserId;
     public $selectedUserDisabled = false;
@@ -59,6 +87,7 @@ class Guards extends Component
 
     public function applyFilters()
     {
+        $this->appliedStatus = $this->filterStatus;
         $this->appliedCreatedFrom = $this->filterCreatedFrom;
         $this->appliedCreatedTo = $this->filterCreatedTo;
         $this->showFilters = false;
@@ -67,7 +96,10 @@ class Guards extends Component
 
     public function removeFilter($filterName)
     {
-        if ($filterName === 'createdFrom') {
+        if ($filterName === 'status') {
+            $this->appliedStatus = null;
+            $this->filterStatus = null;
+        } elseif ($filterName === 'createdFrom') {
             $this->appliedCreatedFrom = '';
             $this->filterCreatedFrom = '';
         } elseif ($filterName === 'createdTo') {
@@ -79,8 +111,10 @@ class Guards extends Component
 
     public function clearFilters()
     {
+        $this->appliedStatus = null;
         $this->appliedCreatedFrom = '';
         $this->appliedCreatedTo = '';
+        $this->filterStatus = null;
         $this->filterCreatedFrom = '';
         $this->filterCreatedTo = '';
         $this->resetPage();
@@ -141,10 +175,14 @@ class Guards extends Component
         }
         
         $user->update($updateData);
+        
+        // Refresh user to get updated name
+        $user->refresh();
+        $guardName = $this->getGuardFullName($user);
 
         $this->showEditModal = false;
         $this->reset(['selectedUserId', 'first_name', 'middle_name', 'last_name']);
-        $this->dispatch('toast', message: 'Guard updated successfully!', type: 'success');
+        $this->dispatch('toast', message: "{$guardName} has been updated.", type: 'success');
     }
 
     public function openDisableModal($userId)
@@ -164,20 +202,26 @@ class Guards extends Component
 
         $user = User::findOrFail($this->selectedUserId);
         $wasDisabled = $user->disabled;
+        $newStatus = !$wasDisabled; // true = disabled, false = enabled
         $user->update([
-            'disabled' => !$wasDisabled
+            'disabled' => $newStatus
         ]);
+
+        // Always reset to first page to avoid pagination issues when user disappears/appears from filtered results
+        $this->resetPage();
+        
+        $guardName = $this->getGuardFullName($user);
+        $message = !$wasDisabled ? "{$guardName} has been disabled." : "{$guardName} has been enabled.";
 
         $this->showDisableModal = false;
         $this->reset(['selectedUserId', 'selectedUserDisabled']);
-        $message = !$wasDisabled ? 'Guard disabled successfully!' : 'Guard enabled successfully!';
         $this->dispatch('toast', message: $message, type: 'success');
     }
 
     public function openResetPasswordModal($userId)
     {
         $this->selectedUserId = $userId;
-        $this->showResetPasswordModal = true;
+        $this->showResetPasswordModal = true; 
     }
 
     public function resetPassword()
@@ -193,9 +237,11 @@ class Guards extends Component
             'password' => Hash::make($defaultPassword),
         ]);
 
+        $guardName = $this->getGuardFullName($user);
+
         $this->showResetPasswordModal = false;
         $this->reset('selectedUserId');
-        $this->dispatch('toast', message: 'Password reset successfully to default password!', type: 'success');
+        $this->dispatch('toast', message: "{$guardName}'s password has been reset.", type: 'success');
     }
 
     public function closeModal()
@@ -216,8 +262,20 @@ class Guards extends Component
     }
 
     /**
+     * Get guard's full name formatted
+     * 
+     * @param \App\Models\User $user
+     * @return string
+     */
+    private function getGuardFullName($user)
+    {
+        $parts = array_filter([$user->first_name, $user->middle_name, $user->last_name]);
+        return implode(' ', $parts);
+    }
+
+    /**
      * Get default guard password from settings table
-     * Falls back to config or hardcoded value if setting doesn't exist
+     * Falls back to hardcoded value if setting doesn't exist
      * 
      * @return string
      */
@@ -229,8 +287,8 @@ class Guards extends Component
             return $setting->value;
         }
         
-        // Fallback to config or default
-        return config('app.default_guard_password', 'brookside25');
+        // Fallback to default (shouldn't happen if seeded properly)
+        return 'brookside25';
     }
 
     /**
@@ -338,7 +396,7 @@ class Guards extends Component
         $defaultPassword = $this->getDefaultGuardPassword();
 
         // Create guard with default password
-        User::create([
+        $user = User::create([
             'first_name' => $firstName,
             'middle_name' => $middleName,
             'last_name' => $lastName,
@@ -347,9 +405,11 @@ class Guards extends Component
             'password' => Hash::make($defaultPassword),
         ]);
 
+        $guardName = $this->getGuardFullName($user);
+
         $this->showCreateModal = false;
         $this->reset(['create_first_name', 'create_middle_name', 'create_last_name']);
-        $this->dispatch('toast', message: 'Guard created successfully!', type: 'success');
+        $this->dispatch('toast', message: "{$guardName} has been created.", type: 'success');
         $this->resetPage();
     }
 
@@ -394,16 +454,26 @@ class Guards extends Component
             ->when($this->appliedCreatedTo, function ($query) {
                 $query->whereDate('created_at', '<=', $this->appliedCreatedTo);
             })
+            ->when($this->appliedStatus !== null, function ($query) {
+                if ($this->appliedStatus === 0) {
+                    // Enabled (disabled = false)
+                    $query->where('disabled', false);
+                } elseif ($this->appliedStatus === 1) {
+                    // Disabled (disabled = true)
+                    $query->where('disabled', true);
+                }
+            })
             ->orderByRaw("CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) THEN 0 ELSE 1 END")
             ->orderByRaw("CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) THEN created_at END DESC")
             ->orderBy('first_name', 'asc')
             ->paginate(10);
 
-        $filtersActive = !empty($this->appliedCreatedFrom) || !empty($this->appliedCreatedTo);
+        $filtersActive = $this->appliedStatus !== null || !empty($this->appliedCreatedFrom) || !empty($this->appliedCreatedTo);
 
         return view('livewire.admin.guards', [
             'users' => $users,
             'filtersActive' => $filtersActive,
+            'availableStatuses' => $this->availableStatuses,
         ]);
     }
 }

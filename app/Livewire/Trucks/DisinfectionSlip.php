@@ -316,8 +316,10 @@ class DisinfectionSlip extends Component
             'receivedGuard'
         ]);
 
+        $slipId = $this->selectedSlip->slip_id;
+        
         $this->showDisinfectingConfirmation = false;
-        $this->dispatch('toast', message: 'Disinfection started successfully!', type: 'success');
+        $this->dispatch('toast', message: "{$slipId} disinfection has been started.", type: 'success');
         $this->dispatch('slip-updated');
     }
 
@@ -347,8 +349,10 @@ class DisinfectionSlip extends Component
             'receivedGuard'
         ]);
 
+        $slipId = $this->selectedSlip->slip_id;
+        
         $this->showCompleteConfirmation = false;
-        $this->dispatch('toast', message: 'Disinfection completed successfully!', type: 'success');
+        $this->dispatch('toast', message: "{$slipId} disinfection has been completed.", type: 'success');
         $this->dispatch('slip-updated');
     }
 
@@ -373,7 +377,7 @@ class DisinfectionSlip extends Component
         $this->selectedSlip = null;
         
         // Show success message
-        $this->dispatch('toast', message: "Slip #{$slipId} deleted successfully!", type: 'success');
+        $this->dispatch('toast', message: "{$slipId} has been deleted.", type: 'success');
         
         // Refresh the parent component list if needed
         $this->dispatch('slip-deleted');
@@ -427,9 +431,11 @@ class DisinfectionSlip extends Component
             'receivedGuard'
         ]);
 
+        $slipId = $this->selectedSlip->slip_id;
+        
         $this->isEditing = false;
         $this->originalValues = [];
-        $this->dispatch('toast', message: 'Slip updated successfully!', type: 'success');
+        $this->dispatch('toast', message: "{$slipId} has been updated.", type: 'success');
         $this->dispatch('slip-updated');
     }
 
@@ -526,7 +532,8 @@ class DisinfectionSlip extends Component
                 $this->showRemoveAttachmentConfirmation = false;
                 $this->attachmentFile = null;
 
-                $this->dispatch('toast', message: 'Attachment removed successfully!', type: 'success');
+                $slipId = $this->selectedSlip->slip_id;
+                $this->dispatch('toast', message: "{$slipId}'s attachment has been removed.", type: 'success');
             }
 
         } catch (\Exception $e) {
@@ -621,7 +628,8 @@ class DisinfectionSlip extends Component
             $this->selectedSlip->refresh();
             $this->selectedSlip->load('attachment');
 
-            $this->dispatch('toast', message: 'Attachment uploaded successfully!', type: 'success');
+            $slipId = $this->selectedSlip->slip_id;
+            $this->dispatch('toast', message: "{$slipId}'s attachment has been uploaded.", type: 'success');
             $this->closeAddAttachmentModal();
 
         } catch (\Exception $e) {

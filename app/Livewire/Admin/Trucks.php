@@ -1140,9 +1140,11 @@ class Trucks extends Component
             'receivedGuard'
         ]);
 
+        $slipId = $this->selectedSlip->slip_id;
+        
         $this->resetEditForm();
         $this->showEditModal = false;
-        $this->dispatch('toast', message: 'Slip updated successfully!', type: 'success');
+        $this->dispatch('toast', message: "{$slipId} has been updated.", type: 'success');
     }
 
     public function deleteSlip()
@@ -1165,7 +1167,7 @@ class Trucks extends Component
         $this->selectedSlip = null;
         
         // Show success message
-        $this->dispatch('toast', message: "Slip #{$slipId} deleted successfully!", type: 'success');
+        $this->dispatch('toast', message: "{$slipId} has been deleted.", type: 'success');
         
         // Reset page to refresh the list
         $this->resetPage();
@@ -1329,7 +1331,8 @@ class Trucks extends Component
             'status' => 0, // Ongoing
         ]);
 
-        $this->dispatch('toast', message: 'Disinfection slip created successfully!', type: 'success');
+        $slipId = $slip->slip_id;
+        $this->dispatch('toast', message: "{$slipId} has been created.", type: 'success');
         
         // Close modal and reset form
         $this->showCreateModal = false;
@@ -1486,7 +1489,8 @@ class Trucks extends Component
                 $this->showRemoveAttachmentConfirmation = false;
                 $this->attachmentFile = null;
 
-                $this->dispatch('toast', message: 'Attachment removed successfully!', type: 'success');
+                $slipId = $this->selectedSlip->slip_id;
+                $this->dispatch('toast', message: "{$slipId}'s attachment has been removed.", type: 'success');
             }
 
         } catch (\Exception $e) {
