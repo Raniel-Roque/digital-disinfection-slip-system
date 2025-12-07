@@ -39,6 +39,10 @@ class DatabaseSeeder extends Seeder
                 'setting_name' => 'default_location_logo',
                 'value' => 'images/logo/BGC.png',
             ],
+            [
+                'setting_name' => 'log_retention_months',
+                'value' => '6',
+            ],
         ];
 
         foreach ($defaultSettings as $setting) {

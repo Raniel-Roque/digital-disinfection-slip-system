@@ -17,6 +17,7 @@ class Settings extends Component
     public $attachment_retention_days;
     public $default_guard_password;
     public $default_location_logo;
+    public $log_retention_months;
     
     // File upload
     public $default_logo_file;
@@ -33,10 +34,12 @@ class Settings extends Component
         $attachmentRetention = Setting::where('setting_name', 'attachment_retention_days')->first();
         $defaultPassword = Setting::where('setting_name', 'default_guard_password')->first();
         $defaultLogo = Setting::where('setting_name', 'default_location_logo')->first();
+        $logRetention = Setting::where('setting_name', 'log_retention_months')->first();
 
         $this->attachment_retention_days = $attachmentRetention ? $attachmentRetention->value : '30';
         $this->default_guard_password = $defaultPassword ? $defaultPassword->value : 'brookside25';
         $this->default_location_logo = $defaultLogo ? $defaultLogo->value : 'images/logo/BGC.png';
+        $this->log_retention_months = $logRetention ? $logRetention->value : '6';
         $this->current_logo_path = $this->default_location_logo;
     }
     
@@ -56,6 +59,7 @@ class Settings extends Component
         $this->validate([
             'attachment_retention_days' => ['required', 'integer', 'min:1', 'max:365'],
             'default_guard_password' => ['required', 'string', 'min:6', 'max:255'],
+            'log_retention_months' => ['required', 'integer', 'min:1', 'max:120'],
             'default_logo_file' => ['nullable', 'image', 'max:2048'], // 2MB max
         ], [
             'attachment_retention_days.required' => 'Attachment retention days is required.',
@@ -64,6 +68,10 @@ class Settings extends Component
             'attachment_retention_days.max' => 'Attachment retention days cannot exceed 365 days.',
             'default_guard_password.required' => 'Default guard password is required.',
             'default_guard_password.min' => 'Default guard password must be at least 6 characters.',
+            'log_retention_months.required' => 'Log retention months is required.',
+            'log_retention_months.integer' => 'Log retention months must be a number.',
+            'log_retention_months.min' => 'Log retention months must be at least 1 month.',
+            'log_retention_months.max' => 'Log retention months cannot exceed 120 months (10 years).',
             'default_logo_file.image' => 'The default logo must be an image file.',
             'default_logo_file.max' => 'The default logo must not be larger than 2MB.',
         ]);
@@ -73,6 +81,7 @@ class Settings extends Component
             'attachment_retention_days' => Setting::where('setting_name', 'attachment_retention_days')->value('value'),
             'default_guard_password' => Setting::where('setting_name', 'default_guard_password')->value('value'),
             'default_location_logo' => Setting::where('setting_name', 'default_location_logo')->value('value'),
+            'log_retention_months' => Setting::where('setting_name', 'log_retention_months')->value('value'),
         ];
         
         // Update or create settings
@@ -84,6 +93,11 @@ class Settings extends Component
         Setting::updateOrCreate(
             ['setting_name' => 'default_guard_password'],
             ['value' => $this->default_guard_password]
+        );
+
+        Setting::updateOrCreate(
+            ['setting_name' => 'log_retention_months'],
+            ['value' => (string)$this->log_retention_months]
         );
 
         // Handle logo file upload
@@ -111,6 +125,7 @@ class Settings extends Component
             'attachment_retention_days' => (string)$this->attachment_retention_days,
             'default_guard_password' => $this->default_guard_password,
             'default_location_logo' => $this->default_location_logo,
+            'log_retention_months' => (string)$this->log_retention_months,
         ];
         
         Logger::update(

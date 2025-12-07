@@ -480,8 +480,10 @@ class Drivers extends Component
                 foreach ($this->sortColumns as $column => $direction) {
                     if ($column === 'created_at' && $firstSort) {
                         // Special handling for created_at when it's the primary sort
+                        // First: prioritize recent records (within 5 minutes) over older ones
                         $query->orderByRaw("CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) THEN 0 ELSE 1 END")
-                            ->orderByRaw("CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) THEN created_at END DESC")
+                            // Second: sort recent records by created_at DESC, older records also by created_at (to avoid NULL sorting issues)
+                            ->orderByRaw("CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) THEN created_at ELSE created_at END DESC")
                             ->orderBy('created_at', $direction);
                     } else {
                         $query->orderBy($column, $direction);
