@@ -31,6 +31,8 @@ Route::middleware(['auth', 'user.type:0'])->prefix('user')->name('user.')->group
     Route::get('/incoming-trucks', [UserController::class, 'incomingTrucks'])->name('incoming-trucks');
     Route::get('/outgoing-trucks', [UserController::class, 'outgoingTrucks'])->name('outgoing-trucks');
     Route::get('/completed-trucks', [UserController::class, 'completedTrucks'])->name('completed-trucks');
+    Route::get('/reports', [UserController::class, 'reports'])->name('reports');
+    Route::get('/report', [UserController::class, 'report'])->name('report');
 });
 
 Route::middleware(['auth', 'user.type:1'])->prefix('admin')->name('admin.')->group(function () {

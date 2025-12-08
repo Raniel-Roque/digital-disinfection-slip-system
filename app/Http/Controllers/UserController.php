@@ -25,4 +25,14 @@ class UserController extends Controller
     {
         return view('user.completed-trucks');
     }
+
+    public function reports()
+    {
+        return view('user.reports');
+    }
+
+    public function report()
+    {
+        return view('user.report');
+    }
 }

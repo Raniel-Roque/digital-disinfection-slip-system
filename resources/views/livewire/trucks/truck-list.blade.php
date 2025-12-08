@@ -1,6 +1,6 @@
 <div class="max-w-full bg-white border border-gray-200 rounded-xl shadow-sm p-4 m-4">
 
-    {{-- Search + Filter --}}
+    {{-- Search + Filter + Sort --}}
     <div class="mb-4 flex items-center gap-3">
 
         {{-- Search Bar --}}
@@ -19,16 +19,47 @@
             </div>
         </div>
 
-        {{-- Filter Button --}}
-        <x-buttons.submit-button wire:click="$toggle('showFilters')" color="orange">
-            <div class="flex items-center gap-2">
-                <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M6 12h12m-7 8h2" />
-                </svg>
-                <span>Filter</span>
+        {{-- Filter Button (Icon Only) --}}
+        <button wire:click="$toggle('showFilters')" type="button"
+            class="p-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M6 12h12m-7 8h2" />
+            </svg>
+        </button>
+
+        {{-- Sort Button (Icon Only) --}}
+        <button wire:click="toggleSort" type="button"
+            class="p-2.5 text-white rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2
+                @if ($sortDirection === 'asc') bg-green-500 hover:bg-green-600 focus:ring-green-500
+                @elseif ($sortDirection === 'desc') bg-red-500 hover:bg-red-600 focus:ring-red-500
+                @else bg-gray-500 hover:bg-gray-600 focus:ring-gray-500
+                @endif">
+            <div class="flex flex-col items-center">
+                @if ($sortDirection === 'asc')
+                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                    </svg>
+                    <svg class="w-3 h-3 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                @elseif ($sortDirection === 'desc')
+                    <svg class="w-3 h-3 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                    </svg>
+                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                @else
+                    <svg class="w-3 h-3 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                    </svg>
+                    <svg class="w-3 h-3 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                @endif
             </div>
-        </x-buttons.submit-button>
+        </button>
 
         {{-- Create Button (Only for Outgoing) --}}
         @if ($type === 'outgoing')

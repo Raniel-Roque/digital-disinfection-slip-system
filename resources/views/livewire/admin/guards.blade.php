@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50 p-6" @if (!$showFilters) wire:poll.keep-alive @endif>
+<div class="min-h-screen bg-gray-50 p-6" @if (!$showFilters && !$showCreateModal && !$showEditModal && !$showDisableModal && !$showResetPasswordModal) wire:poll.keep-alive @endif>
     <div class="max-w-7xl mx-auto">
         {{-- Simple Header --}}
         <div class="mb-6">
@@ -66,7 +66,8 @@
                         <span
                             class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             Status: {{ $availableStatuses[$appliedStatus] }}
-                            <button wire:click="removeFilter('status')" class="ml-1.5 inline-flex items-center hover:cursor-pointer">
+                            <button wire:click="removeFilter('status')"
+                                class="ml-1.5 inline-flex items-center hover:cursor-pointer">
                                 <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
@@ -80,7 +81,8 @@
                         <span
                             class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             From: {{ \Carbon\Carbon::parse($appliedCreatedFrom)->format('M d, Y') }}
-                            <button wire:click="removeFilter('createdFrom')" class="ml-1.5 inline-flex items-center hover:cursor-pointer">
+                            <button wire:click="removeFilter('createdFrom')"
+                                class="ml-1.5 inline-flex items-center hover:cursor-pointer">
                                 <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
@@ -94,7 +96,8 @@
                         <span
                             class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             To: {{ \Carbon\Carbon::parse($appliedCreatedTo)->format('M d, Y') }}
-                            <button wire:click="removeFilter('createdTo')" class="ml-1.5 inline-flex items-center hover:cursor-pointer">
+                            <button wire:click="removeFilter('createdTo')"
+                                class="ml-1.5 inline-flex items-center hover:cursor-pointer">
                                 <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
@@ -410,7 +413,7 @@
                             </button>
                             <button wire:click="updateUser" wire:loading.attr="disabled"
                                 class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                @if(!$this->hasChanges) disabled @endif>
+                                @if (!$this->hasChanges) disabled @endif>
                                 Save Changes
                             </button>
                         </div>

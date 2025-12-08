@@ -194,6 +194,17 @@
                             Complete Disinfection
                         </x-buttons.submit-button>
                     @endif
+
+                    {{-- Report Button (Available for all users when not editing) --}}
+                    <x-buttons.submit-button wire:click="openReportModal" color="red">
+                        <div class="flex items-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+                            </svg>
+                            <span>Report</span>
+                        </div>
+                    </x-buttons.submit-button>
                 </div>
             @else
                 <div class="flex justify-between w-full">
@@ -284,5 +295,59 @@
 
     {{-- Add Attachment Modal --}}
     <x-modals.add-attachment show="showAddAttachmentModal" />
+
+    {{-- Report Modal --}}
+    <x-modals.modal-template show="showReportModal" title="REPORT DISINFECTION SLIP?" max-width="max-w-lg">
+        <div class="py-4">
+            <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div class="flex items-start">
+                    <svg class="w-5 h-5 text-yellow-600 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div>
+                        <p class="text-sm font-semibold text-yellow-800 mb-1">Warning</p>
+                        <p class="text-sm text-yellow-700">
+                            You are about to report this disinfection slip. Please provide a detailed reason for your
+                            report.
+                            This will be reviewed by administrators.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <p class="text-sm text-gray-700 mb-2">
+                    <span class="font-semibold">Slip No:</span> {{ $selectedSlip?->slip_id ?? 'N/A' }}
+                </p>
+                <p class="text-sm text-gray-700">
+                    <span class="font-semibold">Plate No:</span> {{ $selectedSlip?->truck?->plate_number ?? 'N/A' }}
+                </p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Reason / Description <span class="text-red-500">*</span>
+                </label>
+                <textarea wire:model="reportDescription" rows="5"
+                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                    placeholder="Please describe the issue or reason for reporting this slip..."></textarea>
+                @error('reportDescription')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+                <p class="mt-1 text-xs text-gray-500">Minimum 10 characters required.</p>
+            </div>
+        </div>
+
+        <x-slot name="footer">
+            <x-buttons.submit-button wire:click="closeReportModal" color="white">
+                Cancel
+            </x-buttons.submit-button>
+            <x-buttons.submit-button wire:click="submitReport" color="red">
+                Submit Report
+            </x-buttons.submit-button>
+        </x-slot>
+    </x-modals.modal-template>
 
 </div>

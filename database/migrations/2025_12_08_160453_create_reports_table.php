@@ -16,7 +16,8 @@ return new class extends Migration
             
             // Foreign relations
             $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
-            $table->foreignId('slip_id')->constrained('disinfection_slips')->cascadeOnUpdate()->cascadeOnDelete();
+            // slip_id is nullable to support both slip-related reports and miscellaneous reports
+            $table->foreignId('slip_id')->nullable()->constrained('disinfection_slips')->cascadeOnUpdate()->cascadeOnDelete();
             
             // Report details
             $table->text('description');

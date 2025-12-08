@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50 p-6" @if (!$showFilters) wire:poll.keep-alive @endif>
+<div class="min-h-screen bg-gray-50 p-6" @if (!$showFilters && !$showCreateModal && !$showDetailsModal && !$showDeleteConfirmation && !$showRemoveAttachmentConfirmation && !$showEditModal && !$showCancelCreateConfirmation && !$showCancelEditConfirmation && !$showAttachmentModal) wire:poll.keep-alive @endif>
     <div class="max-w-7xl mx-auto">
 
         {{-- Simple Header --}}

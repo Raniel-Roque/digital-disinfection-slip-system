@@ -138,17 +138,40 @@ class Reports extends Component
         $report->resolved_at = now();
         $report->save();
         
-        $slipId = $report->slip->slip_id ?? 'N/A';
+        $reportType = $report->slip_id ? "for slip " . ($report->slip->slip_id ?? 'N/A') : "for misc";
         $newValues = ['resolved_at' => $report->resolved_at];
         Logger::update(
             Report::class,
             $report->id,
-            "Resolved report for slip {$slipId}",
+            "Resolved report {$reportType}",
             $oldValues,
             $newValues
         );
         
         $this->dispatch('toast', message: 'Report marked as resolved.', type: 'success');
+        $this->resetPage();
+    }
+
+    public function unresolveReport($reportId)
+    {
+        $report = $this->showDeleted 
+            ? Report::onlyTrashed()->findOrFail($reportId)
+            : Report::findOrFail($reportId);
+        $oldValues = ['resolved_at' => $report->resolved_at];
+        $report->resolved_at = null;
+        $report->save();
+        
+        $reportType = $report->slip_id ? "for slip " . ($report->slip->slip_id ?? 'N/A') : "for misc";
+        $newValues = ['resolved_at' => null];
+        Logger::update(
+            Report::class,
+            $report->id,
+            "Unresolved report {$reportType}",
+            $oldValues,
+            $newValues
+        );
+        
+        $this->dispatch('toast', message: 'Report marked as unresolved.', type: 'success');
         $this->resetPage();
     }
     
@@ -161,7 +184,7 @@ class Reports extends Component
     public function deleteReport()
     {
         $report = Report::findOrFail($this->selectedReportId);
-        $slipId = $report->slip->slip_id ?? 'N/A';
+        $reportType = $report->slip_id ? "for slip " . ($report->slip->slip_id ?? 'N/A') : "for misc";
         $oldValues = $report->only(['user_id', 'slip_id', 'description', 'resolved_at']);
         
         $report->delete();
@@ -169,7 +192,7 @@ class Reports extends Component
         Logger::delete(
             Report::class,
             $report->id,
-            "Deleted report for slip {$slipId}",
+            "Deleted report {$reportType}",
             $oldValues
         );
         
@@ -182,13 +205,13 @@ class Reports extends Component
     public function restoreReport($reportId)
     {
         $report = Report::onlyTrashed()->findOrFail($reportId);
-        $slipId = $report->slip->slip_id ?? 'N/A';
+        $reportType = $report->slip_id ? "for slip " . ($report->slip->slip_id ?? 'N/A') : "for misc";
         $report->restore();
         
         Logger::restore(
             Report::class,
             $report->id,
-            "Restored report for slip {$slipId}"
+            "Restored report {$reportType}"
         );
         
         $this->dispatch('toast', message: 'Report has been restored.', type: 'success');
@@ -212,6 +235,11 @@ class Reports extends Component
                   })
                   ->orWhereHas('slip', function ($slipQuery) use ($searchTerm) {
                       $slipQuery->where('slip_id', 'like', '%' . $searchTerm . '%');
+                  })
+                  ->orWhere(function ($miscQuery) use ($searchTerm) {
+                      if (stripos($searchTerm, 'miscellaneous') !== false || stripos($searchTerm, 'misc') !== false) {
+                          $miscQuery->whereNull('slip_id');
+                      }
                   });
             });
         }

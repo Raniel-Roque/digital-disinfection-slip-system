@@ -1,4 +1,12 @@
-<div class="min-h-screen bg-gray-50 p-6" @if (!$showFilters && !$showDeleted) wire:poll.keep-alive @endif>
+<div class="min-h-screen bg-gray-50 p-6" @if (
+    !$showFilters &&
+        !$showDeleted &&
+        !$showCreateModal &&
+        !$showEditModal &&
+        !$showDisableModal &&
+        !$showResetPasswordModal &&
+        !$showDeleteModal &&
+        !$showRestoreModal) wire:poll.keep-alive @endif>
     <div class="max-w-7xl mx-auto">
         {{-- Simple Header --}}
         <div class="mb-6">

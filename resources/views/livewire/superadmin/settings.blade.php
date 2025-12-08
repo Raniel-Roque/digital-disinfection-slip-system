@@ -77,6 +77,31 @@
                         {{-- Divider --}}
                         <div class="border-t border-gray-200"></div>
 
+                        {{-- Resolved Reports Retention Months --}}
+                        <div>
+                            <label for="resolved_reports_retention_months"
+                                class="block text-sm font-medium text-gray-700 mb-2">
+                                Resolved Reports Retention Period
+                            </label>
+                            <div class="flex items-center gap-3">
+                                <input type="number" id="resolved_reports_retention_months"
+                                    wire:model="resolved_reports_retention_months" min="1" max="120"
+                                    class="block w-32 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="6">
+                                <span class="text-sm text-gray-600">months</span>
+                            </div>
+                            <p class="mt-1 text-xs text-gray-500">
+                                Resolved reports older than this period will be automatically deleted. Default is 6
+                                months.
+                            </p>
+                            @error('resolved_reports_retention_months')
+                                <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        {{-- Divider --}}
+                        <div class="border-t border-gray-200"></div>
+
                         {{-- Default Location Logo --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-3">
@@ -145,7 +170,7 @@
                     <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
                         <button type="submit" wire:loading.attr="disabled"
                             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                            @if(!$this->hasChanges) disabled @endif>
+                            @if (!$this->hasChanges) disabled @endif>
                             Save Settings
                         </button>
                     </div>

@@ -8,6 +8,8 @@ use App\Models\Attachment;
 use App\Models\Truck;
 use App\Models\Location;
 use App\Models\Driver;
+use App\Models\Report;
+use App\Services\Logger;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -24,8 +26,10 @@ class DisinfectionSlip extends Component
     public $showDisinfectingConfirmation = false;
     public $showCompleteConfirmation = false;
     public $showRemoveAttachmentConfirmation = false;
+    public $showReportModal = false;
     public $selectedSlip = null;
     public $attachmentFile = null;
+    public $reportDescription = '';
 
     public $isEditing = false;
     
@@ -439,6 +443,56 @@ class DisinfectionSlip extends Component
         $this->dispatch('slip-updated');
     }
 
+    public function openReportModal()
+    {
+        if (!$this->selectedSlip) {
+            $this->dispatch('toast', message: 'No slip selected.', type: 'error');
+            return;
+        }
+        
+        $this->reportDescription = '';
+        $this->showReportModal = true;
+    }
+    
+    public function submitReport()
+    {
+        if (!$this->selectedSlip) {
+            $this->dispatch('toast', message: 'No slip selected.', type: 'error');
+            return;
+        }
+        
+        $this->validate([
+            'reportDescription' => 'required|string|min:10|max:1000',
+        ], [
+            'reportDescription.required' => 'Please provide a reason for reporting.',
+            'reportDescription.min' => 'The description must be at least 10 characters.',
+            'reportDescription.max' => 'The description must not exceed 1000 characters.',
+        ]);
+        
+        try {
+            $report = Report::create([
+                'user_id' => Auth::id(),
+                'slip_id' => $this->selectedSlip->id,
+                'description' => $this->reportDescription,
+            ]);
+            
+            $slipId = $this->selectedSlip->slip_id;
+            $this->dispatch('toast', message: "Report submitted successfully for slip {$slipId}.", type: 'success');
+            
+            $this->showReportModal = false;
+            $this->reportDescription = '';
+        } catch (\Exception $e) {
+            Log::error('Failed to create report: ' . $e->getMessage());
+            $this->dispatch('toast', message: 'Failed to submit report. Please try again.', type: 'error');
+        }
+    }
+    
+    public function closeReportModal()
+    {
+        $this->showReportModal = false;
+        $this->reportDescription = '';
+    }
+
     public function closeDetailsModal()
     {
         // Reset all states when closing
@@ -447,6 +501,8 @@ class DisinfectionSlip extends Component
         $this->showDeleteConfirmation = false;
         $this->showDisinfectingConfirmation = false;
         $this->showCompleteConfirmation = false;
+        $this->showReportModal = false;
+        $this->reportDescription = '';
         $this->originalValues = [];
         $this->showDetailsModal = false;
         $this->js('setTimeout(() => $wire.clearSelectedSlip(), 300)');

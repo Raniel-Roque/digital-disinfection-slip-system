@@ -30,6 +30,7 @@ class TruckList extends Component
     public $appliedStatus = '';
     
     public $filtersActive = false;
+    public $sortDirection = null; // null, 'asc', 'desc'
     
     public $availableStatuses = [
         0 => 'Ongoing',
@@ -180,6 +181,18 @@ class TruckList extends Component
             $this->filterDateTo = null;
             $this->filterStatus = '';
         }
+    }
+
+    public function toggleSort()
+    {
+        if ($this->sortDirection === null) {
+            $this->sortDirection = 'asc';
+        } elseif ($this->sortDirection === 'asc') {
+            $this->sortDirection = 'desc';
+        } else {
+            $this->sortDirection = null;
+        }
+        $this->resetPage();
     }
 
     public function clearFilters()
@@ -390,7 +403,15 @@ class TruckList extends Component
             })
 
             ->with('truck') // Load relationship only for final filtered results
-            ->orderBy('created_at', 'desc')
+            ->when($this->sortDirection === 'asc', function($q) {
+                $q->orderBy('slip_id', 'asc');
+            })
+            ->when($this->sortDirection === 'desc', function($q) {
+                $q->orderBy('slip_id', 'desc');
+            })
+            ->when($this->sortDirection === null, function($q) {
+                $q->orderBy('created_at', 'desc'); // default
+            })
             ->paginate(5);
 
         return view('livewire.trucks.truck-list', [

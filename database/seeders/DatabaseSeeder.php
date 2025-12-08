@@ -43,6 +43,10 @@ class DatabaseSeeder extends Seeder
                 'setting_name' => 'log_retention_months',
                 'value' => '6',
             ],
+            [
+                'setting_name' => 'resolved_reports_retention_months',
+                'value' => '6',
+            ],
         ];
 
         foreach ($defaultSettings as $setting) {

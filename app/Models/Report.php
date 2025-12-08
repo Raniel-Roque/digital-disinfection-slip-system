@@ -27,12 +27,13 @@ class Report extends Model
         parent::boot();
 
         static::created(function ($report) {
-            $slipId = $report->slip->slip_id ?? 'N/A';
+            $slipId = $report->slip ? $report->slip->slip_id : null;
+            $reportType = $slipId ? "for slip {$slipId}" : "miscellaneous";
             $newValues = $report->only(['user_id', 'slip_id', 'description']);
             Logger::create(
                 self::class,
                 $report->id,
-                "Created report for slip {$slipId}",
+                "Created report {$reportType}",
                 $newValues
             );
         });
