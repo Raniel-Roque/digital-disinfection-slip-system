@@ -27,7 +27,7 @@
 
     <!-- Desktop: Horizontal Layout -->
     <div class="hidden sm:flex items-center justify-between gap-3">
-        <!-- Left: Hamburger + Module Name + Date -->
+        <!-- Left: Hamburger + Logo + Farm Name + Date -->
         <div class="flex items-center gap-3 min-w-0">
             <button type="button"
                 class="hover:cursor-pointer shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-full bg-white border-2 border-gray-200 text-gray-700 shadow-md hover:bg-[#EC8B18] hover:border-[#EC8B18] hover:text-white hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#EC8B18] focus:ring-offset-2 transition-all duration-300 cursor-pointer"
@@ -38,20 +38,19 @@
                 </svg>
             </button>
 
-            <div class="flex flex-col transition-all duration-200 min-w-0" :class="open ? 'lg:ml-60' : ''">
-                <span class="font-semibold text-gray-800 text-lg truncate">{{ $module }}</span>
-                <span class="text-sm text-gray-600">{{ now()->format('F d, Y') }}</span>
+            <div class="flex items-center gap-3 transition-all duration-200 min-w-0" :class="open ? 'lg:ml-60' : ''">
+                <!-- Logo (spans both rows) -->
+                <img src="{{ asset('storage/images/logo/BGC.png') }}" alt="Logo" class="h-12 w-12 object-contain shrink-0">
+                <!-- Farm Name + Date (stacked) -->
+                <div class="flex flex-col">
+                    <span class="font-semibold text-gray-800 text-lg truncate">{{ $locationName }}</span>
+                    <span class="text-sm text-gray-600">{{ now()->format('F d, Y') }}</span>
+                </div>
             </div>
         </div>
 
-        <!-- Center: Logo + Location/Farm Name -->
-        <div class="flex items-center gap-2 flex-1 justify-center min-w-0">
-            <img src="{{ asset('storage/images/logo/BGC.png') }}" alt="Logo" class="h-8 w-8 object-contain shrink-0">
-            <span class="font-semibold text-gray-800 text-lg truncate">{{ $locationName }}</span>
-        </div>
-
         <!-- Right: Slot for actions -->
-        <div class="flex items-center gap-3 shrink-0">
+        <div class="flex items-center gap-3 shrink-0 ml-auto">
             <x-buttons.nav-button href="{{ url('/') }}">
                 <span class="hidden lg:inline">Go to Landing</span>
                 <span class="lg:hidden">Landing</span>
@@ -78,11 +77,11 @@
                         class="text-sm text-gray-500 wrap-break-word mt-0.5">{{ '@' . (auth()->user()->username ?? 'username') }}</span>
                 </div>
                 <button type="button"
-                    class="hover:cursor-pointer shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white border-2 border-gray-300 text-gray-700 shadow-sm hover:bg-[#EC8B18] hover:border-[#EC8B18] hover:text-white hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#EC8B18] focus:ring-offset-2 transition-all duration-200 cursor-pointer"
+                    class="hover:cursor-pointer shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-full bg-white border-2 border-gray-200 text-gray-700 shadow-md hover:bg-[#EC8B18] hover:border-[#EC8B18] hover:text-white hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#EC8B18] focus:ring-offset-2 transition-all duration-300 cursor-pointer"
                     x-on:click="open = false" aria-label="Close menu">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
