@@ -180,7 +180,16 @@
 
         <div class="form-field">
             <div class="form-label">Plate no:</div>
-            <div class="form-value">{{ $slip->truck->plate_number ?? 'N/A' }}</div>
+            <div class="form-value">
+                @if ($slip->truck)
+                    {{ $slip->truck->plate_number }}
+                    @if ($slip->truck->trashed())
+                        <span style="color: #dc2626; font-weight: bold;">(Deleted)</span>
+                    @endif
+                @else
+                    <span style="color: #dc2626; font-weight: bold;">(Deleted)</span>
+                @endif
+            </div>
         </div>
 
         <div class="form-field">

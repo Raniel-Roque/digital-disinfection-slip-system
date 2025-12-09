@@ -25,25 +25,25 @@
                         {{-- Right Side Buttons Container --}}
                         <div class="absolute inset-y-0 right-0 flex items-center pr-2 gap-1">
                             {{-- Clear Button (X) - Only when search has text --}}
-                            @if ($search)
-                                <button wire:click="$set('search', '')"
+                        @if ($search)
+                            <button wire:click="$set('search', '')"
                                     class="flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-150 hover:cursor-pointer cursor-pointer">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                </button>
-                            @endif
-                            
-                            {{-- Filter Button Inside Search (Right Side) --}}
-                            <button wire:click="$toggle('showFilters')" title="Filters"
-                                class="flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-150 focus:outline-none hover:cursor-pointer cursor-pointer">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
-                                    </path>
+                                        d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
                             </button>
+                        @endif
+
+                            {{-- Filter Button Inside Search (Right Side) --}}
+                    <button wire:click="$toggle('showFilters')" title="Filters"
+                                class="flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-150 focus:outline-none hover:cursor-pointer cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
+                            </path>
+                        </svg>
+                    </button>
                         </div>
                     </div>
 
@@ -262,9 +262,6 @@
                                                 Resolve
                                                 </span>
                                                 <span wire:loading wire:target="resolveReport({{ $report->id }})" class="inline-flex items-center gap-2">
-                                                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                    </svg>
                                                     Resolving...
                                                 </span>
                                             </button>
@@ -280,9 +277,6 @@
                                                 Unresolve
                                                 </span>
                                                 <span wire:loading wire:target="unresolveReport({{ $report->id }})" class="inline-flex items-center gap-2">
-                                                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                    </svg>
                                                     Unresolving...
                                                 </span>
                                             </button>
@@ -302,9 +296,6 @@
                                                 Restore
                                                 </span>
                                                 <span wire:loading wire:target="restoreReport({{ $report->id }})" class="inline-flex items-center gap-2">
-                                                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                    </svg>
                                                     Restoring...
                                                 </span>
                                             </button>

@@ -205,7 +205,7 @@ class AdminController extends Controller
             if (Session::has($sessionKey) && Session::has($expiresKey)) {
                 if (now()->lt(Session::get($expiresKey))) {
                     $slipId = Session::get($sessionKey);
-                    $slip = \App\Models\DisinfectionSlip::with(['truck', 'location', 'destination', 'driver', 'hatcheryGuard', 'receivedGuard'])
+                    $slip = \App\Models\DisinfectionSlip::with(['truck' => function($q) { $q->withTrashed(); }, 'location', 'destination', 'driver', 'hatcheryGuard', 'receivedGuard'])
                         ->find($slipId);
                     Session::forget([$sessionKey, $expiresKey]);
                 }

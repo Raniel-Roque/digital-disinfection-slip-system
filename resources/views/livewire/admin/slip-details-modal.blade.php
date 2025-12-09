@@ -47,7 +47,14 @@
         <div class="grid grid-cols-3 mb-2">
             <div class="font-semibold text-gray-700">Plate No:</div>
             <div class="col-span-2 text-gray-900">
-                {{ $selectedSlip->truck->plate_number ?? 'N/A' }}
+                @if ($selectedSlip->truck)
+                    {{ $selectedSlip->truck->plate_number }}
+                    @if ($selectedSlip->truck->trashed())
+                        <span class="text-red-600 font-semibold">(Deleted)</span>
+                    @endif
+                @else
+                    <span class="text-red-600 font-semibold">(Deleted)</span>
+                @endif
             </div>
         </div>
 

@@ -26,25 +26,25 @@
                         {{-- Right Side Buttons Container --}}
                         <div class="absolute inset-y-0 right-0 flex items-center pr-2 gap-1">
                             {{-- Clear Button (X) - Only when search has text --}}
-                            @if ($search)
-                                <button wire:click="$set('search', '')"
+                        @if ($search)
+                            <button wire:click="$set('search', '')"
                                     class="flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-150 hover:cursor-pointer cursor-pointer">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                </button>
-                            @endif
-                            
-                            {{-- Filter Button Inside Search (Right Side) --}}
-                            <button wire:click="$toggle('showFilters')" title="Filters"
-                                class="flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-150 focus:outline-none hover:cursor-pointer cursor-pointer">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
-                                    </path>
+                                        d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
                             </button>
+                        @endif
+
+                            {{-- Filter Button Inside Search (Right Side) --}}
+                    <button wire:click="$toggle('showFilters')" title="Filters"
+                                class="flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-150 focus:outline-none hover:cursor-pointer cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
+                            </path>
+                        </svg>
+                    </button>
                         </div>
                     </div>
 
@@ -83,9 +83,23 @@
             </div>
 
             {{-- Active Filters Display --}}
-            @if ($filtersActive)
+            @if ($filtersActive || $excludeDeletedItems)
                 <div class="mt-4 flex flex-wrap gap-2">
                     <span class="text-sm text-gray-600">Active filters:</span>
+
+                    @if ($excludeDeletedItems)
+                        <span
+                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Excluding slips with deleted items
+                            <button wire:click="$set('excludeDeletedItems', false)" class="ml-1.5 inline-flex items-center hover:cursor-pointer cursor-pointer">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </span>
+                    @endif
 
                     @if ($appliedStatus !== null)
                         <span
@@ -162,7 +176,7 @@
                             @endphp
                             <span
                                 class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                Plate: {{ $truck->plate_number }}
+                                Plate: @if ($truck){{ $truck->plate_number }}@if ($truck->trashed()) <span class="text-red-600 font-semibold">(Deleted)</span>@endif@else<span class="text-red-600 font-semibold">(Deleted)</span>@endif
                                 <button wire:click="removeSpecificFilter('plateNumber', {{ $truckId }})"
                                     class="ml-1.5 inline-flex items-center hover:cursor-pointer cursor-pointer">
                                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -393,11 +407,25 @@
                                             {{ $slip->driver->first_name }} {{ $slip->driver->last_name }}
                                         </div>
                                         <div class="text-xs text-gray-500 mt-0.5">
-                                            {{ $slip->truck->plate_number }}
+                                            @if ($slip->truck)
+                                                {{ $slip->truck->plate_number }}
+                                                @if ($slip->truck->trashed())
+                                                    <span class="text-red-600 font-semibold">(Deleted)</span>
+                                                @endif
+                                            @else
+                                                <span class="text-red-600 font-semibold">(Deleted)</span>
+                                            @endif
                                         </div>
                                     @else
                                         <div class="text-sm font-semibold text-gray-900">
-                                            {{ $slip->truck->plate_number }}
+                                            @if ($slip->truck)
+                                                {{ $slip->truck->plate_number }}
+                                                @if ($slip->truck->trashed())
+                                                    <span class="text-red-600 font-semibold">(Deleted)</span>
+                                                @endif
+                                            @else
+                                                <span class="text-red-600 font-semibold">(Deleted)</span>
+                                            @endif
                                         </div>
                                         <div class="text-xs text-gray-500 mt-0.5">
                                             {{ $slip->driver->first_name }} {{ $slip->driver->last_name }}
@@ -462,25 +490,22 @@
                                                     Restore
                                                 </span>
                                                 <span wire:loading wire:target="restoreSlip({{ $slip->id }})" class="inline-flex items-center gap-2">
-                                                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                    </svg>
                                                     Restoring...
                                                 </span>
                                             </button>
                                         @else
-                                            <button wire:click="openDetailsModal({{ $slip->id }})"
-                                                class="hover:cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                                View Details
-                                            </button>
-                                            <button wire:click="printSlip({{ $slip->id }})"
-                                                class="hover:cursor-pointer inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                                                title="Print Slip">
-                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-                                                </svg>
-                                                Print
-                                            </button>
+                                    <button wire:click="openDetailsModal({{ $slip->id }})"
+                                        class="hover:cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        View Details
+                                    </button>
+                                        <button wire:click="printSlip({{ $slip->id }})"
+                                            class="hover:cursor-pointer inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                                            title="Print Slip">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                                            </svg>
+                                            Print
+                                        </button>
                                         @endif
                                     </div>
                                 </td>

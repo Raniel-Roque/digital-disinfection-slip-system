@@ -81,6 +81,7 @@ class Trucks extends Component
     public $appliedCreatedTo = null;
     
     public $filtersActive = false;
+    public $excludeDeletedItems = true; // Default: exclude slips with deleted related items
     
     public $availableStatuses = [
         0 => 'Ongoing',
@@ -186,7 +187,7 @@ class Trucks extends Component
     private function getCachedLocations()
     {
         if ($this->cachedLocations === null) {
-            $this->cachedLocations = Location::orderBy('location_name')->get();
+            $this->cachedLocations = Location::withTrashed()->orderBy('location_name')->get();
         }
         return $this->cachedLocations;
     }
@@ -194,7 +195,7 @@ class Trucks extends Component
     private function getCachedDrivers()
     {
         if ($this->cachedDrivers === null) {
-            $this->cachedDrivers = Driver::orderBy('first_name')->get();
+            $this->cachedDrivers = Driver::withTrashed()->orderBy('first_name')->get();
         }
         return $this->cachedDrivers;
     }
@@ -202,7 +203,7 @@ class Trucks extends Component
     private function getCachedTrucks()
     {
         if ($this->cachedTrucks === null) {
-            $this->cachedTrucks = Truck::orderBy('plate_number')->get();
+            $this->cachedTrucks = Truck::withTrashed()->orderBy('plate_number')->get();
         }
         return $this->cachedTrucks;
     }
@@ -419,7 +420,7 @@ class Trucks extends Component
     // Computed property for available origins (excludes selected destination)
     public function getAvailableOriginsProperty()
     {
-        $locations = $this->getCachedLocations();
+        $locations = $this->getCachedLocations()->whereNull('deleted_at');
         
         if ($this->destination_id) {
             return $locations->where('id', '!=', $this->destination_id)
@@ -433,7 +434,7 @@ class Trucks extends Component
     // Computed property for available destinations (excludes selected origin)
     public function getAvailableDestinationsProperty()
     {
-        $locations = $this->getCachedLocations();
+        $locations = $this->getCachedLocations()->whereNull('deleted_at');
         
         if ($this->location_id) {
             return $locations->where('id', '!=', $this->location_id)
@@ -447,7 +448,7 @@ class Trucks extends Component
     // Computed properties for create modal filtered options
     public function getCreateTruckOptionsProperty()
     {
-        $trucks = $this->getCachedTrucks();
+        $trucks = $this->getCachedTrucks()->whereNull('deleted_at');
         $allOptions = $trucks->pluck('plate_number', 'id');
         $options = $allOptions;
         
@@ -465,7 +466,7 @@ class Trucks extends Component
     
     public function getCreateDriverOptionsProperty()
     {
-        $drivers = $this->getCachedDrivers();
+        $drivers = $this->getCachedDrivers()->whereNull('deleted_at');
         $allOptions = $drivers->pluck('full_name', 'id');
         $options = $allOptions;
         
@@ -536,7 +537,7 @@ class Trucks extends Component
     // Computed properties for details modal filtered options
     public function getDetailsTruckOptionsProperty()
     {
-        $trucks = $this->getCachedTrucks();
+        $trucks = $this->getCachedTrucks()->whereNull('deleted_at');
         $allOptions = $trucks->pluck('plate_number', 'id');
         $options = $allOptions;
         
@@ -554,7 +555,7 @@ class Trucks extends Component
     
     public function getDetailsLocationOptionsProperty()
     {
-        $locations = $this->getCachedLocations();
+        $locations = $this->getCachedLocations()->whereNull('deleted_at');
         $allOptions = $locations->pluck('location_name', 'id');
         $options = $allOptions;
         
@@ -572,7 +573,7 @@ class Trucks extends Component
     
     public function getDetailsDriverOptionsProperty()
     {
-        $drivers = $this->getCachedDrivers();
+        $drivers = $this->getCachedDrivers()->whereNull('deleted_at');
         $allOptions = $drivers->pluck('full_name', 'id');
         $options = $allOptions;
         
@@ -591,7 +592,7 @@ class Trucks extends Component
     // Computed properties for edit modal filtered options
     public function getEditTruckOptionsProperty()
     {
-        $trucks = $this->getCachedTrucks();
+        $trucks = $this->getCachedTrucks()->whereNull('deleted_at');
         $allOptions = $trucks->pluck('plate_number', 'id');
         $options = $allOptions;
         
@@ -609,7 +610,7 @@ class Trucks extends Component
     
     public function getEditDriverOptionsProperty()
     {
-        $drivers = $this->getCachedDrivers();
+        $drivers = $this->getCachedDrivers()->whereNull('deleted_at');
         $allOptions = $drivers->pluck('full_name', 'id');
         $options = $allOptions;
         
@@ -679,7 +680,7 @@ class Trucks extends Component
     
     public function getEditAvailableOriginsOptionsProperty()
     {
-        $locations = $this->getCachedLocations();
+        $locations = $this->getCachedLocations()->whereNull('deleted_at');
         
         // Exclude selected destination from origins
         $originOptions = $locations;
@@ -706,7 +707,7 @@ class Trucks extends Component
     
     public function getEditAvailableDestinationsOptionsProperty()
     {
-        $locations = $this->getCachedLocations();
+        $locations = $this->getCachedLocations()->whereNull('deleted_at');
         
         // Exclude selected origin from destinations
         $destinationOptions = $locations;
@@ -734,7 +735,7 @@ class Trucks extends Component
     // Computed properties for available origins and destinations (reactive)
     public function getAvailableOriginsOptionsProperty()
     {
-        $locations = $this->getCachedLocations();
+        $locations = $this->getCachedLocations()->whereNull('deleted_at');
         
         // Exclude selected destination from origins
         $originOptions = $locations;
@@ -761,7 +762,7 @@ class Trucks extends Component
     
     public function getAvailableDestinationsOptionsProperty()
     {
-        $locations = $this->getCachedLocations();
+        $locations = $this->getCachedLocations()->whereNull('deleted_at');
         
         // Exclude selected origin from destinations
         $destinationOptions = $locations;
@@ -988,7 +989,7 @@ class Trucks extends Component
     public function openDetailsModal($id)
     {
         $this->selectedSlip = DisinfectionSlipModel::with([
-            'truck',
+            'truck' => function($q) { $q->withTrashed(); },
             'location',
             'destination',
             'driver',
@@ -1826,8 +1827,8 @@ class Trucks extends Component
     public function render()
     {
         $query = $this->showDeleted 
-            ? DisinfectionSlipModel::onlyTrashed()->with(['truck', 'location', 'destination', 'driver', 'hatcheryGuard', 'receivedGuard'])
-            : DisinfectionSlipModel::with(['truck', 'location', 'destination', 'driver', 'hatcheryGuard', 'receivedGuard'])->whereNull('deleted_at');
+            ? DisinfectionSlipModel::onlyTrashed()->with(['truck' => function($q) { $q->withTrashed(); }, 'location' => function($q) { $q->withTrashed(); }, 'destination' => function($q) { $q->withTrashed(); }, 'driver' => function($q) { $q->withTrashed(); }, 'hatcheryGuard' => function($q) { $q->withTrashed(); }, 'receivedGuard' => function($q) { $q->withTrashed(); }])
+            : DisinfectionSlipModel::with(['truck' => function($q) { $q->withTrashed(); }, 'location' => function($q) { $q->withTrashed(); }, 'destination' => function($q) { $q->withTrashed(); }, 'driver' => function($q) { $q->withTrashed(); }, 'hatcheryGuard' => function($q) { $q->withTrashed(); }, 'receivedGuard' => function($q) { $q->withTrashed(); }])->whereNull('deleted_at');
         
         $slips = $query
             // Search
@@ -1846,33 +1847,39 @@ class Trucks extends Component
                 $query->where(function($q) use ($escapedSearchTerm) {
                     $q->where('slip_id', 'like', '%' . $escapedSearchTerm . '%')
                         ->orWhereHas('truck', function($truckQuery) use ($escapedSearchTerm) {
-                            $truckQuery->where('plate_number', 'like', '%' . $escapedSearchTerm . '%');
+                            $truckQuery->withTrashed()->where('plate_number', 'like', '%' . $escapedSearchTerm . '%');
                         })
                         ->orWhereHas('driver', function($driverQuery) use ($escapedSearchTerm) {
-                            $driverQuery->where('first_name', 'like', '%' . $escapedSearchTerm . '%')
-                                ->orWhere('last_name', 'like', '%' . $escapedSearchTerm . '%')
-                                ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%'])
-                                ->orWhereRaw("CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%']);
+                            $driverQuery->withTrashed()->where(function($dq) use ($escapedSearchTerm) {
+                                $dq->where('first_name', 'like', '%' . $escapedSearchTerm . '%')
+                                    ->orWhere('last_name', 'like', '%' . $escapedSearchTerm . '%')
+                                    ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%'])
+                                    ->orWhereRaw("CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%']);
+                            });
                         })
                         ->orWhereHas('location', function($locationQuery) use ($escapedSearchTerm) {
-                            $locationQuery->where('location_name', 'like', '%' . $escapedSearchTerm . '%');
+                            $locationQuery->withTrashed()->where('location_name', 'like', '%' . $escapedSearchTerm . '%');
                         })
                         ->orWhereHas('destination', function($destinationQuery) use ($escapedSearchTerm) {
-                            $destinationQuery->where('location_name', 'like', '%' . $escapedSearchTerm . '%');
+                            $destinationQuery->withTrashed()->where('location_name', 'like', '%' . $escapedSearchTerm . '%');
                         })
                         ->orWhereHas('hatcheryGuard', function($guardQuery) use ($escapedSearchTerm) {
-                            $guardQuery->where('first_name', 'like', '%' . $escapedSearchTerm . '%')
-                                ->orWhere('middle_name', 'like', '%' . $escapedSearchTerm . '%')
-                                ->orWhere('last_name', 'like', '%' . $escapedSearchTerm . '%')
-                                ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%'])
-                                ->orWhereRaw("CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%']);
+                            $guardQuery->withTrashed()->where(function($gq) use ($escapedSearchTerm) {
+                                $gq->where('first_name', 'like', '%' . $escapedSearchTerm . '%')
+                                    ->orWhere('middle_name', 'like', '%' . $escapedSearchTerm . '%')
+                                    ->orWhere('last_name', 'like', '%' . $escapedSearchTerm . '%')
+                                    ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%'])
+                                    ->orWhereRaw("CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%']);
+                            });
                         })
                         ->orWhereHas('receivedGuard', function($guardQuery) use ($escapedSearchTerm) {
-                            $guardQuery->where('first_name', 'like', '%' . $escapedSearchTerm . '%')
-                                ->orWhere('middle_name', 'like', '%' . $escapedSearchTerm . '%')
-                                ->orWhere('last_name', 'like', '%' . $escapedSearchTerm . '%')
-                                ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%'])
-                                ->orWhereRaw("CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%']);
+                            $guardQuery->withTrashed()->where(function($gq) use ($escapedSearchTerm) {
+                                $gq->where('first_name', 'like', '%' . $escapedSearchTerm . '%')
+                                    ->orWhere('middle_name', 'like', '%' . $escapedSearchTerm . '%')
+                                    ->orWhere('last_name', 'like', '%' . $escapedSearchTerm . '%')
+                                    ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%'])
+                                    ->orWhereRaw("CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%']);
+                            });
                         });
                 });
             })
@@ -1918,6 +1925,33 @@ class Trucks extends Component
             })
             ->when($this->appliedCreatedTo, function($query) {
                 $query->whereDate('created_at', '<=', $this->appliedCreatedTo);
+            })
+            // Exclude slips with deleted items (default: on)
+            ->when($this->excludeDeletedItems, function($query) {
+                $query->whereHas('truck', function($q) {
+                    $q->whereNull('deleted_at');
+                })
+                ->whereHas('driver', function($q) {
+                    $q->whereNull('deleted_at');
+                })
+                ->whereHas('location', function($q) {
+                    $q->whereNull('deleted_at');
+                })
+                ->whereHas('destination', function($q) {
+                    $q->whereNull('deleted_at');
+                })
+                ->where(function($q) {
+                    $q->whereHas('hatcheryGuard', function($guardQ) {
+                        $guardQ->whereNull('deleted_at');
+                    })
+                    ->orWhereNull('hatchery_guard_id');
+                })
+                ->where(function($q) {
+                    $q->whereHas('receivedGuard', function($guardQ) {
+                        $guardQ->whereNull('deleted_at');
+                    })
+                    ->orWhereNull('received_guard_id');
+                });
             })
             // Apply sorting (works with all filters)
             ->when($this->sortBy === 'slip_id' && !$this->showDeleted, function($query) {
@@ -1973,8 +2007,8 @@ class Trucks extends Component
     public function getExportData()
     {
         $query = $this->showDeleted 
-            ? DisinfectionSlipModel::onlyTrashed()->with(['truck', 'location', 'destination', 'driver', 'hatcheryGuard', 'receivedGuard'])
-            : DisinfectionSlipModel::with(['truck', 'location', 'destination', 'driver', 'hatcheryGuard', 'receivedGuard'])->whereNull('deleted_at');
+            ? DisinfectionSlipModel::onlyTrashed()->with(['truck' => function($q) { $q->withTrashed(); }, 'location' => function($q) { $q->withTrashed(); }, 'destination' => function($q) { $q->withTrashed(); }, 'driver' => function($q) { $q->withTrashed(); }, 'hatcheryGuard' => function($q) { $q->withTrashed(); }, 'receivedGuard' => function($q) { $q->withTrashed(); }])
+            : DisinfectionSlipModel::with(['truck' => function($q) { $q->withTrashed(); }, 'location' => function($q) { $q->withTrashed(); }, 'destination' => function($q) { $q->withTrashed(); }, 'driver' => function($q) { $q->withTrashed(); }, 'hatcheryGuard' => function($q) { $q->withTrashed(); }, 'receivedGuard' => function($q) { $q->withTrashed(); }])->whereNull('deleted_at');
         
         return $query->when($this->search, function ($query) {
                 $searchTerm = trim($this->search);
@@ -1986,20 +2020,22 @@ class Trucks extends Component
                 $query->where(function($q) use ($escapedSearchTerm) {
                     $q->where('slip_id', 'like', '%' . $escapedSearchTerm . '%')
                         ->orWhereHas('truck', function($truckQuery) use ($escapedSearchTerm) {
-                            $truckQuery->where('plate_number', 'like', '%' . $escapedSearchTerm . '%');
+                            $truckQuery->withTrashed()->where('plate_number', 'like', '%' . $escapedSearchTerm . '%');
                         })
                         ->orWhereHas('driver', function($driverQuery) use ($escapedSearchTerm) {
-                            $driverQuery->where('first_name', 'like', '%' . $escapedSearchTerm . '%')
-                                ->orWhere('middle_name', 'like', '%' . $escapedSearchTerm . '%')
-                                ->orWhere('last_name', 'like', '%' . $escapedSearchTerm . '%')
-                                ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%'])
-                                ->orWhereRaw("CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%']);
+                            $driverQuery->withTrashed()->where(function($dq) use ($escapedSearchTerm) {
+                                $dq->where('first_name', 'like', '%' . $escapedSearchTerm . '%')
+                                    ->orWhere('middle_name', 'like', '%' . $escapedSearchTerm . '%')
+                                    ->orWhere('last_name', 'like', '%' . $escapedSearchTerm . '%')
+                                    ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%'])
+                                    ->orWhereRaw("CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%']);
+                            });
                         })
                         ->orWhereHas('location', function($locationQuery) use ($escapedSearchTerm) {
-                            $locationQuery->where('location_name', 'like', '%' . $escapedSearchTerm . '%');
+                            $locationQuery->withTrashed()->where('location_name', 'like', '%' . $escapedSearchTerm . '%');
                         })
                         ->orWhereHas('destination', function($destinationQuery) use ($escapedSearchTerm) {
-                            $destinationQuery->where('location_name', 'like', '%' . $escapedSearchTerm . '%');
+                            $destinationQuery->withTrashed()->where('location_name', 'like', '%' . $escapedSearchTerm . '%');
                         });
                 });
             })
@@ -2040,6 +2076,33 @@ class Trucks extends Component
             })
             ->when($this->showDeleted, function ($query) {
                 $query->orderBy('deleted_at', 'desc');
+            })
+            // Exclude slips with deleted items (default: on)
+            ->when($this->excludeDeletedItems, function($query) {
+                $query->whereHas('truck', function($q) {
+                    $q->whereNull('deleted_at');
+                })
+                ->whereHas('driver', function($q) {
+                    $q->whereNull('deleted_at');
+                })
+                ->whereHas('location', function($q) {
+                    $q->whereNull('deleted_at');
+                })
+                ->whereHas('destination', function($q) {
+                    $q->whereNull('deleted_at');
+                })
+                ->where(function($q) {
+                    $q->whereHas('hatcheryGuard', function($guardQ) {
+                        $guardQ->whereNull('deleted_at');
+                    })
+                    ->orWhereNull('hatchery_guard_id');
+                })
+                ->where(function($q) {
+                    $q->whereHas('receivedGuard', function($guardQ) {
+                        $guardQ->whereNull('deleted_at');
+                    })
+                    ->orWhereNull('received_guard_id');
+                });
             })
             ->get();
     }
