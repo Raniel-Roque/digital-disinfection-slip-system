@@ -10,7 +10,7 @@
 
                 {{-- Search and Filter Bar --}}
                 <div class="flex gap-3 w-full lg:w-auto">
-                    {{-- Search Bar --}}
+                    {{-- Search Bar with Filter Button Inside --}}
                     <div class="relative flex-1 lg:w-96">
                         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -19,28 +19,33 @@
                             </svg>
                         </div>
                         <input type="text" wire:model.live="search"
-                            class="block w-full pl-10 pr-10 py-2.5 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                            class="block w-full pl-10 {{ $search ? 'pr-20' : 'pr-12' }} py-2.5 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                             placeholder="Search by location name...">
-                        @if ($search)
-                            <button wire:click="$set('search', '')"
-                                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
+                        
+                        {{-- Right Side Buttons Container --}}
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-2 gap-1">
+                            {{-- Clear Button (X) - Only when search has text --}}
+                            @if ($search)
+                                <button wire:click="$set('search', '')"
+                                    class="flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-150 hover:cursor-pointer cursor-pointer">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            @endif
+                            
+                            {{-- Filter Button Inside Search (Right Side) --}}
+                            <button wire:click="$toggle('showFilters')" title="Filters"
+                                class="flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-150 focus:outline-none hover:cursor-pointer cursor-pointer">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12"></path>
+                                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
+                                    </path>
                                 </svg>
                             </button>
-                        @endif
+                        </div>
                     </div>
-
-                    {{-- Filter Button (Icon only with tooltip) --}}
-                    <button wire:click="$toggle('showFilters')" title="Filters"
-                        class="inline-flex items-center justify-center w-10 h-10 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 relative hover:cursor-pointer cursor-pointer">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
-                            </path>
-                        </svg>
-                    </button>
 
                     {{-- Create Button (Primary action - Icon + Text) --}}
                     @if (!($showDeleted ?? false))
