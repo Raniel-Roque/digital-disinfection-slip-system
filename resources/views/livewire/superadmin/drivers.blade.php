@@ -270,55 +270,68 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                    <div class="flex items-center justify-center gap-2">
-                                        <x-buttons.submit-button wire:click="openEditModal({{ $driver->id }})"
-                                            color="blue" size="sm" :fullWidth="false">
+                                    @if ($showDeleted)
+                                        <x-buttons.submit-button wire:click="restoreDriver({{ $driver->id }})"
+                                            color="green" size="sm" :fullWidth="false">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
                                                 </path>
                                             </svg>
-                                            Edit
+                                            Restore
                                         </x-buttons.submit-button>
-                                        @if ($driver->disabled)
-                                            <x-buttons.submit-button
-                                                wire:click="openDisableModal({{ $driver->id }})" color="green"
-                                                size="sm" :fullWidth="false">
+                                    @else
+                                        <div class="flex items-center justify-center gap-2">
+                                            <x-buttons.submit-button wire:click="openEditModal({{ $driver->id }})"
+                                                color="blue" size="sm" :fullWidth="false">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
                                                     </path>
                                                 </svg>
-                                                Enable
+                                                Edit
                                             </x-buttons.submit-button>
-                                        @else
-                                            <x-buttons.submit-button
-                                                wire:click="openDisableModal({{ $driver->id }})" color="orange"
-                                                size="sm" :fullWidth="false">
+                                            @if ($driver->disabled)
+                                                <x-buttons.submit-button
+                                                    wire:click="openDisableModal({{ $driver->id }})" color="green"
+                                                    size="sm" :fullWidth="false">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z">
+                                                        </path>
+                                                    </svg>
+                                                    Enable
+                                                </x-buttons.submit-button>
+                                            @else
+                                                <x-buttons.submit-button
+                                                    wire:click="openDisableModal({{ $driver->id }})" color="orange"
+                                                    size="sm" :fullWidth="false">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636">
+                                                        </path>
+                                                    </svg>
+                                                    Disable
+                                                </x-buttons.submit-button>
+                                            @endif
+                                            <x-buttons.submit-button wire:click="openDeleteModal({{ $driver->id }})"
+                                                color="red" size="sm" :fullWidth="false">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
                                                     </path>
                                                 </svg>
-                                                Disable
+                                                Delete
                                             </x-buttons.submit-button>
-                                        @endif
-                                        <x-buttons.submit-button wire:click="openDeleteModal({{ $driver->id }})"
-                                            color="red" size="sm" :fullWidth="false">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                                </path>
-                                            </svg>
-                                            Delete
-                                        </x-buttons.submit-button>
-                                    </div>
+                                        </div>
+                                    @endif
                                 </td>
                             </tr>
                         @empty

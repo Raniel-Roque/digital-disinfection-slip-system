@@ -630,6 +630,21 @@ class Drivers extends Component
         $this->resetPage();
     }
 
+    public function restoreDriver($driverId)
+    {
+        // Authorization check
+        if (Auth::user()->user_type < 2) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $driver = Driver::onlyTrashed()->findOrFail($driverId);
+        $driver->restore();
+        
+        $driverName = trim(implode(' ', array_filter([$driver->first_name, $driver->middle_name, $driver->last_name])));
+        $this->dispatch('toast', message: "{$driverName} has been restored.", type: 'success');
+        $this->resetPage();
+    }
+
     public function openPrintView()
     {
         if ($this->showDeleted) {

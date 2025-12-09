@@ -543,6 +543,20 @@ class PlateNumbers extends Component
         $this->resetPage();
     }
 
+    public function restorePlateNumber($truckId)
+    {
+        // Authorization check
+        if (Auth::user()->user_type < 2) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $truck = Truck::onlyTrashed()->findOrFail($truckId);
+        $truck->restore();
+        
+        $this->dispatch('toast', message: "{$truck->plate_number} has been restored.", type: 'success');
+        $this->resetPage();
+    }
+
     public function openPrintView()
     {
         if ($this->showDeleted) {
