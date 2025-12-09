@@ -44,7 +44,7 @@
     $sizeClass = $sizes[$size] ?? $sizes['default'];
     $widthClass = $fullWidth ? 'w-full' : '';
     $baseClasses = $fullWidth
-        ? 'rounded-lg focus:ring-2 transition-all duration-200 hover:cursor-pointer cursor-pointer'
+        ? 'flex items-center justify-center gap-2 rounded-lg focus:ring-2 transition-all duration-200 hover:cursor-pointer cursor-pointer'
         : 'inline-flex items-center gap-1.5 rounded-lg focus:ring-2 focus:ring-offset-2 transition-colors duration-150 hover:cursor-pointer cursor-pointer';
     $disabledClasses = $disabled ? 'opacity-50 cursor-not-allowed' : '';
 @endphp

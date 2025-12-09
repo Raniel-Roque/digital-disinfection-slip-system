@@ -175,7 +175,7 @@
                 {{-- Form Footer --}}
                 <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
                     <button type="submit" wire:loading.attr="disabled" wire:target="updateSettings"
-                        class="px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        class="inline-flex items-center px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         @if (!$this->hasChanges) disabled @endif>
                         <span wire:loading.remove wire:target="updateSettings">Save Settings</span>
                         <span wire:loading wire:target="updateSettings" class="inline-flex items-center gap-2">

@@ -44,7 +44,7 @@
                         {{ $cancelText }}
                     </button>
                     <button wire:click="{{ $onConfirm }}" wire:loading.attr="disabled" wire:target="{{ $onConfirm }}"
-                        class="px-4 py-2 text-sm font-medium text-white bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed">
                         <span wire:loading.remove wire:target="{{ $onConfirm }}">{{ $confirmText }}</span>
                         <span wire:loading wire:target="{{ $onConfirm }}" class="inline-flex items-center gap-2">
                             <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
