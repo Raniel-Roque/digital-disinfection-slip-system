@@ -6,6 +6,8 @@ use App\Models\Log;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Str;
 
 class AuditTrail extends Component
 {
@@ -319,9 +321,47 @@ class AuditTrail extends Component
     
     public function openPrintView()
     {
-        // Audit trail doesn't support print view
-        // This method exists to satisfy the export button component
-        return;
+        $logs = $this->getFilteredLogsQuery()->get();
+        $exportData = $logs->map(function($log) {
+            $userName = trim(implode(' ', array_filter([
+                $log->user_first_name,
+                $log->user_middle_name,
+                $log->user_last_name
+            ])));
+            
+            return [
+                'created_at' => $log->created_at->toIso8601String(),
+                'user_name' => $userName ?: 'N/A',
+                'user_username' => $log->user_username ?? 'N/A',
+                'user_type' => $log->user_type,
+                'action' => $log->action,
+                'model_type' => $log->model_type,
+                'model_id' => $log->model_id,
+                'description' => $log->description ?? 'N/A',
+                'ip_address' => $log->ip_address ?? 'N/A',
+            ];
+        })->toArray();
+        
+        $filters = [
+            'search' => $this->search,
+            'action' => $this->appliedAction,
+            'model_type' => $this->appliedModelType,
+            'user_type' => $this->appliedUserType,
+            'created_from' => $this->appliedCreatedFrom,
+            'created_to' => $this->appliedCreatedTo,
+        ];
+        
+        $sorting = $this->sortColumns ?? ['created_at' => 'desc'];
+        
+        $token = Str::random(32);
+        Session::put("export_data_{$token}", $exportData);
+        Session::put("export_filters_{$token}", $filters);
+        Session::put("export_sorting_{$token}", $sorting);
+        Session::put("export_data_{$token}_expires", now()->addMinutes(10));
+        
+        $printUrl = route('superadmin.print.audit-trail', ['token' => $token]);
+        
+        $this->dispatch('open-print-window', ['url' => $printUrl]);
     }
     
     private function getFilteredLogsQuery()

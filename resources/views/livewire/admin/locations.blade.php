@@ -345,7 +345,7 @@
         {{-- Edit Modal --}}
         @if ($showEditModal)
             <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
-                aria-modal="true">
+                aria-modal="true" {{ $edit_logo ? 'wire:poll.500ms' : '' }}>
                 {{-- Backdrop --}}
                 <div class="fixed inset-0 transition-opacity bg-black/80" wire:click="closeModal"></div>
 
@@ -380,20 +380,27 @@
                                     <div class="grid grid-cols-2 gap-4 mb-3">
                                         <div class="min-w-0">
                                             <label
-                                                class="cursor-pointer inline-flex items-center w-full justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor"
+                                                class="cursor-pointer inline-flex items-center w-full justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                                wire:loading.class="opacity-50 cursor-not-allowed"
+                                                wire:target="edit_logo">
+                                                <svg wire:loading.remove wire:target="edit_logo" class="w-5 h-5 mr-2" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2"
                                                         d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
                                                     </path>
                                                 </svg>
-                                                Choose File
+                                                <svg wire:loading wire:target="edit_logo" class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                <span wire:loading.remove wire:target="edit_logo">Choose File</span>
+                                                <span wire:loading wire:target="edit_logo">Uploading...</span>
                                                 <input type="file" wire:model="edit_logo" class="hidden"
                                                     accept="image/jpeg,image/jpg,image/png,image/gif,image/webp">
                                             </label>
                                             @if ($edit_logo && !$errors->has('edit_logo'))
-                                                <p class="mt-2 text-sm text-gray-600 break-words"
+                                                <p class="mt-2 text-sm text-gray-600 wrap-break-words"
                                                     title="{{ $edit_logo->getClientOriginalName() }}">
                                                     {{ $edit_logo->getClientOriginalName() }}
                                                 </p>
@@ -402,8 +409,8 @@
                                                     Clear
                                                 </button>
                                             @elseif ($currentLocation && $currentLocation->attachment_id && $currentLocation->attachment && !$remove_logo)
-                                                <p class="mt-2 text-xs text-gray-500 break-words">Current logo:
-                                                    <span class="break-words">{{ basename($currentLocation->attachment->file_path) }}</span></p>
+                                                <p class="mt-2 text-xs text-gray-500 wrap-break-words">Current logo:
+                                                    <span class="wrap-break-words">{{ basename($currentLocation->attachment->file_path) }}</span></p>
                                                 <button wire:click="removeLogo" type="button"
                                                     class="mt-1 text-xs text-red-600 hover:text-red-800">
                                                     Remove Logo
@@ -417,13 +424,7 @@
                                             @endif
                                         </div>
                                         <div class="flex items-center justify-center">
-                                            @php
-                                                $canPreviewEdit = $edit_logo && 
-                                                    !$errors->has('edit_logo') && 
-                                                    $edit_logo->isValid() && 
-                                                    in_array(strtolower($edit_logo->getClientOriginalExtension()), ['jpeg', 'jpg', 'png', 'gif', 'webp']);
-                                            @endphp
-                                            @if ($canPreviewEdit)
+                                            @if ($edit_logo && !$errors->has('edit_logo'))
                                                 <img src="{{ $edit_logo->temporaryUrl() }}" alt="Logo preview"
                                                     class="max-w-full max-h-32 object-contain rounded-lg border border-gray-200">
                                             @elseif ($currentLocation && $currentLocation->attachment_id && $currentLocation->attachment && !$remove_logo)
@@ -538,7 +539,7 @@
         {{-- Create Location Modal --}}
         @if ($showCreateModal)
             <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
-                aria-modal="true">
+                aria-modal="true" {{ $create_logo ? 'wire:poll.500ms' : '' }}>
                 {{-- Backdrop --}}
                 <div class="fixed inset-0 transition-opacity bg-black/80" wire:click="closeModal" wire:key="create-modal-backdrop"></div>
 
@@ -574,20 +575,27 @@
                                     <div class="grid grid-cols-2 gap-4 mb-3">
                                         <div class="min-w-0">
                                             <label
-                                                class="cursor-pointer inline-flex items-center w-full justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor"
+                                                class="cursor-pointer inline-flex items-center w-full justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                                wire:loading.class="opacity-50 cursor-not-allowed"
+                                                wire:target="create_logo">
+                                                <svg wire:loading.remove wire:target="create_logo" class="w-5 h-5 mr-2" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2"
                                                         d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
                                                     </path>
                                                 </svg>
-                                                Choose File
+                                                <svg wire:loading wire:target="create_logo" class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                <span wire:loading.remove wire:target="create_logo">Choose File</span>
+                                                <span wire:loading wire:target="create_logo">Uploading...</span>
                                                 <input type="file" wire:model="create_logo" class="hidden"
                                                     accept="image/jpeg,image/jpg,image/png,image/gif,image/webp">
                                             </label>
                                             @if ($create_logo && !$errors->has('create_logo'))
-                                                <p class="mt-2 text-sm text-gray-600 break-words"
+                                                <p class="mt-2 text-sm text-gray-600 wrap-break-words"
                                                     title="{{ $create_logo->getClientOriginalName() }}">
                                                     {{ $create_logo->getClientOriginalName() }}
                                                 </p>
@@ -598,13 +606,7 @@
                                             @endif
                                         </div>
                                         <div class="flex items-center justify-center">
-                                            @php
-                                                $canPreviewCreate = $create_logo && 
-                                                    !$errors->has('create_logo') && 
-                                                    $create_logo->isValid() && 
-                                                    in_array(strtolower($create_logo->getClientOriginalExtension()), ['jpeg', 'jpg', 'png', 'gif', 'webp']);
-                                            @endphp
-                                            @if ($canPreviewCreate)
+                                            @if ($create_logo && !$errors->has('create_logo'))
                                                 <img src="{{ $create_logo->temporaryUrl() }}" alt="Logo preview"
                                                     class="max-w-full max-h-32 object-contain rounded-lg border border-gray-200">
                                             @else

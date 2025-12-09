@@ -318,9 +318,9 @@ class Locations extends Component
     // Validate and clear invalid files
     public function updatedCreate_logo()
     {
-        // Step 1: Clear any previous errors when a new file is selected
-        $this->resetErrorBag('create_logo');
-        $this->resetValidation('create_logo');
+        // Step 1: ALWAYS clear ALL previous errors when a new file is selected (even if file is null)
+        $this->resetErrorBag();
+        $this->resetValidation();
         
         // Step 2: Only validate if a file is actually selected
         if ($this->create_logo) {
@@ -345,28 +345,30 @@ class Locations extends Component
                     'create_logo.max' => 'The logo must not be larger than 15MB.',
                 ]);
                 
-                // Step 5: If validation fails, clear the file (prevent preview)
-                if ($this->getErrorBag()->has('create_logo')) {
-                    $this->create_logo = null;
-                }
+                // Validation passed - ensure no errors remain
+                $this->resetErrorBag();
             } catch (\Illuminate\Validation\ValidationException $e) {
-                // Validation failed - clear file
+                // Validation failed - clear file and set errors
                 $this->create_logo = null;
-                $this->resetErrorBag('create_logo');
+                $this->resetErrorBag();
                 foreach ($e->errors() as $key => $messages) {
                     foreach ($messages as $message) {
                         $this->addError('create_logo', $message);
                     }
                 }
             }
+        } else {
+            // File was cleared - ensure all errors are also cleared
+            $this->resetErrorBag();
+            $this->resetValidation();
         }
     }
 
     public function updatedEdit_logo()
     {
-        // Step 1: Clear any previous errors when a new file is selected
-        $this->resetErrorBag('edit_logo');
-        $this->resetValidation('edit_logo');
+        // Step 1: ALWAYS clear ALL previous errors when a new file is selected (even if file is null)
+        $this->resetErrorBag();
+        $this->resetValidation();
         
         // Step 2: Only validate if a file is actually selected
         if ($this->edit_logo) {
@@ -391,20 +393,22 @@ class Locations extends Component
                     'edit_logo.max' => 'The logo must not be larger than 15MB.',
                 ]);
                 
-                // Step 5: If validation fails, clear the file (prevent preview)
-                if ($this->getErrorBag()->has('edit_logo')) {
-                    $this->edit_logo = null;
-                }
+                // Validation passed - ensure no errors remain
+                $this->resetErrorBag();
             } catch (\Illuminate\Validation\ValidationException $e) {
-                // Validation failed - clear file
+                // Validation failed - clear file and set errors
                 $this->edit_logo = null;
-                $this->resetErrorBag('edit_logo');
+                $this->resetErrorBag();
                 foreach ($e->errors() as $key => $messages) {
                     foreach ($messages as $message) {
                         $this->addError('edit_logo', $message);
                     }
                 }
             }
+        } else {
+            // File was cleared - ensure all errors are also cleared
+            $this->resetErrorBag();
+            $this->resetValidation();
         }
     }
 

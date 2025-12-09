@@ -220,4 +220,34 @@ class AdminController extends Controller
             'slip' => $slip
         ]);
     }
+
+    public function printAuditTrail(Request $request)
+    {
+        $data = collect();
+        $filters = [];
+        $sorting = [];
+        
+        if ($request->has('token')) {
+            $token = $request->token;
+            $sessionKey = "export_data_{$token}";
+            $filtersKey = "export_filters_{$token}";
+            $sortingKey = "export_sorting_{$token}";
+            $expiresKey = "export_data_{$token}_expires";
+            
+            if (Session::has($sessionKey) && Session::has($expiresKey)) {
+                if (now()->lt(Session::get($expiresKey))) {
+                    $data = collect(Session::get($sessionKey));
+                    $filters = Session::get($filtersKey, []);
+                    $sorting = Session::get($sortingKey, []);
+                    Session::forget([$sessionKey, $filtersKey, $sortingKey, $expiresKey]);
+                }
+            }
+        }
+        
+        return view('livewire.admin.print-audit-trail', [
+            'data' => $data,
+            'filters' => $filters,
+            'sorting' => $sorting
+        ]);
+    }
 }
