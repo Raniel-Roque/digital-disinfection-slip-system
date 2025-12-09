@@ -305,14 +305,3 @@
         </div>
     </div>
 </div>
-
-<script>
-    document.addEventListener('livewire:init', () => {
-        Livewire.on('open-print-window', (event) => {
-            const url = event.url || (Array.isArray(event) ? event[0]?.url : null);
-            if (url) {
-                window.open(url, '_blank');
-            }
-        });
-    });
-</script>
