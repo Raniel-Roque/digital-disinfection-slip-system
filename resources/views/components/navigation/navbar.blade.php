@@ -22,6 +22,10 @@
 
     <!-- Right: Slot for actions -->
     <div class="flex items-center gap-3">
+        <x-buttons.nav-button href="{{ url('/') }}">
+            <span class="hidden sm:inline">Go to Landing</span>
+            <span class="sm:hidden">Landing</span>
+        </x-buttons.nav-button>
         {{ $slot }}
     </div>
 

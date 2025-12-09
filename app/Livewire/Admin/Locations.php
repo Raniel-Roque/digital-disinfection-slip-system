@@ -319,38 +319,46 @@ class Locations extends Component
     public function updatedCreate_logo()
     {
         // Clear any previous errors when a new file is selected
+        $this->resetErrorBag('create_logo');
         $this->resetValidation('create_logo');
         
-        $this->validateOnly('create_logo', [
-            'create_logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:15360'],
-        ], [
-            'create_logo.image' => 'The logo must be an image.',
-            'create_logo.mimes' => 'The logo must be a file of type: jpeg, jpg, png, gif, webp.',
-            'create_logo.max' => 'The logo must not be larger than 15MB.',
-        ]);
-        
-        // If validation fails, clear the file
-        if ($this->getErrorBag()->has('create_logo')) {
-            $this->create_logo = null;
+        // Only validate if a file is actually selected
+        if ($this->create_logo) {
+            $this->validateOnly('create_logo', [
+                'create_logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:15360'],
+            ], [
+                'create_logo.image' => 'The logo must be an image.',
+                'create_logo.mimes' => 'The logo must be a file of type: jpeg, jpg, png, gif, webp.',
+                'create_logo.max' => 'The logo must not be larger than 15MB.',
+            ]);
+            
+            // If validation fails, clear the file
+            if ($this->getErrorBag()->has('create_logo')) {
+                $this->create_logo = null;
+            }
         }
     }
 
     public function updatedEdit_logo()
     {
         // Clear any previous errors when a new file is selected
+        $this->resetErrorBag('edit_logo');
         $this->resetValidation('edit_logo');
         
-        $this->validateOnly('edit_logo', [
-            'edit_logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:15360'],
-        ], [
-            'edit_logo.image' => 'The logo must be an image.',
-            'edit_logo.mimes' => 'The logo must be a file of type: jpeg, jpg, png, gif, webp.',
-            'edit_logo.max' => 'The logo must not be larger than 15MB.',
-        ]);
-        
-        // If validation fails, clear the file
-        if ($this->getErrorBag()->has('edit_logo')) {
-            $this->edit_logo = null;
+        // Only validate if a file is actually selected
+        if ($this->edit_logo) {
+            $this->validateOnly('edit_logo', [
+                'edit_logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:15360'],
+            ], [
+                'edit_logo.image' => 'The logo must be an image.',
+                'edit_logo.mimes' => 'The logo must be a file of type: jpeg, jpg, png, gif, webp.',
+                'edit_logo.max' => 'The logo must not be larger than 15MB.',
+            ]);
+            
+            // If validation fails, clear the file
+            if ($this->getErrorBag()->has('edit_logo')) {
+                $this->edit_logo = null;
+            }
         }
     }
 
