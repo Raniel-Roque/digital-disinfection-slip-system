@@ -5,6 +5,7 @@ namespace App\Livewire\Trucks;
 use Livewire\Component;
 use App\Models\DisinfectionSlip;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 
 class TruckCountCard extends Component
@@ -34,16 +35,23 @@ class TruckCountCard extends Component
         // Apply filters based on type
         switch ($this->type) {
             case 'incoming':
-                // Incoming trucks today (Ongoing status)
+                // Incoming trucks today: Status 0 (Ongoing) - no auth required, Status 1 (Disinfecting) - only for auth guard
                 $query->whereDate('created_at', today())
                       ->where('destination_id', $locationId)
-                      ->whereIn('status', [0, 1]);
+                      ->where(function($q) {
+                          $q->where('status', 0) // Ongoing - anyone can see
+                            ->orWhere(function($q2) {
+                                $q2->where('status', 1) // Disinfecting - only for auth guard
+                                   ->where('received_guard_id', Auth::id());
+                            });
+                      });
                 break;
 
             case 'outgoing':
-                // Outgoing trucks today (Ongoing or disinfecting)
+                // Outgoing trucks today - only show slips created by the current user
                 $query->whereDate('created_at', today())
                       ->where('location_id', $locationId)
+                      ->where('hatchery_guard_id', Auth::id())
                       ->whereIn('status', [0, 1]);
                 break;
 
@@ -53,14 +61,27 @@ class TruckCountCard extends Component
                 break;
 
             case 'inprogress':
-                // Currently in progress (status 1)
-                $query->where('status', 1);
+                // Currently in progress (status 1) - only for auth guard
+                $query->where('status', 1)
+                      ->where('received_guard_id', Auth::id());
                 break;
 
             case 'completed':
-                // Completed today (status 2)
+                // Completed today - Only show slips received/completed by the current user
                 $query->where('status', 2)
-                      ->whereDate('completed_at', today());
+                      ->whereDate('completed_at', today())
+                      ->where(function($q) use ($locationId) {
+                          // Outgoing: show if created by current user
+                          $q->where(function($q2) use ($locationId) {
+                              $q2->where('location_id', $locationId)
+                                 ->where('hatchery_guard_id', Auth::id());
+                          })
+                          // Incoming: show if received/completed by current user
+                          ->orWhere(function($q2) use ($locationId) {
+                              $q2->where('destination_id', $locationId)
+                                 ->where('received_guard_id', Auth::id());
+                          });
+                      });
                 break;
         }
 

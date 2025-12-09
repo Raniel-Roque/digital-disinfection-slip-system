@@ -70,36 +70,6 @@
                         placeholder="Select drivers..." search-placeholder="Search drivers..." :multiple="true" />
                 </div>
 
-                {{-- Hatchery Guard Filter --}}
-                <div x-data="{ filterValue: @entangle('filterHatcheryGuard') }">
-                    <div class="flex items-center justify-between mb-1">
-                        <label class="block text-sm font-medium text-gray-700">Hatchery Guard</label>
-                        <button type="button" wire:click="$set('filterHatcheryGuard', [])"
-                            x-show="filterValue && filterValue.length > 0"
-                            class="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                            Clear
-                        </button>
-                    </div>
-                    <x-forms.searchable-dropdown wireModel="filterHatcheryGuard" :options="$this->filterHatcheryGuardOptions"
-                        search-property="searchFilterHatcheryGuard" placeholder="Select hatchery guards..."
-                        search-placeholder="Search hatchery guards..." :multiple="true" />
-                </div>
-
-                {{-- Received Guard Filter --}}
-                <div x-data="{ filterValue: @entangle('filterReceivedGuard') }">
-                    <div class="flex items-center justify-between mb-1">
-                        <label class="block text-sm font-medium text-gray-700">Received Guard</label>
-                        <button type="button" wire:click="$set('filterReceivedGuard', [])"
-                            x-show="filterValue && filterValue.length > 0"
-                            class="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                            Clear
-                        </button>
-                    </div>
-                    <x-forms.searchable-dropdown wireModel="filterReceivedGuard" :options="$this->filterReceivedGuardOptions"
-                        search-property="searchFilterReceivedGuard" placeholder="Select received guards..."
-                        search-placeholder="Search received guards..." :multiple="true" />
-                </div>
-
                 {{-- Destination Filter --}}
                 <div x-data="{ filterValue: @entangle('filterDestination') }">
                     <div class="flex items-center justify-between mb-1">
@@ -220,7 +190,7 @@
                 </div>
 
                 {{-- Right Side --}}
-                <div class="flex flex-col items-end justify-center ml-3 gap-1">
+                <div class="flex flex-col items-end justify-center ml-3">
                     {{-- Status Badge --}}
                     <span
                         class="px-2 py-0.5 text-[10px] font-semibold rounded-full whitespace-nowrap
@@ -229,12 +199,6 @@
                         {{ $status === 2 ? 'bg-green-100 text-green-700' : '' }}">
                         {{ $statusMap[$status]['label'] }}
                     </span>
-                    {{-- Receiver Name --}}
-                    @if ($slip->receivedGuard)
-                        <div class="text-[10px] text-gray-600 font-medium whitespace-nowrap text-right">
-                            {{ $slip->receivedGuard->first_name }} {{ $slip->receivedGuard->last_name }}
-                        </div>
-                    @endif
                 </div>
             </div>
 

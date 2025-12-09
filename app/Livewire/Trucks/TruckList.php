@@ -384,10 +384,19 @@ class TruckList extends Component
 
         // Apply type-specific filter first (most restrictive)
         if ($this->type === 'incoming') {
+            // Incoming: Status 0 (Ongoing) - no auth required, Status 1 (Disinfecting) - only for auth guard
             $query->where('destination_id', $location)
-                  ->whereIn('status', [0, 1]);
+                  ->where(function($q) {
+                      $q->where('status', 0) // Ongoing - anyone can see
+                        ->orWhere(function($q2) {
+                            $q2->where('status', 1) // Disinfecting - only for auth guard
+                               ->where('received_guard_id', Auth::id());
+                        });
+                  });
         } else {
+            // Outgoing: only show slips created by the current user
             $query->where('location_id', $location)
+                  ->where('hatchery_guard_id', Auth::id())
                   ->whereIn('status', [0, 1]);
         }
 

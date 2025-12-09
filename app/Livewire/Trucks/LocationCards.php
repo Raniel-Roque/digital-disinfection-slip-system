@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\Location;
 use App\Models\DisinfectionSlip;
 use App\Models\Setting;
+use Illuminate\Support\Facades\Auth;
 
 class LocationCards extends Component
 {
@@ -25,11 +26,18 @@ class LocationCards extends Component
     
         // Get all ongoing slip counts in a single query for better performance
         // Only query if there are locations to avoid empty whereIn
+        // Status 0 (Ongoing) - no auth required, Status 1 (Disinfecting) - only for auth guard
         $ongoingCounts = collect();
         if ($locations->isNotEmpty()) {
-            $ongoingCounts = DisinfectionSlip::whereIn('status', [0, 1])
-                ->whereIn('destination_id', $locations->pluck('id'))
+            $ongoingCounts = DisinfectionSlip::whereIn('destination_id', $locations->pluck('id'))
                 ->whereDate('created_at', today())
+                ->where(function($q) {
+                    $q->where('status', 0) // Ongoing - anyone can see
+                      ->orWhere(function($q2) {
+                          $q2->where('status', 1) // Disinfecting - only for auth guard
+                             ->where('received_guard_id', Auth::id());
+                      });
+                })
                 ->selectRaw('destination_id, COUNT(*) as count')
                 ->groupBy('destination_id')
                 ->pluck('count', 'destination_id');

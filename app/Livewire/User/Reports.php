@@ -33,11 +33,13 @@ class Reports extends Component
     ];
 
     protected $queryString = ['search'];
+    
+    protected $listeners = ['modal-closed' => 'clearSelectedReport'];
 
     public function mount()
     {
-        $this->filterResolved = '0';
-        $this->appliedResolved = '0';
+        $this->filterResolved = null;
+        $this->appliedResolved = null;
         $this->filterSortDirection = $this->sortDirection; // Initialize filter sort with current sort
         $this->checkFiltersActive();
     }
@@ -101,6 +103,12 @@ class Reports extends Component
     public function closeDetailsModal()
     {
         $this->showDetailsModal = false;
+        // Use dispatch to clear selectedReport after modal animation completes
+        $this->dispatch('modal-closed');
+    }
+    
+    public function clearSelectedReport()
+    {
         $this->selectedReport = null;
     }
 

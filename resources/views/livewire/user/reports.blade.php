@@ -179,4 +179,14 @@
             </x-buttons.submit-button>
         </x-slot>
     </x-modals.modal-template>
+
+    @script
+    <script>
+        document.addEventListener('livewire:init', () => {
+            Livewire.on('modal-closed', () => {
+                @this.set('selectedReport', null);
+            });
+        });
+    </script>
+    @endscript
 </div>

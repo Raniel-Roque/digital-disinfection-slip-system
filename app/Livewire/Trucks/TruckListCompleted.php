@@ -8,8 +8,8 @@ use App\Models\DisinfectionSlip;
 use App\Models\Truck;
 use App\Models\Location;
 use App\Models\Driver;
-use App\Models\User;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Auth;
 
 class TruckListCompleted extends Component
 {
@@ -24,8 +24,6 @@ class TruckListCompleted extends Component
     public $filterDestination = [];
     public $filterDriver = [];
     public $filterPlateNumber = [];
-    public $filterHatcheryGuard = [];
-    public $filterReceivedGuard = [];
     public $filterCompletedFrom = '';
     public $filterCompletedTo = '';
     
@@ -33,8 +31,6 @@ class TruckListCompleted extends Component
     public $appliedDestination = [];
     public $appliedDriver = [];
     public $appliedPlateNumber = [];
-    public $appliedHatcheryGuard = [];
-    public $appliedReceivedGuard = [];
     public $appliedCompletedFrom = null;
     public $appliedCompletedTo = null;
     
@@ -46,8 +42,6 @@ class TruckListCompleted extends Component
     public $searchFilterPlateNumber = '';
     public $searchFilterDriver = '';
     public $searchFilterDestination = '';
-    public $searchFilterHatcheryGuard = '';
-    public $searchFilterReceivedGuard = '';
 
     public function mount()
     {
@@ -76,10 +70,6 @@ class TruckListCompleted extends Component
         return Truck::withTrashed()->get();
     }
 
-    public function getGuardsProperty()
-    {
-        return User::where('user_type', 0)->withTrashed()->get();
-    }
     
     // Computed properties for filtered options
     public function getFilterTruckOptionsProperty()
@@ -130,52 +120,12 @@ class TruckListCompleted extends Component
         return $options->toArray();
     }
     
-    public function getFilterHatcheryGuardOptionsProperty()
-    {
-        $guards = $this->guards;
-        $allOptions = $guards->mapWithKeys(function ($user) {
-            $name = trim("{$user->first_name} {$user->middle_name} {$user->last_name}");
-            return [$user->id => $name];
-        });
-        $options = $allOptions;
-        
-        if (!empty($this->searchFilterHatcheryGuard)) {
-            $searchTerm = strtolower($this->searchFilterHatcheryGuard);
-            $options = $options->filter(function ($label) use ($searchTerm) {
-                return str_contains(strtolower($label), $searchTerm);
-            });
-        }
-        
-        return $options->toArray();
-    }
-    
-    public function getFilterReceivedGuardOptionsProperty()
-    {
-        $guards = $this->guards;
-        $allOptions = $guards->mapWithKeys(function ($user) {
-            $name = trim("{$user->first_name} {$user->middle_name} {$user->last_name}");
-            return [$user->id => $name];
-        });
-        $options = $allOptions;
-        
-        if (!empty($this->searchFilterReceivedGuard)) {
-            $searchTerm = strtolower($this->searchFilterReceivedGuard);
-            $options = $options->filter(function ($label) use ($searchTerm) {
-                return str_contains(strtolower($label), $searchTerm);
-            });
-        }
-        
-        return $options->toArray();
-    }
-    
     
     public function applyFilters()
     {
         $this->appliedDestination = $this->filterDestination;
         $this->appliedDriver = $this->filterDriver;
         $this->appliedPlateNumber = $this->filterPlateNumber;
-        $this->appliedHatcheryGuard = $this->filterHatcheryGuard;
-        $this->appliedReceivedGuard = $this->filterReceivedGuard;
         $this->appliedCompletedFrom = $this->filterCompletedFrom;
         $this->appliedCompletedTo = $this->filterCompletedTo;
         $this->sortDirection = $this->filterSortDirection;
@@ -190,8 +140,6 @@ class TruckListCompleted extends Component
         $this->filterDestination = [];
         $this->filterDriver = [];
         $this->filterPlateNumber = [];
-        $this->filterHatcheryGuard = [];
-        $this->filterReceivedGuard = [];
         $this->filterCompletedFrom = '';
         $this->filterCompletedTo = '';
         $this->filterSortDirection = null;
@@ -199,8 +147,6 @@ class TruckListCompleted extends Component
         $this->appliedDestination = [];
         $this->appliedDriver = [];
         $this->appliedPlateNumber = [];
-        $this->appliedHatcheryGuard = [];
-        $this->appliedReceivedGuard = [];
         $this->appliedCompletedFrom = null;
         $this->appliedCompletedTo = null;
         $this->sortDirection = null;
@@ -223,14 +169,6 @@ class TruckListCompleted extends Component
             case 'plateNumber':
                 $this->filterPlateNumber = [];
                 $this->appliedPlateNumber = [];
-                break;
-            case 'hatcheryGuard':
-                $this->filterHatcheryGuard = [];
-                $this->appliedHatcheryGuard = [];
-                break;
-            case 'receivedGuard':
-                $this->filterReceivedGuard = [];
-                $this->appliedReceivedGuard = [];
                 break;
             case 'completedFrom':
                 $this->filterCompletedFrom = '';
@@ -261,14 +199,6 @@ class TruckListCompleted extends Component
                 $this->filterPlateNumber = array_values(array_filter($this->filterPlateNumber, fn($id) => $id != $value));
                 $this->appliedPlateNumber = array_values(array_filter($this->appliedPlateNumber, fn($id) => $id != $value));
                 break;
-            case 'hatcheryGuard':
-                $this->filterHatcheryGuard = array_values(array_filter($this->filterHatcheryGuard, fn($id) => $id != $value));
-                $this->appliedHatcheryGuard = array_values(array_filter($this->appliedHatcheryGuard, fn($id) => $id != $value));
-                break;
-            case 'receivedGuard':
-                $this->filterReceivedGuard = array_values(array_filter($this->filterReceivedGuard, fn($id) => $id != $value));
-                $this->appliedReceivedGuard = array_values(array_filter($this->appliedReceivedGuard, fn($id) => $id != $value));
-                break;
         }
         
         $this->checkFiltersActive();
@@ -280,8 +210,6 @@ class TruckListCompleted extends Component
         $this->filtersActive = !empty($this->appliedDestination) ||
                               !empty($this->appliedDriver) ||
                               !empty($this->appliedPlateNumber) ||
-                              !empty($this->appliedHatcheryGuard) ||
-                              !empty($this->appliedReceivedGuard) ||
                               !empty($this->appliedCompletedFrom) ||
                               !empty($this->appliedCompletedTo) ||
                               ($this->sortDirection !== null && $this->sortDirection !== 'desc');
@@ -311,12 +239,20 @@ class TruckListCompleted extends Component
                 $q->withTrashed();
             }
         ])
-            // COMPLETED ONLY
-            ->where(function($query) use ($location) {
-                $query->where('location_id', $location)
-                    ->orWhere('destination_id', $location);
-            })
+            // COMPLETED ONLY - Only show slips received/completed by the current user
             ->where('status', 2)
+            ->where(function($query) use ($location) {
+                // Outgoing: show if created by current user
+                $query->where(function($q) use ($location) {
+                    $q->where('location_id', $location)
+                      ->where('hatchery_guard_id', Auth::id());
+                })
+                // Incoming: show if received/completed by current user
+                ->orWhere(function($q) use ($location) {
+                    $q->where('destination_id', $location)
+                      ->where('received_guard_id', Auth::id());
+                });
+            })
             
             // SEARCH
             ->when($this->search, function($q) {
@@ -337,12 +273,6 @@ class TruckListCompleted extends Component
             })
             ->when(!empty($this->appliedPlateNumber), function($q) {
                 $q->whereIn('truck_id', $this->appliedPlateNumber);
-            })
-            ->when(!empty($this->appliedHatcheryGuard), function($q) {
-                $q->whereIn('hatchery_guard_id', $this->appliedHatcheryGuard);
-            })
-            ->when(!empty($this->appliedReceivedGuard), function($q) {
-                $q->whereIn('received_guard_id', $this->appliedReceivedGuard);
             })
             ->when($this->appliedCompletedFrom, function($q) {
                 $q->whereDate('completed_at', '>=', $this->appliedCompletedFrom);
