@@ -220,10 +220,10 @@
                 </div>
 
                 {{-- Right Side --}}
-                <div class="flex flex-col items-end ml-3 gap-0.5">
+                <div class="flex flex-col items-end justify-center ml-3 gap-1">
                     {{-- Status Badge --}}
                     <span
-                        class="px-2 py-0.5 text-[10px] font-semibold rounded-full
+                        class="px-2 py-0.5 text-[10px] font-semibold rounded-full whitespace-nowrap
                         {{ $status === 0 ? 'bg-red-100 text-red-700' : '' }}
                         {{ $status === 1 ? 'bg-orange-100 text-orange-700' : '' }}
                         {{ $status === 2 ? 'bg-green-100 text-green-700' : '' }}">
@@ -231,7 +231,7 @@
                     </span>
                     {{-- Receiver Name --}}
                     @if ($slip->receivedGuard)
-                        <div class="text-[10px] text-gray-600 font-medium">
+                        <div class="text-[10px] text-gray-600 font-medium whitespace-nowrap text-right">
                             {{ $slip->receivedGuard->first_name }} {{ $slip->receivedGuard->last_name }}
                         </div>
                     @endif

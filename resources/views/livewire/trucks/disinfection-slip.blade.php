@@ -107,7 +107,7 @@
 
                 {{-- Completion Date (only when completed) --}}
                 @if ($status == 2 && $selectedSlip->completed_at)
-                    <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
+                    <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
                         <div class="font-semibold text-gray-500">End Date:</div>
                         <div class="text-gray-900">
                             {{ \Carbon\Carbon::parse($selectedSlip->completed_at)->format('M d, Y - h:i A') }}
@@ -117,7 +117,7 @@
 
                 {{-- Attachment --}}
                 @if (!$isEditing)
-                    <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
+                    <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
                         <div class="font-semibold text-gray-500">Attachment:</div>
                         <div class="text-gray-900">
                         @if ($selectedSlip->attachment)
@@ -138,7 +138,7 @@
                 @endif
 
                 {{-- Reason --}}
-                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if ($isEditing && $status == 2 && $selectedSlip->completed_at) bg-gray-100 @else bg-white @endif">
                     <div class="font-semibold text-gray-500">Reason:</div>
                     <div class="text-gray-900 wrap-break-words min-w-0" style="word-break: break-word; overflow-wrap: break-word;">
                         @if ($isEditing)
@@ -147,12 +147,12 @@
                             <div class="whitespace-pre-wrap">{{ $selectedSlip->reason_for_disinfection ?? 'N/A' }}</div>
                         @endif
                     </div>
-                    </div>
                 </div>
+            </div>
 
             {{-- Sub Footer --}}
             @if (!$isEditing)
-                <div class="border-t border-gray-200 px-6 py-2 bg-gray-50 -mx-6 -mb-6">
+                <div class="border-t border-gray-200 px-6 py-2 bg-gray-50 -mx-6 -mb-6 mt-2">
                     <div class="grid grid-cols-2 gap-4 text-xs">
                         <div>
                             <div class="font-semibold text-gray-500 mb-0.5">Hatchery Guard:</div>

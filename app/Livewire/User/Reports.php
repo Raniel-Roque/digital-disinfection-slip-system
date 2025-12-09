@@ -12,16 +12,20 @@ class Reports extends Component
     use WithPagination;
 
     public $search = '';
+    public $filterReportType = null;
     public $filterResolved = null;
     public $filterCreatedFrom = null;
     public $filterCreatedTo = null;
+    public $appliedReportType = null;
     public $appliedResolved = null;
     public $appliedCreatedFrom = null;
     public $appliedCreatedTo = null;
     public $showFilters = false;
     public $showDetailsModal = false;
     public $selectedReport = null;
-    public $sortDirection = null; // null, 'asc', 'desc'
+    public $sortDirection = null; // null, 'asc', 'desc' (applied)
+    public $filterSortDirection = null; // null, 'asc', 'desc' (temporary, in filter modal)
+    public $filtersActive = false;
 
     public $availableStatuses = [
         '0' => 'Unresolved',
@@ -34,20 +38,28 @@ class Reports extends Component
     {
         $this->filterResolved = '0';
         $this->appliedResolved = '0';
+        $this->filterSortDirection = $this->sortDirection; // Initialize filter sort with current sort
+        $this->checkFiltersActive();
     }
 
     public function applyFilters()
     {
+        $this->appliedReportType = $this->filterReportType;
         $this->appliedResolved = $this->filterResolved;
         $this->appliedCreatedFrom = $this->filterCreatedFrom;
         $this->appliedCreatedTo = $this->filterCreatedTo;
+        $this->sortDirection = $this->filterSortDirection;
+        $this->checkFiltersActive();
         $this->showFilters = false;
         $this->resetPage();
     }
 
     public function removeFilter($type)
     {
-        if ($type === 'resolved') {
+        if ($type === 'report_type') {
+            $this->filterReportType = null;
+            $this->appliedReportType = null;
+        } elseif ($type === 'resolved') {
             $this->filterResolved = null;
             $this->appliedResolved = null;
         } elseif ($type === 'created_from') {
@@ -57,17 +69,23 @@ class Reports extends Component
             $this->filterCreatedTo = null;
             $this->appliedCreatedTo = null;
         }
+        $this->checkFiltersActive();
         $this->resetPage();
     }
 
     public function clearFilters()
     {
+        $this->filterReportType = null;
         $this->filterResolved = null;
         $this->filterCreatedFrom = null;
         $this->filterCreatedTo = null;
+        $this->filterSortDirection = null;
+        $this->appliedReportType = null;
         $this->appliedResolved = null;
         $this->appliedCreatedFrom = null;
         $this->appliedCreatedTo = null;
+        $this->sortDirection = null;
+        $this->checkFiltersActive();
         $this->resetPage();
     }
 
@@ -86,16 +104,13 @@ class Reports extends Component
         $this->selectedReport = null;
     }
 
-    public function toggleSort()
+    private function checkFiltersActive()
     {
-        if ($this->sortDirection === null) {
-            $this->sortDirection = 'asc';
-        } elseif ($this->sortDirection === 'asc') {
-            $this->sortDirection = 'desc';
-        } else {
-            $this->sortDirection = null;
-        }
-        $this->resetPage();
+        $this->filtersActive = !is_null($this->appliedReportType) ||
+                              (!is_null($this->appliedResolved) && $this->appliedResolved !== '') ||
+                              !empty($this->appliedCreatedFrom) ||
+                              !empty($this->appliedCreatedTo) ||
+                              ($this->sortDirection !== null && $this->sortDirection !== 'desc');
     }
 
     public function getReportsProperty()
@@ -116,6 +131,15 @@ class Reports extends Component
                          });
                   });
             });
+        }
+
+        // Report Type filter
+        if (!is_null($this->appliedReportType)) {
+            if ($this->appliedReportType === 'slip') {
+                $query->whereNotNull('slip_id');
+            } elseif ($this->appliedReportType === 'misc') {
+                $query->whereNull('slip_id');
+            }
         }
 
         // Status filter

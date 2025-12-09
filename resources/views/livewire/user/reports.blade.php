@@ -1,70 +1,48 @@
 <div class="max-w-full bg-white border border-gray-200 rounded-xl shadow-sm p-4 m-4"
     @if (!$showFilters && !$showDetailsModal) wire:poll.keep-alive @endif>
 
-    {{-- Search + Filter + Sort --}}
+    {{-- Search + Filter --}}
     <div class="mb-4 flex items-center gap-3">
-        {{-- Search Bar --}}
-        <div class="relative w-full">
-            <label class="sr-only">Search</label>
-            <input type="text" wire:model.live="search"
-                class="py-2 px-3 ps-9 block w-full border-gray-200 shadow-sm rounded-lg sm:text-sm 
-                        focus:border-blue-500 focus:ring-blue-500"
-                placeholder="Search by description or slip no...">
-            <div class="absolute inset-y-0 start-0 flex items-center pointer-events-none ps-3">
-                <svg class="size-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <path d="m21 21-4.3-4.3"></path>
+        {{-- Search Bar with Filter Button Inside --}}
+        <div class="relative flex-1">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
             </div>
-        </div>
-
-        {{-- Filter Button (Icon Only) --}}
-        <button wire:click="$toggle('showFilters')" type="button"
-            class="p-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
-            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M6 12h12m-7 8h2" />
-            </svg>
-        </button>
-
-        {{-- Sort Button (Icon Only) --}}
-        <button wire:click="toggleSort" type="button"
-            class="p-2.5 text-white rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2
-                @if ($sortDirection === 'asc') bg-green-500 hover:bg-green-600 focus:ring-green-500
-                @elseif ($sortDirection === 'desc') bg-red-500 hover:bg-red-600 focus:ring-red-500
-                @else bg-gray-500 hover:bg-gray-600 focus:ring-gray-500 @endif">
-            <div class="flex flex-col items-center">
-                @if ($sortDirection === 'asc')
-                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                    </svg>
-                    <svg class="w-3 h-3 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                @elseif ($sortDirection === 'desc')
-                    <svg class="w-3 h-3 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                    </svg>
-                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                @else
-                    <svg class="w-3 h-3 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                    </svg>
-                    <svg class="w-3 h-3 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
+            <input type="text" wire:model.live="search"
+                class="block w-full pl-10 pr-24 py-2.5 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                placeholder="Search by description or slip no...">
+            <div class="absolute inset-y-0 right-0 flex items-center pr-1 gap-1">
+                @if ($search)
+                    <button wire:click="$set('search', '')"
+                        class="flex items-center justify-center w-8 h-8 text-gray-400 hover:text-gray-600 rounded transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
                 @endif
+                <button wire:click="$toggle('showFilters')" title="Filters" type="button"
+                    class="inline-flex items-center justify-center w-8 h-8 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 relative hover:cursor-pointer cursor-pointer
+                        @if ($filtersActive) text-blue-600 bg-blue-50 hover:bg-blue-100
+                        @else text-gray-500 hover:text-gray-700
+                        @endif">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
+                        </path>
+                    </svg>
+                </button>
             </div>
-        </button>
+        </div>
     </div>
 
     {{-- Filter Modal --}}
     <x-modals.filter-modal>
         <x-slot name="filters">
-            <x-modals.filter-reports-body :availableStatuses="$availableStatuses" />
+            <x-modals.filter-reports-body :availableStatuses="$availableStatuses" :filterSortDirection="$filterSortDirection" />
         </x-slot>
     </x-modals.filter-modal>
 
@@ -78,34 +56,54 @@
 
             {{-- Card (Clickable) --}}
             <div wire:click="openDetailsModal({{ $report->id }})"
-                class="flex justify-between items-center p-4 border-l-4 rounded-lg shadow-sm transition hover:shadow-md cursor-pointer {{ $statusColor }}">
+                class="flex justify-between items-center p-2.5 border-l-4 rounded-lg shadow-sm transition hover:shadow-md cursor-pointer {{ $statusColor }}">
 
-                <div class="grid grid-cols-2 gap-y-2 text-sm">
-                    <div class="font-semibold text-gray-600">Date:</div>
-                    <div class="text-gray-800">
-                        {{ $report->created_at->format('M d, Y') }}
-                        <span class="text-gray-500 text-xs ml-1">
-                            {{ $report->created_at->format('h:i A') }}
-                        </span>
+                <div class="flex-1">
+                    {{-- Slip No/Type - Prominent --}}
+                    <div class="mb-1">
+                        <div class="text-[10px] font-medium text-gray-500 uppercase tracking-wide mb-0.5">
+                            @if ($report->slip_id)
+                                Slip No
+                            @else
+                                Type
+                            @endif
+                        </div>
+                        <div class="text-base font-bold text-gray-900">
+                            @if ($report->slip_id)
+                                {{ $report->slip->slip_id ?? 'N/A' }}
+                            @else
+                                <span class="italic font-normal">Miscellaneous</span>
+                            @endif
+                        </div>
                     </div>
 
-                    @if ($report->slip_id)
-                        <div class="font-semibold text-gray-600">Slip No:</div>
-                        <div class="text-gray-800 font-medium">{{ $report->slip->slip_id ?? 'N/A' }}</div>
-                    @else
-                        <div class="font-semibold text-gray-600">Type:</div>
-                        <div class="text-gray-800 italic">Miscellaneous</div>
-                    @endif
+                    {{-- Date/Time --}}
+                    @php
+                        $createdDate = \Carbon\Carbon::parse($report->created_at);
+                        $isToday = $createdDate->isToday();
+                    @endphp
+                    <div class="flex items-center gap-1 text-xs">
+                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span class="text-gray-600">
+                            @if ($isToday)
+                                {{ $createdDate->format('h:i A') }}
+                            @else
+                                {{ $createdDate->format('M d, Y') }}
+                            @endif
+                        </span>
+                    </div>
                 </div>
 
                 {{-- Right Side: Status Badge --}}
-                <div class="flex flex-col items-end">
+                <div class="flex flex-col items-end justify-center ml-3">
                     @if ($report->resolved_at)
-                        <span class="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">
+                        <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-green-100 text-green-700 whitespace-nowrap">
                             Resolved
                         </span>
                     @else
-                        <span class="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700">
+                        <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-red-100 text-red-700 whitespace-nowrap">
                             Unresolved
                         </span>
                     @endif
@@ -131,76 +129,45 @@
     <x-buttons.nav-pagination :paginator="$reports" />
 
     {{-- Report Details Modal --}}
-    <x-modals.modal-template show="showDetailsModal" title="REPORT DETAILS" max-width="max-w-2xl">
+    @php
+        $isResolved = $selectedReport?->resolved_at !== null;
+        $headerClass = $isResolved ? 'border-t-4 border-t-green-500 bg-green-50' : 'border-t-4 border-t-red-500 bg-red-50';
+    @endphp
+    <x-modals.modal-template show="showDetailsModal" title="REPORT DETAILS" max-width="max-w-2xl" header-class="{{ $headerClass }}">
         @if ($selectedReport)
-            <div class="py-4 space-y-4">
-                {{-- Date Created --}}
-                <div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
-                    <div class="font-semibold text-gray-700 text-sm">Date Created:</div>
-                    <div class="text-gray-900 text-sm">
-                        {{ $selectedReport->created_at->format('M d, Y') }}
-                        <span class="text-gray-500 ml-1">
-                            {{ $selectedReport->created_at->format('h:i A') }}
-                        </span>
+            {{-- Sub Header --}}
+            <div class="border-b border-gray-200 px-6 py-2 bg-gray-50 -mx-6 -mt-6 mb-2">
+                <div class="grid grid-cols-[1fr_1fr] gap-4 items-start text-xs">
+                    <div>
+                        <div class="font-semibold text-gray-500 mb-0.5">Date:</div>
+                        <div class="text-gray-900">{{ $selectedReport->created_at->format('M d, Y') }}</div>
                     </div>
-                </div>
-
-                {{-- Completion Date (if resolved) --}}
-                @if ($selectedReport->resolved_at)
-                    <div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
-                        <div class="font-semibold text-gray-700 text-sm">Completion Date:</div>
-                        <div class="text-gray-900 text-sm">
-                            {{ $selectedReport->resolved_at->format('M d, Y') }}
-                            <span class="text-gray-500 ml-1">
-                                {{ $selectedReport->resolved_at->format('h:i A') }}
-                            </span>
+                    <div>
+                        <div class="font-semibold text-gray-500 mb-0.5">
+                            @if ($selectedReport->slip_id)
+                                Slip No:
+                            @else
+                                Type:
+                            @endif
+                        </div>
+                        <div class="text-gray-900 font-semibold">
+                            @if ($selectedReport->slip_id)
+                                {{ $selectedReport->slip->slip_id ?? 'N/A' }}
+                            @else
+                                <span class="italic font-normal">Miscellaneous</span>
+                            @endif
                         </div>
                     </div>
-                @endif
-
-                {{-- Slip No or Type --}}
-                <div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
-                    <div class="font-semibold text-gray-700 text-sm">
-                        @if ($selectedReport->slip_id)
-                            Slip No:
-                        @else
-                            Type:
-                        @endif
-                    </div>
-                    <div class="text-gray-900 text-sm">
-                        @if ($selectedReport->slip_id)
-                            <span class="font-medium">{{ $selectedReport->slip->slip_id ?? 'N/A' }}</span>
-                        @else
-                            <span class="italic">Miscellaneous</span>
-                        @endif
-                    </div>
                 </div>
+            </div>
 
-                {{-- Status --}}
-                <div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
-                    <div class="font-semibold text-gray-700 text-sm">Status:</div>
-                    <div>
-                        @if ($selectedReport->resolved_at)
-                            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">
-                                Resolved
-                            </span>
-                        @else
-                            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700">
-                                Unresolved
-                            </span>
-                        @endif
-                    </div>
-                </div>
-
-                {{-- Divider --}}
-                <div class="border-t border-gray-200"></div>
-
+            {{-- Body Fields --}}
+            <div class="space-y-0 -mx-6">
                 {{-- Description --}}
-                <div>
-                    <div class="font-semibold text-gray-700 text-sm mb-2">Description:</div>
-                    <div
-                        class="p-4 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap">
-                        {{ $selectedReport->description }}
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
+                    <div class="font-semibold text-gray-500">Description:</div>
+                    <div class="text-gray-900 wrap-break-words min-w-0" style="word-break: break-word; overflow-wrap: break-word;">
+                        <div class="whitespace-pre-wrap">{{ $selectedReport->description }}</div>
                     </div>
                 </div>
             </div>
