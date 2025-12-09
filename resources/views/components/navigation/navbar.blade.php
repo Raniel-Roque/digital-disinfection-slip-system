@@ -37,8 +37,7 @@
             <div class="bg-gray-100/90 shadow-md rounded-md p-4 flex items-center justify-between gap-4">
                 <div class="flex flex-col flex-1 min-w-0">
                     <span class="font-semibold text-gray-800 text-base wrap-break-word leading-tight">
-                        {{ auth()->user()->first_name }} {{ strtoupper(substr(auth()->user()->middle_name, 0, 1)) }}.
-                        {{ auth()->user()->last_name }}
+                        {{ auth()->user()->first_name }}@if(auth()->user()->middle_name) {{ strtoupper(substr(auth()->user()->middle_name, 0, 1)) }}.@endif {{ auth()->user()->last_name }}
                     </span>
                     <span
                         class="text-sm text-gray-500 wrap-break-word mt-0.5">{{ '@' . (auth()->user()->username ?? 'username') }}</span>
