@@ -186,7 +186,7 @@ class Reports extends Component
                 return;
             }
 
-            $report = $this->showDeleted 
+        $report = $this->showDeleted 
                 ? Report::onlyTrashed()->findOrFail($this->selectedReport->id)
                 : Report::findOrFail($this->selectedReport->id);
             $oldValues = [
@@ -194,25 +194,25 @@ class Reports extends Component
                 'description' => $report->description,
             ];
             
-            $report->resolved_at = now();
-            $report->save();
-            
-            $reportType = $report->slip_id ? "for slip " . ($report->slip->slip_id ?? 'N/A') : "for misc";
+        $report->resolved_at = now();
+        $report->save();
+        
+        $reportType = $report->slip_id ? "for slip " . ($report->slip->slip_id ?? 'N/A') : "for misc";
             $newValues = [
                 'resolved_at' => $report->resolved_at,
                 'description' => $report->description,
             ];
-            Logger::update(
-                Report::class,
-                $report->id,
-                "Resolved report {$reportType}",
-                $oldValues,
-                $newValues
-            );
-            
-            $this->dispatch('toast', message: 'Report marked as resolved.', type: 'success');
+        Logger::update(
+            Report::class,
+            $report->id,
+            "Resolved report {$reportType}",
+            $oldValues,
+            $newValues
+        );
+        
+        $this->dispatch('toast', message: 'Report marked as resolved.', type: 'success');
             $this->closeDetailsModal();
-            $this->resetPage();
+        $this->resetPage();
         } finally {
             $this->isResolving = false;
         }
@@ -233,26 +233,26 @@ class Reports extends Component
                 return;
             }
 
-            $report = $this->showDeleted 
+        $report = $this->showDeleted 
                 ? Report::onlyTrashed()->findOrFail($this->selectedReport->id)
                 : Report::findOrFail($this->selectedReport->id);
-            $oldValues = ['resolved_at' => $report->resolved_at];
-            $report->resolved_at = null;
-            $report->save();
-            
-            $reportType = $report->slip_id ? "for slip " . ($report->slip->slip_id ?? 'N/A') : "for misc";
-            $newValues = ['resolved_at' => null];
-            Logger::update(
-                Report::class,
-                $report->id,
-                "Unresolved report {$reportType}",
-                $oldValues,
-                $newValues
-            );
-            
-            $this->dispatch('toast', message: 'Report marked as unresolved.', type: 'success');
+        $oldValues = ['resolved_at' => $report->resolved_at];
+        $report->resolved_at = null;
+        $report->save();
+        
+        $reportType = $report->slip_id ? "for slip " . ($report->slip->slip_id ?? 'N/A') : "for misc";
+        $newValues = ['resolved_at' => null];
+        Logger::update(
+            Report::class,
+            $report->id,
+            "Unresolved report {$reportType}",
+            $oldValues,
+            $newValues
+        );
+        
+        $this->dispatch('toast', message: 'Report marked as unresolved.', type: 'success');
             $this->closeDetailsModal();
-            $this->resetPage();
+        $this->resetPage();
         } finally {
             $this->isResolving = false;
         }

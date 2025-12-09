@@ -16,9 +16,12 @@
 <nav x-data="{ userMenuOpen: false }" class="bg-[#ffb97f] shadow-md rounded-md px-2 sm:px-4 py-2 sm:py-3">
     <!-- Mobile: Simple Layout - Logo + Farm Name + User Menu -->
     <div class="flex items-center justify-between gap-3 sm:hidden">
-        <div class="flex items-center gap-2.5 flex-1 justify-center min-w-0">
+        <div class="flex items-center gap-2.5 min-w-0">
             <img src="{{ asset('storage/images/logo/BGC.png') }}" alt="Logo" class="h-10 w-10 object-contain shrink-0">
-            <span class="font-bold text-gray-800 text-base truncate">{{ $locationName }}</span>
+            <div class="flex flex-col">
+                <span class="font-semibold text-gray-800 text-base truncate">{{ $locationName }}</span>
+                <span class="text-xs text-gray-600">{{ now()->format('F d, Y') }}</span>
+            </div>
         </div>
         <!-- User Menu Button (Mobile) -->
         <div class="relative shrink-0" @click.away="userMenuOpen = false">
