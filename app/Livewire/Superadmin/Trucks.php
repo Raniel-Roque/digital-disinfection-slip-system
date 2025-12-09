@@ -2130,9 +2130,18 @@ class Trucks extends Component
                 $receivedGuard = $slip->receivedGuard ? trim(implode(' ', array_filter([$slip->receivedGuard->first_name, $slip->receivedGuard->middle_name, $slip->receivedGuard->last_name]))) : 'N/A';
                 $driver = $slip->driver ? trim(implode(' ', array_filter([$slip->driver->first_name, $slip->driver->middle_name, $slip->driver->last_name]))) : 'N/A';
                 
+                // Format plate number with (Deleted) tag if truck is soft-deleted
+                $plateNumber = 'N/A';
+                if ($slip->truck) {
+                    $plateNumber = $slip->truck->plate_number;
+                    if ($slip->truck->trashed()) {
+                        $plateNumber .= ' (Deleted)';
+                    }
+                }
+                
                 fputcsv($file, [
                     $slip->slip_id,
-                    $slip->truck->plate_number ?? 'N/A',
+                    $plateNumber,
                     $slip->location->location_name ?? 'N/A',
                     $slip->destination->location_name ?? 'N/A',
                     $driver,
@@ -2158,9 +2167,18 @@ class Trucks extends Component
         
         $data = $this->getExportData();
         $exportData = $data->map(function($slip) {
+            // Format plate number with (Deleted) tag if truck is soft-deleted
+            $plateNumber = 'N/A';
+            if ($slip->truck) {
+                $plateNumber = $slip->truck->plate_number;
+                if ($slip->truck->trashed()) {
+                    $plateNumber .= ' (Deleted)';
+                }
+            }
+            
             return [
                 'slip_id' => $slip->slip_id,
-                'plate_number' => $slip->truck->plate_number ?? 'N/A',
+                'plate_number' => $plateNumber,
                 'origin' => $slip->location->location_name ?? 'N/A',
                 'destination' => $slip->destination->location_name ?? 'N/A',
                 'driver' => $slip->driver ? trim(implode(' ', array_filter([$slip->driver->first_name, $slip->driver->middle_name, $slip->driver->last_name]))) : 'N/A',
