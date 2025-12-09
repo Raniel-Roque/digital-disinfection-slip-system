@@ -417,7 +417,13 @@
                                             @endif
                                         </div>
                                         <div class="flex items-center justify-center">
-                                            @if ($edit_logo && !$errors->has('edit_logo'))
+                                            @php
+                                                $canPreviewEdit = $edit_logo && 
+                                                    !$errors->has('edit_logo') && 
+                                                    $edit_logo->isValid() && 
+                                                    in_array(strtolower($edit_logo->getClientOriginalExtension()), ['jpeg', 'jpg', 'png', 'gif', 'webp']);
+                                            @endphp
+                                            @if ($canPreviewEdit)
                                                 <img src="{{ $edit_logo->temporaryUrl() }}" alt="Logo preview"
                                                     class="max-w-full max-h-32 object-contain rounded-lg border border-gray-200">
                                             @elseif ($currentLocation && $currentLocation->attachment_id && $currentLocation->attachment && !$remove_logo)
@@ -592,7 +598,13 @@
                                             @endif
                                         </div>
                                         <div class="flex items-center justify-center">
-                                            @if ($create_logo && !$errors->has('create_logo'))
+                                            @php
+                                                $canPreviewCreate = $create_logo && 
+                                                    !$errors->has('create_logo') && 
+                                                    $create_logo->isValid() && 
+                                                    in_array(strtolower($create_logo->getClientOriginalExtension()), ['jpeg', 'jpg', 'png', 'gif', 'webp']);
+                                            @endphp
+                                            @if ($canPreviewCreate)
                                                 <img src="{{ $create_logo->temporaryUrl() }}" alt="Logo preview"
                                                     class="max-w-full max-h-32 object-contain rounded-lg border border-gray-200">
                                             @else

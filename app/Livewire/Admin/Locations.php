@@ -324,6 +324,16 @@ class Locations extends Component
         
         // Only validate if a file is actually selected
         if ($this->create_logo) {
+            // Quick check: if extension is not an image type, clear immediately
+            $extension = strtolower($this->create_logo->getClientOriginalExtension());
+            $allowedExtensions = ['jpeg', 'jpg', 'png', 'gif', 'webp'];
+            
+            if (!in_array($extension, $allowedExtensions)) {
+                $this->create_logo = null;
+                $this->addError('create_logo', 'The logo must be a file of type: jpeg, jpg, png, gif, webp.');
+                return;
+            }
+            
             $this->validateOnly('create_logo', [
                 'create_logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:15360'],
             ], [
@@ -347,6 +357,16 @@ class Locations extends Component
         
         // Only validate if a file is actually selected
         if ($this->edit_logo) {
+            // Quick check: if extension is not an image type, clear immediately
+            $extension = strtolower($this->edit_logo->getClientOriginalExtension());
+            $allowedExtensions = ['jpeg', 'jpg', 'png', 'gif', 'webp'];
+            
+            if (!in_array($extension, $allowedExtensions)) {
+                $this->edit_logo = null;
+                $this->addError('edit_logo', 'The logo must be a file of type: jpeg, jpg, png, gif, webp.');
+                return;
+            }
+            
             $this->validateOnly('edit_logo', [
                 'edit_logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:15360'],
             ], [
