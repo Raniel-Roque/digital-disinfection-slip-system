@@ -7,7 +7,7 @@
     $locationName = session('location_name') ?? 'Brookside';
 @endphp
 
-<nav x-data="{ open: false }" class="bg-[#FFDBBD] shadow-md rounded-md px-2 sm:px-4 py-2 sm:py-3">
+<nav x-data="{ open: false }" class="bg-[#ffb97f] shadow-md rounded-md px-2 sm:px-4 py-2 sm:py-3">
     <!-- Mobile: Simple Layout - Hamburger + Logo + Farm Name -->
     <div class="flex items-center justify-between gap-3 sm:hidden">
         <button type="button"
@@ -62,7 +62,7 @@
     <!-- Sidebar / Drawer -->
     <div class="fixed inset-0 z-40 pointer-events-none" x-cloak>
         <!-- Panel -->
-        <div class="absolute top-0 left-0 h-full w-72 max-w-full bg-[#ffd4b0] border-r-2 border-black shadow-xl rounded-r-2xl p-6 flex flex-col gap-6 pointer-events-auto"
+        <div class="absolute top-0 left-0 h-full w-72 max-w-full bg-[#ffb97f] border-r-2 border-black shadow-xl rounded-r-2xl p-6 flex flex-col gap-6 pointer-events-auto"
             x-show="open" x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="translate-x-0"
@@ -86,53 +86,61 @@
                 </button>
             </div>
 
-            <!-- Divider -->
-            <hr class="border-2 border-black" />
-
             <!-- Modules Section / Sidebar -->
-            <div class="space-y-1">
-                @switch(auth()->user()->user_type)
-                    @case(0)
-                        <livewire:sidebar.sidebar-user :currentRoute="Route::currentRouteName()" />
-                    @break
+            <div class="bg-white/50 rounded-lg p-3 shadow-sm border border-gray-200">
+                <div class="space-y-1">
+                    @switch(auth()->user()->user_type)
+                        @case(0)
+                            <livewire:sidebar.sidebar-user :currentRoute="Route::currentRouteName()" />
+                        @break
 
-                    @case(1)
-                        <livewire:sidebar.sidebar-admin :currentRoute="Route::currentRouteName()" />
-                    @break
+                        @case(1)
+                            <livewire:sidebar.sidebar-admin :currentRoute="Route::currentRouteName()" />
+                        @break
 
-                    @case(2)
-                        <livewire:sidebar.sidebar-superadmin :currentRoute="Route::currentRouteName()" />
-                    @break
-                @endswitch
+                        @case(2)
+                            <livewire:sidebar.sidebar-superadmin :currentRoute="Route::currentRouteName()" />
+                        @break
+                    @endswitch
+                </div>
             </div>
 
-            <!-- Divider -->
-            <hr class="border-2 border-black" />
-
             <!-- User Section -->
-            <div class="space-y-3">
+            <div class="bg-white/50 rounded-lg p-3 shadow-sm border border-gray-200 space-y-3">
                 {{-- Landing Button (Mobile Only) --}}
                 <a href="{{ url('/') }}"
-                    class="sm:hidden hover:cursor-pointer w-full rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 bg-[#FFF7F1] hover:bg-gray-200 hover:shadow-md hover:scale-[1.02] focus:ring-2 focus:ring-[#FFF7F1] transition-all duration-200 cursor-pointer text-center block">
-                    Go to Landing
+                    class="sm:hidden hover:cursor-pointer w-full rounded-lg px-3 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 hover:shadow-md hover:scale-[1.02] focus:ring-2 focus:ring-blue-500 transition-all duration-200 cursor-pointer flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>Go to Landing</span>
                 </a>
                 @if (auth()->user()->user_type === 0)
                     <a href="{{ route('user.report') }}"
-                        class="hover:cursor-pointer w-full rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 bg-[#FFF7F1] hover:bg-gray-200 hover:shadow-md hover:scale-[1.02] focus:ring-2 focus:ring-[#FFF7F1] transition-all duration-200 cursor-pointer text-center block">
-                        Report
+                        class="hover:cursor-pointer w-full rounded-lg px-3 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 hover:shadow-md hover:scale-[1.02] focus:ring-2 focus:ring-red-500 transition-all duration-200 cursor-pointer flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+                        </svg>
+                        <span>Report</span>
                     </a>
                 @endif
                 <a href="{{ route('password.change') }}"
-                    class="hover:cursor-pointer w-full rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 bg-[#FFF7F1] hover:bg-gray-200 hover:shadow-md hover:scale-[1.02] focus:ring-2 focus:ring-[#FFF7F1] transition-all duration-200 cursor-pointer text-center block">
-                    Change Password
+                    class="hover:cursor-pointer w-full rounded-lg px-3 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 hover:shadow-md hover:scale-[1.02] focus:ring-2 focus:ring-indigo-500 transition-all duration-200 cursor-pointer flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                    <span>Change Password</span>
                 </a>
 
                 <form method="POST" action="{{ route('logout') }}" class="w-full">
                     @csrf
-                    <x-buttons.submit-button type="submit" color="white"
-                        class="hover:cursor-pointer w-full rounded-full px-3 py-2 text-sm font-semibold text-gray-800 bg-[#FFF7F1] hover:bg-gray-200 hover:shadow-md hover:scale-[1.02] focus:ring-2 focus:ring-[#FFF7F1] transition-all duration-200 cursor-pointer text-center block">
-                        Logout
-                    </x-buttons.submit-button>
+                    <button type="submit"
+                        class="hover:cursor-pointer w-full rounded-lg px-3 py-2.5 text-sm font-semibold text-white bg-gray-700 hover:bg-gray-800 hover:shadow-md hover:scale-[1.02] focus:ring-2 focus:ring-gray-500 transition-all duration-200 cursor-pointer flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <span>Logout</span>
+                    </button>
                 </form>
             </div>
         </div>

@@ -70,6 +70,12 @@ class Admins extends Component
     public $showCreateModal = false;
     public $showDeleteModal = false;
     public $showDeleted = false; // Toggle to show deleted items
+    
+    // Protection flags
+    public $isTogglingStatus = false;
+    public $isResettingPassword = false;
+    public $isDeleting = false;
+    public $isRestoring = false;
 
     // Edit form fields
     public $first_name;
@@ -307,12 +313,20 @@ class Admins extends Component
 
     public function toggleUserStatus()
     {
-        // Authorization check
-        if (Auth::user()->user_type < 2) {
-            abort(403, 'Unauthorized action.');
+        // Prevent multiple submissions
+        if ($this->isTogglingStatus) {
+            return;
         }
 
-        $user = User::findOrFail($this->selectedUserId);
+        $this->isTogglingStatus = true;
+
+        try {
+            // Authorization check
+            if (Auth::user()->user_type < 2) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $user = User::findOrFail($this->selectedUserId);
         $wasDisabled = $user->disabled;
         $newStatus = !$wasDisabled; // true = disabled, false = enabled
         $action = $newStatus ? 'disabled' : 'enabled';
@@ -342,6 +356,9 @@ class Admins extends Component
         $this->showDisableModal = false;
         $this->reset(['selectedUserId', 'selectedUserDisabled']);
         $this->dispatch('toast', message: $message, type: 'success');
+        } finally {
+            $this->isTogglingStatus = false;
+        }
     }
 
     public function openResetPasswordModal($userId)
@@ -352,12 +369,20 @@ class Admins extends Component
 
     public function resetPassword()
     {
-        // Authorization check
-        if (Auth::user()->user_type < 2) {
-            abort(403, 'Unauthorized action.');
+        // Prevent multiple submissions
+        if ($this->isResettingPassword) {
+            return;
         }
 
-        $user = User::findOrFail($this->selectedUserId);
+        $this->isResettingPassword = true;
+
+        try {
+            // Authorization check
+            if (Auth::user()->user_type < 2) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $user = User::findOrFail($this->selectedUserId);
         $defaultPassword = $this->getDefaultAdminPassword();
         $user->update([
             'password' => Hash::make($defaultPassword),
@@ -368,6 +393,9 @@ class Admins extends Component
         $this->showResetPasswordModal = false;
         $this->reset('selectedUserId');
         $this->dispatch('toast', message: "{$adminName}'s password has been reset.", type: 'success');
+        } finally {
+            $this->isResettingPassword = false;
+        }
     }
 
     public function closeModal()
@@ -392,12 +420,20 @@ class Admins extends Component
 
     public function deleteUser()
     {
-        // Authorization check
-        if (Auth::user()->user_type < 2) {
-            abort(403, 'Unauthorized action.');
+        // Prevent multiple submissions
+        if ($this->isDeleting) {
+            return;
         }
 
-        $user = User::findOrFail($this->selectedUserId);
+        $this->isDeleting = true;
+
+        try {
+            // Authorization check
+            if (Auth::user()->user_type < 2) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $user = User::findOrFail($this->selectedUserId);
         $userIdForLog = $user->id;
         $adminName = $this->getAdminFullName($user);
         
@@ -426,6 +462,9 @@ class Admins extends Component
         $this->reset(['selectedUserId', 'selectedUserName']);
         $this->resetPage();
         $this->dispatch('toast', message: "{$adminName} has been deleted.", type: 'success');
+        } finally {
+            $this->isDeleting = false;
+        }
     }
 
     public function toggleDeletedView()
@@ -444,14 +483,22 @@ class Admins extends Component
 
     public function restoreUser()
     {
-        // Authorization check
-        if (Auth::user()->user_type < 2) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        if (!$this->selectedUserId) {
+        // Prevent multiple submissions
+        if ($this->isRestoring) {
             return;
         }
+
+        $this->isRestoring = true;
+
+        try {
+            // Authorization check
+            if (Auth::user()->user_type < 2) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            if (!$this->selectedUserId) {
+                return;
+            }
 
         $user = User::onlyTrashed()->findOrFail($this->selectedUserId);
         
@@ -487,6 +534,9 @@ class Admins extends Component
         $this->reset(['selectedUserId', 'selectedUserName']);
         $this->resetPage();
         $this->dispatch('toast', message: 'Admin restored successfully.', type: 'success');
+        } finally {
+            $this->isRestoring = false;
+        }
     }
 
     public function openCreateModal()

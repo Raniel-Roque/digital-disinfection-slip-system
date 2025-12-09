@@ -61,6 +61,9 @@ class PlateNumbers extends Component
     public $selectedTruckDisabled = false;
     public $showEditModal = false;
     public $showDisableModal = false;
+    
+    // Protection flags
+    public $isTogglingStatus = false;
     public $showCreateModal = false;
 
     // Edit form fields
@@ -217,12 +220,20 @@ class PlateNumbers extends Component
 
     public function toggleTruckStatus()
     {
-        // Authorization check
-        if (Auth::user()->user_type < 1) {
-            abort(403, 'Unauthorized action.');
+        // Prevent multiple submissions
+        if ($this->isTogglingStatus) {
+            return;
         }
 
-        $truck = Truck::findOrFail($this->selectedTruckId);
+        $this->isTogglingStatus = true;
+
+        try {
+            // Authorization check
+            if (Auth::user()->user_type < 1) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $truck = Truck::findOrFail($this->selectedTruckId);
         $wasDisabled = $truck->disabled;
         $newStatus = !$wasDisabled; // true = disabled, false = enabled
         $truck->update([
@@ -247,6 +258,9 @@ class PlateNumbers extends Component
         $this->showDisableModal = false;
         $this->reset(['selectedTruckId', 'selectedTruckDisabled']);
         $this->dispatch('toast', message: $message, type: 'success');
+        } finally {
+            $this->isTogglingStatus = false;
+        }
     }
 
     public function closeModal()

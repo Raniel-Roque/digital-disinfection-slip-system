@@ -40,6 +40,9 @@ class Locations extends Component
         1 => 'Disabled',
     ];
     
+    // Protection flags
+    public $isTogglingStatus = false;
+    
     // Ensure filterStatus is properly typed when updated
     public function updatedFilterStatus($value)
     {
@@ -350,12 +353,20 @@ class Locations extends Component
 
     public function toggleLocationStatus()
     {
-        // Authorization check
-        if (Auth::user()->user_type < 1) {
-            abort(403, 'Unauthorized action.');
+        // Prevent multiple submissions
+        if ($this->isTogglingStatus) {
+            return;
         }
 
-        $location = Location::findOrFail($this->selectedLocationId);
+        $this->isTogglingStatus = true;
+
+        try {
+            // Authorization check
+            if (Auth::user()->user_type < 1) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $location = Location::findOrFail($this->selectedLocationId);
         $wasDisabled = $location->disabled;
         $newStatus = !$wasDisabled; // true = disabled, false = enabled
         $location->update([
@@ -380,6 +391,9 @@ class Locations extends Component
         $this->showDisableModal = false;
         $this->reset(['selectedLocationId', 'selectedLocationDisabled']);
         $this->dispatch('toast', message: $message, type: 'success');
+        } finally {
+            $this->isTogglingStatus = false;
+        }
     }
 
     public function closeModal()

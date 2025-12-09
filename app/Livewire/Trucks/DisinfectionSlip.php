@@ -33,6 +33,9 @@ class DisinfectionSlip extends Component
 
     public $isEditing = false;
     
+    // Protection flags
+    public $isDeleting = false;
+    
     // Type property: 'incoming' or 'outgoing'
     public $type;
 
@@ -362,13 +365,21 @@ class DisinfectionSlip extends Component
 
     public function deleteSlip()
     {
-        // Authorization check using canDelete
-        if (!$this->canDelete()) {
-            $this->dispatch('toast', message: 'You are not authorized to delete this slip.', type: 'error');
+        // Prevent multiple submissions
+        if ($this->isDeleting) {
             return;
         }
 
-        $slipId = $this->selectedSlip->slip_id;
+        $this->isDeleting = true;
+
+        try {
+            // Authorization check using canDelete
+            if (!$this->canDelete()) {
+                $this->dispatch('toast', message: 'You are not authorized to delete this slip.', type: 'error');
+                return;
+            }
+
+            $slipId = $this->selectedSlip->slip_id;
         
         // Soft delete the slip (sets deleted_at timestamp)
         $this->selectedSlip->delete();
@@ -385,6 +396,9 @@ class DisinfectionSlip extends Component
         
         // Refresh the parent component list if needed
         $this->dispatch('slip-deleted');
+        } finally {
+            $this->isDeleting = false;
+        }
     }
 
     public function save()

@@ -44,6 +44,7 @@ class TruckList extends Component
     public $destination_id;
     public $driver_id;
     public $reason_for_disinfection;
+    public $isCreating = false;
 
     // Search properties for dropdowns
     public $searchTruck = '';
@@ -251,11 +252,19 @@ class TruckList extends Component
 
     public function createSlip()
     {
-        // Check if user is disabled
-        if ($this->isUserDisabled()) {
-            $this->dispatch('toast', message: 'Your account has been disabled. Please contact an administrator.', type: 'error');
+        // Prevent multiple submissions
+        if ($this->isCreating) {
             return;
         }
+
+        $this->isCreating = true;
+
+        try {
+            // Check if user is disabled
+            if ($this->isUserDisabled()) {
+                $this->dispatch('toast', message: 'Your account has been disabled. Please contact an administrator.', type: 'error');
+                return;
+            }
 
         // Get current location to validate against
         $currentLocationId = Session::get('location_id');
@@ -297,6 +306,9 @@ class TruckList extends Component
         // Then reset form and page after a brief delay
         $this->dispatch('modal-closed');
         $this->resetPage();
+        } finally {
+            $this->isCreating = false;
+        }
     }
 
     private function generateSlipId()

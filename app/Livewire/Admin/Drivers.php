@@ -61,6 +61,9 @@ class Drivers extends Component
     public $selectedDriverDisabled = false;
     public $showEditModal = false;
     public $showDisableModal = false;
+    
+    // Protection flags
+    public $isTogglingStatus = false;
     public $showCreateModal = false;
 
     // Edit form fields
@@ -270,12 +273,20 @@ class Drivers extends Component
 
     public function toggleDriverStatus()
     {
-        // Authorization check
-        if (Auth::user()->user_type < 1) {
-            abort(403, 'Unauthorized action.');
+        // Prevent multiple submissions
+        if ($this->isTogglingStatus) {
+            return;
         }
 
-        $driver = Driver::findOrFail($this->selectedDriverId);
+        $this->isTogglingStatus = true;
+
+        try {
+            // Authorization check
+            if (Auth::user()->user_type < 1) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $driver = Driver::findOrFail($this->selectedDriverId);
         $wasDisabled = $driver->disabled;
         $newStatus = !$wasDisabled; // true = disabled, false = enabled
         $driver->update([
@@ -300,6 +311,9 @@ class Drivers extends Component
         $this->showDisableModal = false;
         $this->reset(['selectedDriverId', 'selectedDriverDisabled']);
         $this->dispatch('toast', message: $message, type: 'success');
+        } finally {
+            $this->isTogglingStatus = false;
+        }
     }
 
     public function closeModal()

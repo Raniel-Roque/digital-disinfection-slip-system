@@ -64,6 +64,11 @@ class Drivers extends Component
     public $showDisableModal = false;
     public $showCreateModal = false;
     public $showDeleteModal = false;
+    
+    // Protection flags
+    public $isTogglingStatus = false;
+    public $isDeleting = false;
+    public $isRestoring = false;
     public $showDeleted = false; // Toggle to show deleted items
 
     // Edit form fields
@@ -272,12 +277,20 @@ class Drivers extends Component
 
     public function toggleDriverStatus()
     {
-        // Authorization check
-        if (Auth::user()->user_type < 2) {
-            abort(403, 'Unauthorized action.');
+        // Prevent multiple submissions
+        if ($this->isTogglingStatus) {
+            return;
         }
 
-        $driver = Driver::findOrFail($this->selectedDriverId);
+        $this->isTogglingStatus = true;
+
+        try {
+            // Authorization check
+            if (Auth::user()->user_type < 2) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $driver = Driver::findOrFail($this->selectedDriverId);
         $wasDisabled = $driver->disabled;
         $newStatus = !$wasDisabled; // true = disabled, false = enabled
         $action = $newStatus ? 'disabled' : 'enabled';
@@ -307,6 +320,9 @@ class Drivers extends Component
         $this->showDisableModal = false;
         $this->reset(['selectedDriverId', 'selectedDriverDisabled']);
         $this->dispatch('toast', message: $message, type: 'success');
+        } finally {
+            $this->isTogglingStatus = false;
+        }
     }
 
     public function closeModal()
@@ -329,12 +345,20 @@ class Drivers extends Component
 
     public function deleteDriver()
     {
-        // Authorization check
-        if (Auth::user()->user_type < 2) {
-            abort(403, 'Unauthorized action.');
+        // Prevent multiple submissions
+        if ($this->isDeleting) {
+            return;
         }
 
-        $driver = Driver::findOrFail($this->selectedDriverId);
+        $this->isDeleting = true;
+
+        try {
+            // Authorization check
+            if (Auth::user()->user_type < 2) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $driver = Driver::findOrFail($this->selectedDriverId);
         $driverIdForLog = $driver->id;
         $driverName = $this->getDriverFullName($driver);
         
@@ -356,6 +380,9 @@ class Drivers extends Component
         $this->reset(['selectedDriverId', 'selectedDriverName']);
         $this->resetPage();
         $this->dispatch('toast', message: "{$driverName} has been deleted.", type: 'success');
+        } finally {
+            $this->isDeleting = false;
+        }
     }
 
     public function openCreateModal()
@@ -632,17 +659,28 @@ class Drivers extends Component
 
     public function restoreDriver($driverId)
     {
-        // Authorization check
-        if (Auth::user()->user_type < 2) {
-            abort(403, 'Unauthorized action.');
+        // Prevent multiple submissions
+        if ($this->isRestoring) {
+            return;
         }
 
-        $driver = Driver::onlyTrashed()->findOrFail($driverId);
+        $this->isRestoring = true;
+
+        try {
+            // Authorization check
+            if (Auth::user()->user_type < 2) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $driver = Driver::onlyTrashed()->findOrFail($driverId);
         $driver->restore();
         
         $driverName = trim(implode(' ', array_filter([$driver->first_name, $driver->middle_name, $driver->last_name])));
         $this->dispatch('toast', message: "{$driverName} has been restored.", type: 'success');
         $this->resetPage();
+        } finally {
+            $this->isRestoring = false;
+        }
     }
 
     public function openPrintView()

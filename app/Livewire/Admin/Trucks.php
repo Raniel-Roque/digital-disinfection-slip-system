@@ -94,6 +94,9 @@ class Trucks extends Component
     public $showRemoveAttachmentConfirmation = false;
     public $selectedSlip = null;
     public $attachmentFile = null;
+    
+    // Protection flags
+    public $isDeleting = false;
 
     // Create Modal
     public $showCreateModal = false;
@@ -105,6 +108,7 @@ class Trucks extends Component
     public $hatchery_guard_id;
     public $received_guard_id = null; // Optional receiving guard for creation
     public $reason_for_disinfection;
+    public $isCreating = false;
     
     // Search properties for dropdowns (create modal)
     public $searchOrigin = '';
@@ -1329,12 +1333,20 @@ class Trucks extends Component
 
     public function deleteSlip()
     {
-        if (!$this->canDelete()) {
-            $this->dispatch('toast', message: 'Cannot delete a completed slip.', type: 'error');
+        // Prevent multiple submissions
+        if ($this->isDeleting) {
             return;
         }
 
-        $slipId = $this->selectedSlip->slip_id;
+        $this->isDeleting = true;
+
+        try {
+            if (!$this->canDelete()) {
+                $this->dispatch('toast', message: 'Cannot delete a completed slip.', type: 'error');
+                return;
+            }
+
+            $slipId = $this->selectedSlip->slip_id;
         $slipIdForLog = $this->selectedSlip->id;
         
         // Capture old values for logging
@@ -1366,6 +1378,9 @@ class Trucks extends Component
         
         // Reset page to refresh the list
         $this->resetPage();
+        } finally {
+            $this->isDeleting = false;
+        }
     }
 
     public function closeDetailsModal()
@@ -1438,7 +1453,15 @@ class Trucks extends Component
 
     public function createSlip()
     {
-        $this->validate([
+        // Prevent multiple submissions
+        if ($this->isCreating) {
+            return;
+        }
+
+        $this->isCreating = true;
+
+        try {
+            $this->validate([
             'truck_id' => 'required|exists:trucks,id',
             'location_id' => [
                 'required',
@@ -1546,6 +1569,9 @@ class Trucks extends Component
         $this->showCreateModal = false;
         $this->resetCreateForm();
         $this->resetPage();
+        } finally {
+            $this->isCreating = false;
+        }
     }
 
     // Watch for changes to location_id or destination_id to prevent same selection

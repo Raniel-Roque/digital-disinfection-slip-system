@@ -4,7 +4,7 @@
     'label' => 'Menu',
 ])
 
-<div x-data="{ open: false }" class="w-full">
+<div x-data="{ open: {{ $active ? 'true' : 'false' }} }" class="w-full">
     <button type="button" @click="open = !open"
         :class="{
             'bg-gray-100/70 shadow-md': !open && {{ $active ? 'true' : 'false' }},
@@ -24,7 +24,7 @@
         </svg>
     </button>
 
-    <div x-show="open" x-transition class="space-y-1 mt-1">
+    <div x-show="open" x-transition class="space-y-1 mt-1 ml-4 border-l-2 border-dashed border-gray-300 pl-4">
         {{ $slot }}
     </div>
 </div>

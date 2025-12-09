@@ -64,6 +64,11 @@ class PlateNumbers extends Component
     public $showDisableModal = false;
     public $showCreateModal = false;
     public $showDeleteModal = false;
+    
+    // Protection flags
+    public $isTogglingStatus = false;
+    public $isDeleting = false;
+    public $isRestoring = false;
     public $showDeleted = false; // Toggle to show deleted items
 
     // Edit form fields
@@ -232,12 +237,20 @@ class PlateNumbers extends Component
 
     public function toggleTruckStatus()
     {
-        // Authorization check
-        if (Auth::user()->user_type < 2) {
-            abort(403, 'Unauthorized action.');
+        // Prevent multiple submissions
+        if ($this->isTogglingStatus) {
+            return;
         }
 
-        $truck = Truck::findOrFail($this->selectedTruckId);
+        $this->isTogglingStatus = true;
+
+        try {
+            // Authorization check
+            if (Auth::user()->user_type < 2) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $truck = Truck::findOrFail($this->selectedTruckId);
         $wasDisabled = $truck->disabled;
         $newStatus = !$wasDisabled; // true = disabled, false = enabled
         $truck->update([
@@ -253,6 +266,9 @@ class PlateNumbers extends Component
         $this->showDisableModal = false;
         $this->reset(['selectedTruckId', 'selectedTruckDisabled']);
         $this->dispatch('toast', message: $message, type: 'success');
+        } finally {
+            $this->isTogglingStatus = false;
+        }
     }
 
     public function openDeleteModal($truckId)
@@ -265,12 +281,20 @@ class PlateNumbers extends Component
 
     public function deleteTruck()
     {
-        // Authorization check
-        if (Auth::user()->user_type < 2) {
-            abort(403, 'Unauthorized action.');
+        // Prevent multiple submissions
+        if ($this->isDeleting) {
+            return;
         }
 
-        $truck = Truck::findOrFail($this->selectedTruckId);
+        $this->isDeleting = true;
+
+        try {
+            // Authorization check
+            if (Auth::user()->user_type < 2) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $truck = Truck::findOrFail($this->selectedTruckId);
         $truckIdForLog = $truck->id;
         $plateNumber = $truck->plate_number;
         
@@ -295,6 +319,9 @@ class PlateNumbers extends Component
         $this->reset(['selectedTruckId', 'selectedTruckName']);
         $this->resetPage();
         $this->dispatch('toast', message: "Plate number {$plateNumber} has been deleted.", type: 'success');
+        } finally {
+            $this->isDeleting = false;
+        }
     }
 
     public function closeModal()
@@ -545,16 +572,27 @@ class PlateNumbers extends Component
 
     public function restorePlateNumber($truckId)
     {
-        // Authorization check
-        if (Auth::user()->user_type < 2) {
-            abort(403, 'Unauthorized action.');
+        // Prevent multiple submissions
+        if ($this->isRestoring) {
+            return;
         }
 
-        $truck = Truck::onlyTrashed()->findOrFail($truckId);
-        $truck->restore();
-        
-        $this->dispatch('toast', message: "{$truck->plate_number} has been restored.", type: 'success');
-        $this->resetPage();
+        $this->isRestoring = true;
+
+        try {
+            // Authorization check
+            if (Auth::user()->user_type < 2) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $truck = Truck::onlyTrashed()->findOrFail($truckId);
+            $truck->restore();
+            
+            $this->dispatch('toast', message: "{$truck->plate_number} has been restored.", type: 'success');
+            $this->resetPage();
+        } finally {
+            $this->isRestoring = false;
+        }
     }
 
     public function openPrintView()

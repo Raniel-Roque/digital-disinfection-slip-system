@@ -47,6 +47,10 @@ class Reports extends Component
     public $showDeleteConfirmation = false;
     public $selectedReportId = null;
     
+    // Protection flags
+    public $isDeleting = false;
+    public $isRestoring = false;
+    
     protected $queryString = ['search'];
     
     public function updatedFilterResolved($value)
@@ -183,7 +187,15 @@ class Reports extends Component
     
     public function deleteReport()
     {
-        $report = Report::findOrFail($this->selectedReportId);
+        // Prevent multiple submissions
+        if ($this->isDeleting) {
+            return;
+        }
+
+        $this->isDeleting = true;
+
+        try {
+            $report = Report::findOrFail($this->selectedReportId);
         $reportType = $report->slip_id ? "for slip " . ($report->slip->slip_id ?? 'N/A') : "for misc";
         $oldValues = $report->only(['user_id', 'slip_id', 'description', 'resolved_at']);
         
@@ -200,11 +212,22 @@ class Reports extends Component
         $this->selectedReportId = null;
         $this->dispatch('toast', message: 'Report has been deleted.', type: 'success');
         $this->resetPage();
+        } finally {
+            $this->isDeleting = false;
+        }
     }
     
     public function restoreReport($reportId)
     {
-        $report = Report::onlyTrashed()->findOrFail($reportId);
+        // Prevent multiple submissions
+        if ($this->isRestoring) {
+            return;
+        }
+
+        $this->isRestoring = true;
+
+        try {
+            $report = Report::onlyTrashed()->findOrFail($reportId);
         $reportType = $report->slip_id ? "for slip " . ($report->slip->slip_id ?? 'N/A') : "for misc";
         $report->restore();
         
@@ -216,6 +239,9 @@ class Reports extends Component
         
         $this->dispatch('toast', message: 'Report has been restored.', type: 'success');
         $this->resetPage();
+        } finally {
+            $this->isRestoring = false;
+        }
     }
     
     private function getFilteredReportsQuery()

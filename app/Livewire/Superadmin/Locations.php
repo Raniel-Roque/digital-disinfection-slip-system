@@ -40,6 +40,11 @@ class Locations extends Component
         1 => 'Disabled',
     ];
     
+    // Protection flags
+    public $isTogglingStatus = false;
+    public $isDeleting = false;
+    public $isRestoring = false;
+    
     // Ensure filterStatus is properly typed when updated
     public function updatedFilterStatus($value)
     {
@@ -351,12 +356,20 @@ class Locations extends Component
 
     public function toggleLocationStatus()
     {
-        // Authorization check
-        if (Auth::user()->user_type < 2) {
-            abort(403, 'Unauthorized action.');
+        // Prevent multiple submissions
+        if ($this->isTogglingStatus) {
+            return;
         }
 
-        $location = Location::findOrFail($this->selectedLocationId);
+        $this->isTogglingStatus = true;
+
+        try {
+            // Authorization check
+            if (Auth::user()->user_type < 2) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $location = Location::findOrFail($this->selectedLocationId);
         $wasDisabled = $location->disabled;
         $newStatus = !$wasDisabled; // true = disabled, false = enabled
         $location->update([
@@ -372,6 +385,9 @@ class Locations extends Component
         $this->showDisableModal = false;
         $this->reset(['selectedLocationId', 'selectedLocationDisabled']);
         $this->dispatch('toast', message: $message, type: 'success');
+        } finally {
+            $this->isTogglingStatus = false;
+        }
     }
 
     public function openDeleteModal($locationId)
@@ -384,12 +400,20 @@ class Locations extends Component
 
     public function deleteLocation()
     {
-        // Authorization check
-        if (Auth::user()->user_type < 2) {
-            abort(403, 'Unauthorized action.');
+        // Prevent multiple submissions
+        if ($this->isDeleting) {
+            return;
         }
 
-        $location = Location::findOrFail($this->selectedLocationId);
+        $this->isDeleting = true;
+
+        try {
+            // Authorization check
+            if (Auth::user()->user_type < 2) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $location = Location::findOrFail($this->selectedLocationId);
         $locationIdForLog = $location->id;
         $locationName = $location->location_name;
         
@@ -415,6 +439,9 @@ class Locations extends Component
         $this->reset(['selectedLocationId', 'selectedLocationName']);
         $this->resetPage();
         $this->dispatch('toast', message: "{$locationName} has been deleted.", type: 'success');
+        } finally {
+            $this->isDeleting = false;
+        }
     }
 
     public function closeModal()
@@ -453,7 +480,15 @@ class Locations extends Component
 
     public function restoreLocation($locationId)
     {
-        // Authorization check
+        // Prevent multiple submissions
+        if ($this->isRestoring) {
+            return;
+        }
+
+        $this->isRestoring = true;
+
+        try {
+            // Authorization check
         if (Auth::user()->user_type < 2) {
             abort(403, 'Unauthorized action.');
         }
@@ -463,6 +498,9 @@ class Locations extends Component
         
         $this->dispatch('toast', message: "{$location->location_name} has been restored.", type: 'success');
         $this->resetPage();
+        } finally {
+            $this->isRestoring = false;
+        }
     }
 
     public function openCreateModal()

@@ -66,6 +66,10 @@ class Guards extends Component
     public $showDisableModal = false;
     public $showResetPasswordModal = false;
     public $showCreateModal = false;
+    
+    // Protection flags
+    public $isTogglingStatus = false;
+    public $isResettingPassword = false;
 
     // Edit form fields
     public $first_name;
@@ -304,12 +308,20 @@ class Guards extends Component
 
     public function toggleUserStatus()
     {
-        // Authorization check
-        if (Auth::user()->user_type < 1) {
-            abort(403, 'Unauthorized action.');
+        // Prevent multiple submissions
+        if ($this->isTogglingStatus) {
+            return;
         }
 
-        $user = User::findOrFail($this->selectedUserId);
+        $this->isTogglingStatus = true;
+
+        try {
+            // Authorization check
+            if (Auth::user()->user_type < 1) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $user = User::findOrFail($this->selectedUserId);
         $wasDisabled = $user->disabled;
         $newStatus = !$wasDisabled; // true = disabled, false = enabled
         
@@ -338,6 +350,9 @@ class Guards extends Component
         $this->showDisableModal = false;
         $this->reset(['selectedUserId', 'selectedUserDisabled']);
         $this->dispatch('toast', message: $message, type: 'success');
+        } finally {
+            $this->isTogglingStatus = false;
+        }
     }
 
     public function openResetPasswordModal($userId)
@@ -348,12 +363,20 @@ class Guards extends Component
 
     public function resetPassword()
     {
-        // Authorization check
-        if (Auth::user()->user_type < 1) {
-            abort(403, 'Unauthorized action.');
+        // Prevent multiple submissions
+        if ($this->isResettingPassword) {
+            return;
         }
 
-        $user = User::findOrFail($this->selectedUserId);
+        $this->isResettingPassword = true;
+
+        try {
+            // Authorization check
+            if (Auth::user()->user_type < 1) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $user = User::findOrFail($this->selectedUserId);
         $defaultPassword = $this->getDefaultGuardPassword();
         $user->update([
             'password' => Hash::make($defaultPassword),
@@ -372,6 +395,9 @@ class Guards extends Component
         $this->showResetPasswordModal = false;
         $this->reset('selectedUserId');
         $this->dispatch('toast', message: "{$guardName}'s password has been reset.", type: 'success');
+        } finally {
+            $this->isResettingPassword = false;
+        }
     }
 
     public function closeModal()

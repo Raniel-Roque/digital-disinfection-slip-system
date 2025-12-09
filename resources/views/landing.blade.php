@@ -1,7 +1,7 @@
 <x-layout>
     <!-- Header -->
     <header
-        class="bg-linear-to-r from-orange-100 via-orange-50 to-orange-100 shadow-sm p-4 sm:p-6 fixed top-0 left-0 w-full z-20">
+        class="bg-linear-to-r from-orange-500 via-orange-400 to-orange-500 shadow-sm p-4 sm:p-6 fixed top-0 left-0 w-full z-20">
         <div class="flex justify-between items-center">
             <!-- Logo + Header Text -->
             <a href="{{ url('/') }}" class="flex items-center space-x-3 hover:cursor-pointer">
