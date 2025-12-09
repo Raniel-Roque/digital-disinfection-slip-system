@@ -34,14 +34,14 @@ class TruckCountCard extends Component
         // Apply filters based on type
         switch ($this->type) {
             case 'incoming':
-                // Incoming trucks today (pending status)
+                // Incoming trucks today (Ongoing status)
                 $query->whereDate('created_at', today())
                       ->where('destination_id', $locationId)
                       ->whereIn('status', [0, 1]);
                 break;
 
             case 'outgoing':
-                // Outgoing trucks today (pending or disinfecting)
+                // Outgoing trucks today (Ongoing or disinfecting)
                 $query->whereDate('created_at', today())
                       ->where('location_id', $locationId)
                       ->whereIn('status', [0, 1]);

@@ -16,7 +16,7 @@ class DisinfectionSlipFactory extends Factory
 
     public function definition()
     {
-        // Generate status: 0=Pending, 1=Disinfecting, 2=Completed
+        // Generate status: 0=Ongoing, 1=Disinfecting, 2=Completed
         $status = $this->faker->randomElement([0, 1, 2]);
         
         // Set completed_at only when status is 2 (Completed)
@@ -43,7 +43,7 @@ class DisinfectionSlipFactory extends Factory
     }
 
     /**
-     * Indicate that the slip is pending (status 0).
+     * Indicate that the slip is Ongoing (status 0).
      */
     public function pending()
     {

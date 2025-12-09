@@ -330,57 +330,6 @@ class Locations extends Component
         return $this->current_logo_path;
     }
 
-    // Validate logo on upload (simplified like Settings)
-    public function updatedCreate_logo()
-    {
-        $this->resetErrorBag();
-        $this->resetValidation();
-        
-        if ($this->create_logo) {
-            try {
-                $this->validateOnly('create_logo', [
-                    'create_logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:15360'],
-                ], [
-                    'create_logo.image' => 'The logo must be an image.',
-                    'create_logo.mimes' => 'The logo must be a file of type: jpeg, jpg, png, gif, webp.',
-                    'create_logo.max' => 'The logo must not be larger than 15MB.',
-                ]);
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->create_logo = null;
-                foreach ($e->errors() as $key => $messages) {
-                    foreach ($messages as $message) {
-                        $this->addError('create_logo', $message);
-                    }
-                }
-            }
-        }
-    }
-
-    public function updatedEdit_logo()
-    {
-        $this->resetErrorBag();
-        $this->resetValidation();
-        
-        if ($this->edit_logo) {
-            try {
-                $this->validateOnly('edit_logo', [
-                    'edit_logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:15360'],
-                ], [
-                    'edit_logo.image' => 'The logo must be an image.',
-                    'edit_logo.mimes' => 'The logo must be a file of type: jpeg, jpg, png, gif, webp.',
-                    'edit_logo.max' => 'The logo must not be larger than 15MB.',
-                ]);
-            } catch (\Illuminate\Validation\ValidationException $e) {
-                $this->edit_logo = null;
-                foreach ($e->errors() as $key => $messages) {
-                    foreach ($messages as $message) {
-                        $this->addError('edit_logo', $message);
-                    }
-                }
-            }
-        }
-    }
-
     public function removeLogo()
     {
         $this->remove_logo = true;

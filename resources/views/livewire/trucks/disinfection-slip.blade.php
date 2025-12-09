@@ -3,7 +3,7 @@
     $isHatcheryAssigned = Auth::id() === $selectedSlip?->hatchery_guard_id;
     $isReceivingGuard = Auth::id() === $selectedSlip?->received_guard_id;
     $status = $selectedSlip?->status ?? null;
-    // Status: 0 = Pending, 1 = Disinfecting, 2 = Completed
+    // Status: 0 = Ongoing, 1 = Disinfecting, 2 = Completed
 @endphp
 
 <div>
