@@ -8,35 +8,21 @@
 @endphp
 
 <nav x-data="{ open: false }" class="bg-[#FFDBBD] shadow-md rounded-md px-2 sm:px-4 py-2 sm:py-3">
-    <!-- Mobile: Stacked Layout -->
-    <div class="flex flex-col sm:hidden gap-2">
-        <!-- Top Row: Hamburger + Module + Actions -->
-        <div class="flex items-center justify-between gap-2">
-            <div class="flex items-center gap-2 min-w-0 flex-1">
-                <button type="button"
-                    class="hover:cursor-pointer shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-lg bg-white border-2 border-gray-300 text-gray-700 shadow-sm hover:bg-[#EC8B18] hover:border-[#EC8B18] hover:text-white hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#EC8B18] focus:ring-offset-2 transition-all duration-200 cursor-pointer"
-                    x-on:click="open = true" aria-label="Open menu">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
-                <div class="min-w-0 flex-1">
-                    <span class="font-semibold text-gray-800 text-base truncate block">{{ $module }}</span>
-                </div>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
-                {{ $slot }}
-                <x-buttons.nav-button href="{{ url('/') }}" class="text-xs px-2 py-1.5">
-                    Landing
-                </x-buttons.nav-button>
-            </div>
+    <!-- Mobile: Simple Layout - Hamburger + Logo + Farm Name -->
+    <div class="flex items-center justify-between gap-3 sm:hidden">
+        <button type="button"
+            class="hover:cursor-pointer shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-full bg-white border-2 border-gray-200 text-gray-700 shadow-md hover:bg-[#EC8B18] hover:border-[#EC8B18] hover:text-white hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#EC8B18] focus:ring-offset-2 transition-all duration-300 cursor-pointer"
+            x-on:click="open = true" aria-label="Open menu">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+        </button>
+        <div class="flex items-center gap-2.5 flex-1 justify-center min-w-0">
+            <img src="{{ asset('storage/images/logo/BGC.png') }}" alt="Logo" class="h-10 w-10 object-contain shrink-0">
+            <span class="font-bold text-gray-800 text-base truncate">{{ $locationName }}</span>
         </div>
-        <!-- Bottom Row: Logo + Location Name -->
-        <div class="flex items-center gap-2 justify-center">
-            <img src="{{ asset('storage/images/logo/BGC.png') }}" alt="Logo" class="h-6 w-6 object-contain">
-            <span class="font-semibold text-gray-800 text-sm truncate">{{ $locationName }}</span>
-        </div>
+        <div class="w-10"></div> <!-- Spacer to center the logo/name -->
     </div>
 
     <!-- Desktop: Horizontal Layout -->
@@ -44,17 +30,17 @@
         <!-- Left: Hamburger + Module Name + Date -->
         <div class="flex items-center gap-3 min-w-0">
             <button type="button"
-                class="hover:cursor-pointer shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white border-2 border-gray-300 text-gray-700 shadow-sm hover:bg-[#EC8B18] hover:border-[#EC8B18] hover:text-white hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#EC8B18] focus:ring-offset-2 transition-all duration-200 cursor-pointer"
+                class="hover:cursor-pointer shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-full bg-white border-2 border-gray-200 text-gray-700 shadow-md hover:bg-[#EC8B18] hover:border-[#EC8B18] hover:text-white hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#EC8B18] focus:ring-offset-2 transition-all duration-300 cursor-pointer"
                 x-on:click="open = true" aria-label="Open menu">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                 </svg>
             </button>
 
             <div class="flex flex-col transition-all duration-200 min-w-0" :class="open ? 'lg:ml-60' : ''">
                 <span class="font-semibold text-gray-800 text-lg truncate">{{ $module }}</span>
-                <span class="text-sm text-gray-600 hidden md:block">{{ now()->format('F d, Y') }}</span>
+                <span class="text-sm text-gray-600">{{ now()->format('F d, Y') }}</span>
             </div>
         </div>
 
@@ -126,6 +112,11 @@
 
             <!-- User Section -->
             <div class="space-y-3">
+                {{-- Landing Button (Mobile Only) --}}
+                <a href="{{ url('/') }}"
+                    class="sm:hidden hover:cursor-pointer w-full rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 bg-[#FFF7F1] hover:bg-gray-200 hover:shadow-md hover:scale-[1.02] focus:ring-2 focus:ring-[#FFF7F1] transition-all duration-200 cursor-pointer text-center block">
+                    Go to Landing
+                </a>
                 @if (auth()->user()->user_type === 0)
                     <a href="{{ route('user.report') }}"
                         class="hover:cursor-pointer w-full rounded-lg px-3 py-2 text-sm font-semibold text-gray-800 bg-[#FFF7F1] hover:bg-gray-200 hover:shadow-md hover:scale-[1.02] focus:ring-2 focus:ring-[#FFF7F1] transition-all duration-200 cursor-pointer text-center block">
