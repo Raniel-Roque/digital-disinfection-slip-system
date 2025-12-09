@@ -292,7 +292,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                     @if ($showDeleted)
                                         <x-buttons.submit-button wire:click="openRestoreModal({{ $user->id }})"
-                                            color="orange" size="sm" :fullWidth="false">
+                                            color="green" size="sm" :fullWidth="false">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -711,7 +711,7 @@
                                 Cancel
                             </button>
                             <button wire:click="restoreUser"
-                                class="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 hover:cursor-pointer cursor-pointer">
+                                class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 hover:cursor-pointer cursor-pointer">
                                 Restore Admin
                             </button>
                         </div>

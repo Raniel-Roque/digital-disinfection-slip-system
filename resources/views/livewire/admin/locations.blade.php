@@ -378,7 +378,7 @@
 
                                     {{-- Row 1: Choose File Button + Filename | Image Preview --}}
                                     <div class="grid grid-cols-2 gap-4 mb-3">
-                                        <div>
+                                        <div class="min-w-0">
                                             <label
                                                 class="cursor-pointer inline-flex items-center w-full justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor"
@@ -402,8 +402,8 @@
                                                     Clear
                                                 </button>
                                             @elseif ($currentLocation && $currentLocation->attachment_id && $currentLocation->attachment && !$remove_logo)
-                                                <p class="mt-2 text-xs text-gray-500">Current logo:
-                                                    {{ basename($currentLocation->attachment->file_path) }}</p>
+                                                <p class="mt-2 text-xs text-gray-500 break-words">Current logo:
+                                                    <span class="break-words">{{ basename($currentLocation->attachment->file_path) }}</span></p>
                                                 <button wire:click="removeLogo" type="button"
                                                     class="mt-1 text-xs text-red-600 hover:text-red-800">
                                                     Remove Logo
@@ -566,7 +566,7 @@
 
                                     {{-- Row 1: Choose File Button + Filename | Image Preview --}}
                                     <div class="grid grid-cols-2 gap-4 mb-3">
-                                        <div>
+                                        <div class="min-w-0">
                                             <label
                                                 class="cursor-pointer inline-flex items-center w-full justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor"
