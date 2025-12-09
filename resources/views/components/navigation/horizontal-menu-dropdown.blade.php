@@ -50,7 +50,7 @@
         x-transition:leave-end="opacity-0 scale-95"
         @click.away="open = false"
         x-cloak
-        class="fixed w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[9999]"
+        class="fixed w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-9999"
         :style="`top: ${position.top}px; left: ${position.left}px;`">
         <div class="space-y-1">
             {{ $slot }}

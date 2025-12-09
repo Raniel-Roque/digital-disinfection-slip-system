@@ -1,20 +1,30 @@
 <x-layout>
-    <!-- Header -->
-    <header
-        class="bg-linear-to-r from-orange-100 via-orange-50 to-orange-100 shadow-lg p-4 sm:p-6 fixed top-0 left-0 w-full z-20">
-        <div class="flex justify-between items-center">
-            <!-- Logo + Header Text -->
-            <a href="{{ url('/') }}" class="flex items-center space-x-3">
-                <img src="{{ asset('storage/images/logo/BGC.png') }}" alt="Logo" class="h-10 w-auto">
-                <div class="font-bold text-gray-800 text-[clamp(1rem,1.8vw,1.5rem)] leading-none">
-                    Digital Disinfection Slip System
-                </div>
-            </a>
+    <!-- Navbar -->
+    <nav class="bg-[#ffb97f] shadow-md rounded-md px-2 sm:px-4 py-2 sm:py-3 fixed top-0 left-0 w-full z-20">
+        <!-- Mobile: Simple Layout - Logo + Title -->
+        <div class="flex items-center justify-between gap-3 sm:hidden">
+            <div class="flex items-center gap-2.5 flex-1 justify-center min-w-0">
+                <img src="{{ asset('storage/images/logo/BGC.png') }}" alt="Logo" class="h-10 w-10 object-contain shrink-0">
+                <span class="font-bold text-gray-800 text-base truncate">Digital Disinfection Slip System</span>
+            </div>
         </div>
-    </header>
 
-    <!-- Content below header, full height minus header height -->
-    <div class="flex items-center justify-center px-4 min-h-screen pt-12 bg-linear-to-br from-gray-50 to-gray-100">
+        <!-- Desktop: Horizontal Layout -->
+        <div class="hidden sm:flex items-center justify-between gap-3">
+            <!-- Left: Logo + Title + Date -->
+            <div class="flex items-center gap-3 min-w-0">
+                <img src="{{ asset('storage/images/logo/BGC.png') }}" alt="Logo" class="h-12 w-12 object-contain shrink-0">
+                <!-- Title + Date (stacked) -->
+                <div class="flex flex-col">
+                    <span class="font-semibold text-gray-800 text-lg truncate">Digital Disinfection Slip System</span>
+                    <span class="text-sm text-gray-600">{{ now()->format('F d, Y') }}</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Content below navbar, full height minus navbar height -->
+    <div class="flex items-center justify-center px-4 min-h-screen pt-20 sm:pt-24 bg-linear-to-br from-gray-50 to-gray-100">
         <div class="w-full max-w-md md:max-w-lg rounded-xl bg-white shadow-lg ring-1 ring-gray-300 p-10">
             <div class="flex flex-col items-center mb-4">
                 <img src="{{ asset('storage/images/logo/BGC.png') }}" class="h-15 w-auto">

@@ -1,25 +1,19 @@
 <x-layout>
-    <!-- Header -->
-    <header
-        class="bg-linear-to-r from-orange-500 via-orange-400 to-orange-500 shadow-sm p-4 sm:p-6 fixed top-0 left-0 w-full z-20">
-        <div class="flex justify-between items-center">
-            <!-- Logo + Header Text -->
-            <a href="{{ url('/') }}" class="flex items-center space-x-3 hover:cursor-pointer">
-                <img src="{{ asset('storage/images/logo/BGC.png') }}" alt="Logo" class="h-10 w-auto">
-                <div class="font-bold text-gray-800 text-[clamp(1rem,1.8vw,1.5rem)] leading-none">
-                    Digital Disinfection Slip System
-                </div>
-            </a>
-
-            <!-- Login / Dashboard Button -->
-            <div class="whitespace-nowrap">
+    <!-- Navbar -->
+    <nav class="bg-[#ffb97f] shadow-md rounded-md px-2 sm:px-4 py-2 sm:py-3 fixed top-0 left-0 w-full z-20">
+        <!-- Mobile: Simple Layout - Logo + Title + Login Button -->
+        <div class="flex items-center justify-between gap-3 sm:hidden">
+            <div class="flex items-center gap-2.5 flex-1 justify-center min-w-0">
+                <img src="{{ asset('storage/images/logo/BGC.png') }}" alt="Logo" class="h-10 w-10 object-contain shrink-0">
+                <span class="font-bold text-gray-800 text-base truncate">Digital Disinfection Slip System</span>
+            </div>
+            <!-- Login Button (Mobile) -->
+            <div class="shrink-0">
                 @guest
                     <x-buttons.nav-button href="/login">
-                        <span class="hidden sm:inline">Login as admin</span>
                         <span class="sm:hidden">Login</span>
                     </x-buttons.nav-button>
                 @endguest
-
                 @auth
                     <x-buttons.nav-button href="{{ route(auth()->user()->dashboardRoute()) }}">
                         Dashboard
@@ -27,10 +21,37 @@
                 @endauth
             </div>
         </div>
-    </header>
+
+        <!-- Desktop: Horizontal Layout -->
+        <div class="hidden sm:flex items-center justify-between gap-3">
+            <!-- Left: Logo + Title + Date -->
+            <div class="flex items-center gap-3 min-w-0">
+                <img src="{{ asset('storage/images/logo/BGC.png') }}" alt="Logo" class="h-12 w-12 object-contain shrink-0">
+                <!-- Title + Date (stacked) -->
+                <div class="flex flex-col">
+                    <span class="font-semibold text-gray-800 text-lg truncate">Digital Disinfection Slip System</span>
+                    <span class="text-sm text-gray-600">{{ now()->format('F d, Y') }}</span>
+                </div>
+            </div>
+
+            <!-- Right: Login / Dashboard Button -->
+            <div class="flex items-center gap-3 shrink-0 ml-auto">
+                @guest
+                    <x-buttons.nav-button href="/login">
+                        <span class="hidden sm:inline">Login as admin</span>
+                    </x-buttons.nav-button>
+                @endguest
+                @auth
+                    <x-buttons.nav-button href="{{ route(auth()->user()->dashboardRoute()) }}">
+                        Dashboard
+                    </x-buttons.nav-button>
+                @endauth
+            </div>
+        </div>
+    </nav>
 
     <!-- Main Content -->
-    <main class="flex-1 px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-8 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
+    <main class="flex-1 px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-8 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
         <div class="max-w-7xl mx-auto">
             <!-- Flash Message -->
             @if (session('status'))
