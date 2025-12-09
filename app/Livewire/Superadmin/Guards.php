@@ -603,7 +603,7 @@ class Guards extends Component
 
     /**
      * Generate unique username based on first name and last name
-     * Format: First letter of first name + Full last name
+     * Format: First letter of first name + First word of last name
      * If exists, append increment: JDoe, JDoe1, JDoe2, etc.
      * 
      * @param string $firstName
@@ -617,13 +617,16 @@ class Guards extends Component
         $firstName = trim($firstName);
         $lastName = trim($lastName);
 
-        // Get first letter of first name (uppercase) and full last name
+        // Get first letter of first name (uppercase) and first word of last name
         if (empty($firstName) || empty($lastName)) {
             return '';
         }
 
         $firstLetter = strtoupper(substr($firstName, 0, 1));
-        $username = $firstLetter . $lastName;
+        // Get first word of last name (handles cases like "De Guzman" or "Apple de apple")
+        $lastNameWords = preg_split('/\s+/', $lastName);
+        $firstWordOfLastName = $lastNameWords[0];
+        $username = $firstLetter . $firstWordOfLastName;
 
         // Check if username exists (excluding current user if updating)
         $counter = 0;
