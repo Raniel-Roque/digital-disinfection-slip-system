@@ -583,8 +583,7 @@ class DisinfectionSlip extends Component
             return;
         }
         
-        $this->isSubmitting = true;
-        
+        // Validate first before setting isSubmitting flag
         $this->validate([
             'reportDescription' => 'required|string|min:10|max:1000',
         ], [
@@ -592,6 +591,9 @@ class DisinfectionSlip extends Component
             'reportDescription.min' => 'The description must be at least 10 characters.',
             'reportDescription.max' => 'The description must not exceed 1000 characters.',
         ]);
+        
+        // Only set isSubmitting after validation passes
+        $this->isSubmitting = true;
         
         try {
             $report = Report::create([
@@ -611,13 +613,16 @@ class DisinfectionSlip extends Component
             $slipId = $this->selectedSlip->slip_id;
             $this->dispatch('toast', message: "Report submitted successfully for slip {$slipId}.", type: 'success');
             
-            $this->showReportModal = false;
-            $this->reportDescription = '';
+            $this->closeReportModal();
         } catch (\Exception $e) {
             Log::error('Failed to create report: ' . $e->getMessage());
             $this->dispatch('toast', message: 'Failed to submit report. Please try again.', type: 'error');
-        } finally {
             $this->isSubmitting = false;
+        } finally {
+            // Ensure isSubmitting is reset even if there's an error
+            if (!$this->showReportModal) {
+                $this->isSubmitting = false;
+            }
         }
     }
     
@@ -625,6 +630,18 @@ class DisinfectionSlip extends Component
     {
         $this->showReportModal = false;
         $this->reportDescription = '';
+        $this->isSubmitting = false;
+        $this->resetValidation('reportDescription');
+    }
+    
+    public function updatedShowReportModal($value)
+    {
+        // When modal is closed (via Alpine.js backdrop/close button), reset the form
+        if (!$value) {
+            $this->reportDescription = '';
+            $this->isSubmitting = false;
+            $this->resetValidation('reportDescription');
+        }
     }
 
     public function closeDetailsModal()
