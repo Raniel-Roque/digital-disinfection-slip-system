@@ -117,7 +117,7 @@
 
                 {{-- Attachment --}}
                 @if (!$isEditing)
-                    <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
+                    <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if ($status == 2 && $selectedSlip->completed_at) bg-gray-100 @else bg-white @endif">
                         <div class="font-semibold text-gray-500">Attachment:</div>
                         <div class="text-gray-900">
                         @if ($selectedSlip->attachment)
@@ -138,7 +138,7 @@
                 @endif
 
                 {{-- Reason --}}
-                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if ($isEditing && $status == 2 && $selectedSlip->completed_at) bg-gray-100 @else bg-white @endif">
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if ($status == 2 && $selectedSlip->completed_at && !$isEditing) bg-white @elseif ($status == 2 && $selectedSlip->completed_at && $isEditing) bg-gray-100 @elseif ($isEditing) bg-white @else bg-gray-100 @endif">
                     <div class="font-semibold text-gray-500">Reason:</div>
                     <div class="text-gray-900 wrap-break-words min-w-0" style="word-break: break-word; overflow-wrap: break-word;">
                         @if ($isEditing)

@@ -133,6 +133,7 @@ class Trucks extends Component
     public $editHatcheryGuardId; // For status 0
     public $editReceivedGuardId = null;
     public $editReasonForDisinfection;
+    public $editStatus;
     
     // Search properties for edit modal
     public $searchEditTruck = '';
@@ -1043,6 +1044,7 @@ class Trucks extends Component
         $this->editHatcheryGuardId = $this->selectedSlip->hatchery_guard_id;
         $this->editReceivedGuardId = $this->selectedSlip->received_guard_id;
         $this->editReasonForDisinfection = $this->selectedSlip->reason_for_disinfection;
+        $this->editStatus = $this->selectedSlip->status;
         
         // Reset search properties
         $this->searchEditTruck = '';
@@ -1053,6 +1055,21 @@ class Trucks extends Component
         $this->searchEditReceivedGuard = '';
         
         $this->showEditModal = true;
+    }
+    
+    public function updatedEditStatus($value)
+    {
+        // If status is changed to 0 (Ongoing), clear receiving guard if it's set
+        // If status is changed to 1 or 2, ensure receiving guard is set (validation will handle this)
+        if ($value == 0) {
+            // Status 0: Receiving guard is optional, so we can clear it
+            // But only if it was previously set (don't clear if it was already null)
+            // Actually, let's keep it as is - user can manually clear it if needed
+        } elseif ($value == 1 || $value == 2) {
+            // Status 1 or 2: Receiving guard is required
+            // If it's null, we'll let validation handle the error
+            // Don't auto-set it, let user choose
+        }
     }
 
     public function closeEditModal()
@@ -1082,6 +1099,7 @@ class Trucks extends Component
         $this->editHatcheryGuardId = null;
         $this->editReceivedGuardId = null;
         $this->editReasonForDisinfection = null;
+        $this->editStatus = null;
         $this->searchEditTruck = '';
         $this->searchEditOrigin = '';
         $this->searchEditDestination = '';
@@ -1103,7 +1121,8 @@ class Trucks extends Component
                $this->editDriverId != $this->selectedSlip->driver_id ||
                $this->editHatcheryGuardId != $this->selectedSlip->hatchery_guard_id ||
                $this->editReceivedGuardId != $this->selectedSlip->received_guard_id ||
-               $this->editReasonForDisinfection != $this->selectedSlip->reason_for_disinfection;
+               $this->editReasonForDisinfection != $this->selectedSlip->reason_for_disinfection ||
+               $this->editStatus != $this->selectedSlip->status;
     }
 
     public function getHasChangesProperty()
@@ -1124,9 +1143,17 @@ class Trucks extends Component
             return;
         }
 
-        $status = $this->selectedSlip->status;
+        // Use the edited status, not the current status
+        $status = $this->editStatus;
         
-        // Build validation rules based on status
+        // Validate status
+        $this->validate([
+            'editStatus' => 'required|in:0,1,2',
+        ], [], [
+            'editStatus' => 'Status',
+        ]);
+        
+        // Build validation rules based on selected status
         $rules = [
             'editTruckId' => 'required|exists:trucks,id',
             'editDestinationId' => [
@@ -1197,8 +1224,8 @@ class Trucks extends Component
             ];
         }
         
-        // Status 1 (Disinfecting): Origin, Hatchery Guard, and Receiving Guard are all editable
-        if ($status == 1) {
+        // Status 1 (Disinfecting) or 2 (Completed): Origin, Hatchery Guard, and Receiving Guard are all required
+        if ($status == 1 || $status == 2) {
             $rules['editLocationId'] = [
                 'required',
                 'exists:locations,id',
@@ -1258,6 +1285,7 @@ class Trucks extends Component
             'editHatcheryGuardId' => 'Hatchery Guard',
             'editReceivedGuardId' => 'Receiving Guard',
             'editReasonForDisinfection' => 'Reason for Disinfection',
+            'editStatus' => 'Status',
         ]);
 
         // Check if there are any changes
@@ -1272,7 +1300,7 @@ class Trucks extends Component
         // Capture old values for logging
         $oldValues = $this->selectedSlip->only([
             'truck_id', 'location_id', 'destination_id', 'driver_id',
-            'hatchery_guard_id', 'received_guard_id', 'reason_for_disinfection'
+            'hatchery_guard_id', 'received_guard_id', 'reason_for_disinfection', 'status'
         ]);
 
         // Build update data based on status
@@ -1281,20 +1309,21 @@ class Trucks extends Component
             'destination_id' => $this->editDestinationId,
             'driver_id' => $this->editDriverId,
             'reason_for_disinfection' => $sanitizedReason,
+            'status' => $this->editStatus,
         ];
 
-        // Status 0: Update origin and hatchery guard
+        // Status 0: Update origin and hatchery guard, receiving guard is optional
         if ($status == 0) {
             $updateData['location_id'] = $this->editLocationId;
             $updateData['hatchery_guard_id'] = $this->editHatcheryGuardId;
-            $updateData['received_guard_id'] = $this->editReceivedGuardId;
+            $updateData['received_guard_id'] = $this->editReceivedGuardId; // Can be null
         }
         
-        // Status 1: Update origin, hatchery guard, and receiving guard
-        if ($status == 1) {
+        // Status 1 or 2: Update origin, hatchery guard, and receiving guard (required)
+        if ($status == 1 || $status == 2) {
             $updateData['location_id'] = $this->editLocationId;
             $updateData['hatchery_guard_id'] = $this->editHatcheryGuardId;
-            $updateData['received_guard_id'] = $this->editReceivedGuardId;
+            $updateData['received_guard_id'] = $this->editReceivedGuardId; // Required, validated above
         }
 
         $this->selectedSlip->update($updateData);
@@ -1316,7 +1345,7 @@ class Trucks extends Component
         // Log the update
         $newValues = $this->selectedSlip->only([
             'truck_id', 'location_id', 'destination_id', 'driver_id',
-            'hatchery_guard_id', 'received_guard_id', 'reason_for_disinfection'
+            'hatchery_guard_id', 'received_guard_id', 'reason_for_disinfection', 'status'
         ]);
         Logger::update(
             DisinfectionSlipModel::class,
@@ -1362,7 +1391,7 @@ class Trucks extends Component
         
         if ($deleted === 0) {
             // Slip was already deleted by another process
-            $this->showDeleteModal = false;
+            $this->showDeleteConfirmation = false;
             $this->dispatch('toast', message: 'This slip was already deleted by another administrator. Please refresh the page.', type: 'error');
             return;
         }
