@@ -30,6 +30,14 @@ class MiscReport extends Component
                 'description' => $this->description,
             ]);
 
+            // Log the miscellaneous report creation
+            Logger::create(
+                Report::class,
+                $report->id,
+                "Submitted miscellaneous report",
+                $report->only(['user_id', 'slip_id', 'description'])
+            );
+
             $this->dispatch('toast', message: 'Report submitted successfully. It will be reviewed by administrators.', type: 'success');
             
             $this->description = '';

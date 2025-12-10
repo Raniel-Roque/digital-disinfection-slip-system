@@ -8,6 +8,7 @@ use App\Models\DisinfectionSlip;
 use App\Models\Truck;
 use App\Models\Location;
 use App\Models\Driver;
+use App\Services\Logger;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
 
@@ -300,6 +301,14 @@ class TruckList extends Component
             'status' => 0, // Ongoing
             'slip_id' => $this->generateSlipId(),
         ]);
+
+        // Log the create action
+        Logger::create(
+            DisinfectionSlip::class,
+            $slip->id,
+            "Created disinfection slip {$slip->slip_id}",
+            $slip->only(['truck_id', 'destination_id', 'driver_id', 'location_id', 'status'])
+        );
 
         $this->dispatch('toast', message: 'Disinfection slip created successfully!', type: 'success');        
         

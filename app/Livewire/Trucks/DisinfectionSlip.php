@@ -379,6 +379,15 @@ class DisinfectionSlip extends Component
 
         $slipId = $this->selectedSlip->slip_id;
         
+        // Log the start disinfecting action
+        Logger::update(
+            DisinfectionSlipModel::class,
+            $this->selectedSlip->id,
+            "Started disinfecting slip {$slipId}",
+            ['status' => 0, 'received_guard_id' => null],
+            ['status' => 1, 'received_guard_id' => Auth::id()]
+        );
+        
         $this->showDisinfectingConfirmation = false;
         $this->dispatch('toast', message: "{$slipId} disinfection has been started.", type: 'success');
         $this->dispatch('slip-updated');
@@ -412,6 +421,15 @@ class DisinfectionSlip extends Component
 
         $slipId = $this->selectedSlip->slip_id;
         
+        // Log the complete disinfection action
+        Logger::update(
+            DisinfectionSlipModel::class,
+            $this->selectedSlip->id,
+            "Completed disinfection slip {$slipId}",
+            ['status' => 1, 'completed_at' => null],
+            ['status' => 2, 'completed_at' => now()]
+        );
+        
         $this->showCompleteConfirmation = false;
         $this->dispatch('toast', message: "{$slipId} disinfection has been completed.", type: 'success');
         $this->dispatch('slip-updated');
@@ -434,9 +452,19 @@ class DisinfectionSlip extends Component
         }
 
         $slipId = $this->selectedSlip->slip_id;
+        $slipIdForLog = $this->selectedSlip->id;
+        $oldValues = $this->selectedSlip->only(['truck_id', 'destination_id', 'driver_id', 'location_id', 'status', 'slip_id']);
         
         // Soft delete the slip (sets deleted_at timestamp)
         $this->selectedSlip->delete();
+        
+        // Log the delete action
+        Logger::delete(
+            DisinfectionSlipModel::class,
+            $slipIdForLog,
+            "Deleted disinfection slip {$slipId}",
+            $oldValues
+        );
         
         // Close all modals
         $this->showDeleteConfirmation = false;
@@ -505,6 +533,28 @@ class DisinfectionSlip extends Component
 
         $slipId = $this->selectedSlip->slip_id;
         
+        // Log the update action
+        $oldValues = [
+            'truck_id' => $this->originalValues['truck_id'] ?? null,
+            'destination_id' => $this->originalValues['destination_id'] ?? null,
+            'driver_id' => $this->originalValues['driver_id'] ?? null,
+            'reason_for_disinfection' => $this->originalValues['reason_for_disinfection'] ?? null,
+        ];
+        $newValues = [
+            'truck_id' => $this->truck_id,
+            'destination_id' => $this->destination_id,
+            'driver_id' => $this->driver_id,
+            'reason_for_disinfection' => $sanitizedReason,
+        ];
+        
+        Logger::update(
+            DisinfectionSlipModel::class,
+            $this->selectedSlip->id,
+            "Updated disinfection slip {$slipId}",
+            $oldValues,
+            $newValues
+        );
+        
         $this->isEditing = false;
         $this->originalValues = [];
         $this->dispatch('toast', message: "{$slipId} has been updated.", type: 'success');
@@ -549,6 +599,14 @@ class DisinfectionSlip extends Component
                 'slip_id' => $this->selectedSlip->id,
                 'description' => $this->reportDescription,
             ]);
+            
+            // Log the report creation
+            Logger::create(
+                Report::class,
+                $report->id,
+                "Submitted report for slip {$this->selectedSlip->slip_id}",
+                $report->only(['user_id', 'slip_id', 'description'])
+            );
             
             $slipId = $this->selectedSlip->slip_id;
             $this->dispatch('toast', message: "Report submitted successfully for slip {$slipId}.", type: 'success');
