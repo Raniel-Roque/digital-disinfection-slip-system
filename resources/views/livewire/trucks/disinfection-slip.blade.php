@@ -309,59 +309,50 @@
     <x-modals.add-attachment show="showAddAttachmentModal" />
 
     {{-- Report Modal --}}
-    <x-modals.modal-template show="showReportModal" title="REPORT DISINFECTION SLIP?" max-width="max-w-lg">
-        <div class="py-4">
-            <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div class="flex items-start">
-                    <svg class="w-5 h-5 text-yellow-600 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
+    <x-modals.modal-template show="showReportModal" title="REPORT DISINFECTION SLIP" max-width="max-w-3xl"
+        header-class="border-t-4 border-t-red-500 bg-red-50">
+        @if ($selectedSlip)
+            {{-- Sub Header --}}
+            <div class="border-b border-gray-200 px-6 py-2 bg-gray-50 -mx-6 -mt-6 mb-2">
+                <div class="grid grid-cols-2 gap-4 items-start text-xs">
                     <div>
-                        <p class="text-sm font-semibold text-yellow-800 mb-1">Warning</p>
-                        <p class="text-sm text-yellow-700">
-                            You are about to report this disinfection slip. Please provide a detailed reason for your
-                            report.
-                            This will be reviewed by administrators.
-                        </p>
+                        <div class="font-semibold text-gray-500 mb-0.5">Date:</div>
+                        <div class="text-gray-900">{{ $selectedSlip->created_at->format('M d, Y') }}</div>
+                    </div>
+                    <div>
+                        <div class="font-semibold text-gray-500 mb-0.5">Slip No:</div>
+                        <div class="text-gray-900 font-semibold">{{ $selectedSlip->slip_id }}</div>
                     </div>
                 </div>
             </div>
 
-            <div class="mb-4">
-                <p class="text-sm text-gray-700 mb-2">
-                    <span class="font-semibold">Slip No:</span> {{ $selectedSlip?->slip_id ?? 'N/A' }}
-                </p>
-                <p class="text-sm text-gray-700">
-                    <span class="font-semibold">Plate No:</span> {{ $selectedSlip?->truck?->plate_number ?? 'N/A' }}
-                </p>
+            {{-- Body --}}
+            <div class="space-y-0 -mx-6">
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
+                    <div class="font-semibold text-gray-500">Description:</div>
+                    <div class="text-gray-900">
+                        <textarea wire:model="reportDescription" rows="6"
+                            class="w-full border rounded px-2 py-2 text-sm border-gray-300 focus:border-red-500 focus:ring-red-500"
+                            placeholder="Please describe the issue or reason for reporting this slip..."></textarea>
+                        @error('reportDescription')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                        <p class="mt-1 text-xs text-gray-500">Minimum 10 characters required.</p>
+                    </div>
+                </div>
             </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Reason / Description <span class="text-red-500">*</span>
-                </label>
-                <textarea wire:model="reportDescription" rows="5"
-                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 sm:text-sm"
-                    placeholder="Please describe the issue or reason for reporting this slip..."></textarea>
-                @error('reportDescription')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-                <p class="mt-1 text-xs text-gray-500">Minimum 10 characters required.</p>
-            </div>
-        </div>
+        @endif
 
         <x-slot name="footer">
             <x-buttons.submit-button wire:click="closeReportModal" color="white" wire:loading.attr="disabled" wire:target="submitReport">
                 Cancel
             </x-buttons.submit-button>
-            <x-buttons.submit-button wire:click="submitReport" color="red" wire:loading.attr="disabled" wire:target="submitReport">
+            <x-buttons.submit-button wire:click.prevent="submitReport" color="red" wire:loading.attr="disabled" wire:target="submitReport"
+                :disabled="$isSubmitting ?? false">
                 <span wire:loading.remove wire:target="submitReport">Submit Report</span>
                 <span wire:loading wire:target="submitReport" class="inline-flex items-center gap-2">
                     Submitting...
                 </span>
-                Submit Report
             </x-buttons.submit-button>
         </x-slot>
     </x-modals.modal-template>

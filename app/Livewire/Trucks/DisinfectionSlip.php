@@ -35,6 +35,7 @@ class DisinfectionSlip extends Component
     
     // Protection flags
     public $isDeleting = false;
+    public $isSubmitting = false;
     
     // Type property: 'incoming' or 'outgoing'
     public $type;
@@ -523,10 +524,16 @@ class DisinfectionSlip extends Component
     
     public function submitReport()
     {
+        if ($this->isSubmitting) {
+            return;
+        }
+
         if (!$this->selectedSlip) {
             $this->dispatch('toast', message: 'No slip selected.', type: 'error');
             return;
         }
+        
+        $this->isSubmitting = true;
         
         $this->validate([
             'reportDescription' => 'required|string|min:10|max:1000',
@@ -551,6 +558,8 @@ class DisinfectionSlip extends Component
         } catch (\Exception $e) {
             Log::error('Failed to create report: ' . $e->getMessage());
             $this->dispatch('toast', message: 'Failed to submit report. Please try again.', type: 'error');
+        } finally {
+            $this->isSubmitting = false;
         }
     }
     
