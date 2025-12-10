@@ -480,7 +480,10 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                     <div class="flex items-center justify-center gap-2">
                                         @if ($showDeleted ?? false)
-                                            <button wire:click="restoreSlip({{ $slip->id }})" wire:loading.attr="disabled" wire:target="restoreSlip({{ $slip->id }})"
+                                            <button wire:click.prevent="restoreSlip({{ $slip->id }})" 
+                                                wire:loading.attr="disabled" 
+                                                wire:target="restoreSlip({{ $slip->id }})"
+                                                :disabled="$isRestoring"
                                                 class="hover:cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed">
                                                 <span wire:loading.remove wire:target="restoreSlip({{ $slip->id }})" class="inline-flex items-center gap-2">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

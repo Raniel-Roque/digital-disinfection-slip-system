@@ -373,6 +373,40 @@
                                         Disinfection Slips</span>
                                 </div>
                             </a>
+
+                            <a href="{{ route('admin.reports') }}"
+                                class="group block p-4 bg-linear-to-br from-red-50 to-red-100/50 rounded-2xl border-2 border-red-200 hover:border-red-400 hover:shadow-md hover:cursor-pointer transition-all duration-300">
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="p-2.5 bg-red-200 rounded-xl group-hover:bg-red-300 transition-colors">
+                                        <svg class="h-5 w-5 text-red-700" fill="none" viewBox="0 0 24 24"
+                                            stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+                                        </svg>
+                                    </div>
+                                    <span
+                                        class="font-semibold text-gray-800 group-hover:text-red-700 transition-colors">View
+                                        Reports</span>
+                                </div>
+                            </a>
+
+                            <a href="{{ route('admin.audit-trail') }}"
+                                class="group block p-4 bg-linear-to-br from-gray-50 to-gray-100/50 rounded-2xl border-2 border-gray-200 hover:border-gray-400 hover:shadow-md hover:cursor-pointer transition-all duration-300">
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="p-2.5 bg-gray-200 rounded-xl group-hover:bg-gray-300 transition-colors">
+                                        <svg class="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24"
+                                            stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                    </div>
+                                    <span
+                                        class="font-semibold text-gray-800 group-hover:text-gray-700 transition-colors">View
+                                        Audit Trail</span>
+                                </div>
+                            </a>
                         </div>
                     </div>
                 </div>

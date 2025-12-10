@@ -385,7 +385,7 @@
                     Cancel
                 </x-buttons.submit-button>
 
-                <x-buttons.submit-button wire:click="saveEdit" color="green" wire:loading.attr="disabled" wire:target="saveEdit"
+                <x-buttons.submit-button wire:click.prevent="saveEdit" color="green" wire:loading.attr="disabled" wire:target="saveEdit"
                     :disabled="!$this->hasChanges">
                     <span wire:loading.remove wire:target="saveEdit">Save Changes</span>
                     <span wire:loading wire:target="saveEdit" class="inline-flex items-center gap-2">

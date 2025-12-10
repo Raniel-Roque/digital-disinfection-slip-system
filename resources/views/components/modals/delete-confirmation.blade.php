@@ -62,7 +62,7 @@
                 <x-buttons.submit-button wire:click="$set('{{ $show }}', false)" color="white" wire:loading.attr="disabled" wire:target="{{ $onConfirm }}">
                     {{ $cancelText }}
                 </x-buttons.submit-button>
-                <x-buttons.submit-button wire:click="{{ $onConfirm }}" color="red" wire:loading.attr="disabled" wire:target="{{ $onConfirm }}">
+                <x-buttons.submit-button wire:click.prevent="{{ $onConfirm }}" color="red" wire:loading.attr="disabled" wire:target="{{ $onConfirm }}">
                     <span wire:loading.remove wire:target="{{ $onConfirm }}">{{ $confirmText }}</span>
                     <span wire:loading wire:target="{{ $onConfirm }}" class="inline-flex items-center gap-2">
                         Deleting...

@@ -270,7 +270,8 @@
                                         @endif
 
                                         @if ($showDeleted)
-                                            <button wire:click="restoreReport({{ $report->id }})" wire:loading.attr="disabled" wire:target="restoreReport({{ $report->id }})"
+                                            <button wire:click.prevent="restoreReport({{ $report->id }})" wire:loading.attr="disabled" wire:target="restoreReport({{ $report->id }})"
+                                                :disabled="$isRestoring"
                                                 class="hover:cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed">
                                                 <span wire:loading.remove wire:target="restoreReport({{ $report->id }})" class="inline-flex items-center gap-2">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor"
@@ -432,12 +433,14 @@
                         </x-buttons.submit-button>
 
                         @if (!$selectedReport->resolved_at)
-                            <x-buttons.submit-button wire:click="resolveReport" color="green" wire:loading.attr="disabled" wire:target="resolveReport">
+                            <x-buttons.submit-button wire:click.prevent="resolveReport" color="green" wire:loading.attr="disabled" wire:target="resolveReport"
+                                :disabled="$isResolving">
                                 <span wire:loading.remove wire:target="resolveReport">Resolve</span>
                                 <span wire:loading wire:target="resolveReport">Resolving...</span>
                             </x-buttons.submit-button>
                         @else
-                            <x-buttons.submit-button wire:click="unresolveReport" color="orange" wire:loading.attr="disabled" wire:target="unresolveReport">
+                            <x-buttons.submit-button wire:click.prevent="unresolveReport" color="orange" wire:loading.attr="disabled" wire:target="unresolveReport"
+                                :disabled="$isResolving">
                                 <span wire:loading.remove wire:target="unresolveReport">Unresolve</span>
                                 <span wire:loading wire:target="unresolveReport">Unresolving...</span>
                             </x-buttons.submit-button>

@@ -367,12 +367,14 @@
                         </x-buttons.submit-button>
 
                         @if (!$selectedReport->resolved_at)
-                            <x-buttons.submit-button wire:click="resolveReport" color="green" wire:loading.attr="disabled" wire:target="resolveReport">
+                            <x-buttons.submit-button wire:click.prevent="resolveReport" color="green" wire:loading.attr="disabled" wire:target="resolveReport"
+                                :disabled="$isResolving">
                                 <span wire:loading.remove wire:target="resolveReport">Resolve</span>
                                 <span wire:loading wire:target="resolveReport">Resolving...</span>
                             </x-buttons.submit-button>
                         @else
-                            <x-buttons.submit-button wire:click="unresolveReport" color="orange" wire:loading.attr="disabled" wire:target="unresolveReport">
+                            <x-buttons.submit-button wire:click.prevent="unresolveReport" color="orange" wire:loading.attr="disabled" wire:target="unresolveReport"
+                                :disabled="$isResolving">
                                 <span wire:loading.remove wire:target="unresolveReport">Unresolve</span>
                                 <span wire:loading wire:target="unresolveReport">Unresolving...</span>
                             </x-buttons.submit-button>

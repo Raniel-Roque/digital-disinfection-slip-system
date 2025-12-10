@@ -269,8 +269,9 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                     @if ($showDeleted)
-                                        <x-buttons.submit-button wire:click="restoreDriver({{ $driver->id }})"
-                                            color="green" size="sm" :fullWidth="false" wire:loading.attr="disabled" wire:target="restoreDriver({{ $driver->id }})">
+                                        <x-buttons.submit-button wire:click.prevent="restoreDriver({{ $driver->id }})"
+                                            color="green" size="sm" :fullWidth="false" wire:loading.attr="disabled" wire:target="restoreDriver({{ $driver->id }})"
+                                            :disabled="$isRestoring">
                                             <span wire:loading.remove wire:target="restoreDriver({{ $driver->id }})" class="inline-flex items-center gap-1.5">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -440,9 +441,9 @@
                                 class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                                 Cancel
                             </button>
-                            <button wire:click="updateDriver" wire:loading.attr="disabled" wire:target="updateDriver"
+                            <button wire:click.prevent="updateDriver" wire:loading.attr="disabled" wire:target="updateDriver"
                                 class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                @if(!$this->hasChanges) disabled @endif>
+                                :disabled="!$this->hasChanges">
                                 <span wire:loading.remove wire:target="updateDriver">Save Changes</span>
                                 <span wire:loading wire:target="updateDriver" class="inline-flex items-center gap-2">
                                     Saving...
@@ -588,7 +589,7 @@
                                 class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                                 Cancel
                             </button>
-                            <button wire:click="createDriver" wire:loading.attr="disabled" wire:target="createDriver"
+                            <button wire:click.prevent="createDriver" wire:loading.attr="disabled" wire:target="createDriver"
                                 class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span wire:loading.remove wire:target="createDriver">Create Driver</span>
                                 <span wire:loading wire:target="createDriver" class="inline-flex items-center gap-2">
