@@ -32,6 +32,12 @@
             margin: 5px 0;
             color: #666;
         }
+
+        .header-logo {
+            max-height: 60px;
+            width: auto;
+            margin-bottom: 15px;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -85,7 +91,11 @@
         <button class="btn btn-close hover:cursor-pointer" onclick="window.close()">Close</button>
     </div>
 
+    @php
+        $defaultLogo = \App\Models\Setting::where('setting_name', 'default_location_logo')->value('value') ?? 'images/logo/BGC.png';
+    @endphp
     <div class="header">
+        <img src="{{ asset('storage/' . $defaultLogo) }}" alt="Farm Logo" class="header-logo">
         <h1>Admins Report</h1>
         <p>Generated on: {{ date('F d, Y h:i A') }}</p>
         
