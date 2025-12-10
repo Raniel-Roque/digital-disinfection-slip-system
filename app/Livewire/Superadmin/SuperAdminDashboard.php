@@ -26,6 +26,8 @@ class SuperAdminDashboard extends Component
             'total_plate_numbers' => $this->getPlateNumbersCount(),
             'total_locations' => $this->getLocationsCount(),
             'unresolved_reports' => $this->getUnresolvedReportsCount(),
+            'incoming_trucks_today' => $this->getIncomingTrucksTodayCount(),
+            'outgoing_trucks_today' => $this->getOutgoingTrucksTodayCount(),
         ];
     }
 
@@ -124,6 +126,28 @@ class SuperAdminDashboard extends Component
     private function getUnresolvedReportsCount()
     {
         return Report::whereNull('resolved_at')
+            ->whereNull('deleted_at')
+            ->count();
+    }
+
+    /**
+     * Get count of incoming trucks today (status 0 - Ongoing)
+     */
+    private function getIncomingTrucksTodayCount()
+    {
+        return DisinfectionSlip::whereDate('created_at', Carbon::today())
+            ->where('status', 0)
+            ->whereNull('deleted_at')
+            ->count();
+    }
+
+    /**
+     * Get count of outgoing trucks today (status 0 or 1 - Ongoing or Disinfecting)
+     */
+    private function getOutgoingTrucksTodayCount()
+    {
+        return DisinfectionSlip::whereDate('created_at', Carbon::today())
+            ->whereIn('status', [0, 1])
             ->whereNull('deleted_at')
             ->count();
     }

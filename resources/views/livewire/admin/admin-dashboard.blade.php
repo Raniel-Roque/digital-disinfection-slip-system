@@ -267,6 +267,75 @@
                         </div>
                     </div>
 
+                    <!-- Today's Trucks Section -->
+                    <div class="bg-white rounded-3xl shadow-lg border border-gray-200 p-6 lg:p-8">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-3">
+                                <div class="p-3 bg-emerald-100 rounded-xl">
+                                    <svg class="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-xl font-bold text-gray-800">Today's Trucks</h2>
+                                    <p class="text-sm text-gray-500">Incoming and outgoing trucks for today</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Incoming Trucks Today -->
+                            <a href="{{ route('admin.trucks') }}" wire:poll class="group">
+                                <div
+                                    class="p-4 bg-linear-to-br from-emerald-50 to-emerald-100/50 rounded-2xl border-2 border-emerald-200 hover:border-emerald-400 transition-all duration-300 hover:shadow-md cursor-pointer">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="shrink-0 p-3 bg-emerald-200 rounded-xl group-hover:bg-emerald-300 transition-colors">
+                                            <svg class="h-6 w-6 text-emerald-700" fill="none" viewBox="0 0 24 24"
+                                                stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p
+                                                class="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-0.5">
+                                                Incoming Trucks Today</p>
+                                            <p class="text-3xl font-bold text-gray-900">
+                                                {{ number_format($this->stats['incoming_trucks_today']) }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+
+                            <!-- Outgoing Trucks Today -->
+                            <a href="{{ route('admin.trucks') }}" wire:poll class="group">
+                                <div
+                                    class="p-4 bg-linear-to-br from-rose-50 to-rose-100/50 rounded-2xl border-2 border-rose-200 hover:border-rose-400 transition-all duration-300 hover:shadow-md cursor-pointer">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="shrink-0 p-3 bg-rose-200 rounded-xl group-hover:bg-rose-300 transition-colors">
+                                            <svg class="h-6 w-6 text-rose-700" fill="none" viewBox="0 0 24 24"
+                                                stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p
+                                                class="text-xs font-semibold text-rose-700 uppercase tracking-wide mb-0.5">
+                                                Outgoing Trucks Today</p>
+                                            <p class="text-3xl font-bold text-gray-900">
+                                                {{ number_format($this->stats['outgoing_trucks_today']) }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- Right Column: Quick Actions (Takes 1 column on desktop) -->
