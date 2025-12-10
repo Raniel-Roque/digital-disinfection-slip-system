@@ -407,6 +407,15 @@ class Guards extends Component
         ]);
 
         $guardName = $this->getGuardFullName($user);
+        
+        // Log the password reset as an update
+        Logger::update(
+            User::class,
+            $user->id,
+            "Reset password for guard {$guardName}",
+            ['password' => '[hidden]'],
+            ['password' => '[reset]']
+        );
 
         $this->showResetPasswordModal = false;
         $this->reset('selectedUserId');

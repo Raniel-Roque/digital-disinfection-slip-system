@@ -404,6 +404,15 @@ class Admins extends Component
         ]);
 
         $adminName = $this->getAdminFullName($user);
+        
+        // Log the password reset as an update
+        Logger::update(
+            User::class,
+            $user->id,
+            "Reset password for admin {$adminName}",
+            ['password' => '[hidden]'],
+            ['password' => '[reset]']
+        );
 
         $this->showResetPasswordModal = false;
         $this->reset('selectedUserId');

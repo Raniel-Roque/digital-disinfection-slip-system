@@ -20,7 +20,7 @@
                         </div>
                         <input type="text" wire:model.live="search"
                             class="block w-full pl-10 pr-24 py-2.5 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                            placeholder="Search by user, description...">
+                            placeholder="Search...">
                         
                         {{-- Right Side Buttons Container --}}
                         <div class="absolute inset-y-0 right-0 flex items-center pr-2 gap-1">

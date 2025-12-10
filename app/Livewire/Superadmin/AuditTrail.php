@@ -371,11 +371,35 @@ class AuditTrail extends Component
         // Search
         if (!empty($this->search)) {
             $searchTerm = trim($this->search);
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('description', 'like', '%' . $searchTerm . '%')
-                  ->orWhere('user_first_name', 'like', '%' . $searchTerm . '%')
-                  ->orWhere('user_last_name', 'like', '%' . $searchTerm . '%')
-                  ->orWhere('user_username', 'like', '%' . $searchTerm . '%');
+            $escapedSearchTerm = addcslashes($searchTerm, '%_\\');
+            
+            // Find model types that match the search term (by readable label)
+            $matchingModelTypes = [];
+            foreach ($this->availableModelTypes as $modelType => $label) {
+                if (stripos($label, $searchTerm) !== false) {
+                    $matchingModelTypes[] = $modelType;
+                }
+            }
+            
+            $query->where(function ($q) use ($escapedSearchTerm, $matchingModelTypes) {
+                // Search username
+                $q->where('user_username', 'like', '%' . $escapedSearchTerm . '%')
+                  // Search full name (first, middle, last) - similar to guards
+                  ->orWhereRaw("CONCAT(COALESCE(user_first_name, ''), ' ', COALESCE(user_middle_name, ''), ' ', COALESCE(user_last_name, '')) LIKE ?", ['%' . $escapedSearchTerm . '%'])
+                  // Search individual name fields
+                  ->orWhere('user_first_name', 'like', '%' . $escapedSearchTerm . '%')
+                  ->orWhere('user_middle_name', 'like', '%' . $escapedSearchTerm . '%')
+                  ->orWhere('user_last_name', 'like', '%' . $escapedSearchTerm . '%')
+                  // Search model type (raw class name)
+                  ->orWhere('model_type', 'like', '%' . $escapedSearchTerm . '%')
+                  // Search model type by readable label
+                  ->orWhere(function($subQ) use ($matchingModelTypes) {
+                      if (!empty($matchingModelTypes)) {
+                          $subQ->whereIn('model_type', $matchingModelTypes);
+                      }
+                  })
+                  // Search IP address
+                  ->orWhere('ip_address', 'like', '%' . $escapedSearchTerm . '%');
             });
         }
         

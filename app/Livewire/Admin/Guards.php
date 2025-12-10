@@ -398,12 +398,13 @@ class Guards extends Component
 
         $guardName = $this->getGuardFullName($user);
         
-        // Log the password reset
-        Logger::custom(
-            'password_reset',
-            "Reset password for guard {$guardName}",
+        // Log the password reset as an update
+        Logger::update(
             User::class,
-            $user->id
+            $user->id,
+            "Reset password for guard {$guardName}",
+            ['password' => '[hidden]'],
+            ['password' => '[reset]']
         );
 
         $this->showResetPasswordModal = false;
