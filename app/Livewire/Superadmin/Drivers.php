@@ -704,6 +704,14 @@ class Drivers extends Component
         $driver = Driver::findOrFail($driverId);
         
         $driverName = trim(implode(' ', array_filter([$driver->first_name, $driver->middle_name, $driver->last_name])));
+        
+        // Log the restore action
+        Logger::restore(
+            Driver::class,
+            $driver->id,
+            "Restored driver {$driverName}"
+        );
+        
         $this->dispatch('toast', message: "{$driverName} has been restored.", type: 'success');
         $this->resetPage();
         } finally {

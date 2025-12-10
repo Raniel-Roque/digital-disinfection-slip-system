@@ -630,6 +630,13 @@ class PlateNumbers extends Component
         // Now load the restored truck
         $truck = Truck::findOrFail($truckId);
         
+        // Log the restore action
+        Logger::restore(
+            Truck::class,
+            $truck->id,
+            "Restored plate number {$truck->plate_number}"
+        );
+        
         $this->dispatch('toast', message: "{$truck->plate_number} has been restored.", type: 'success');
         $this->resetPage();
         } finally {

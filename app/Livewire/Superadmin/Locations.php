@@ -524,6 +524,13 @@ class Locations extends Component
         // Now load the restored location
         $location = Location::findOrFail($locationId);
         
+        // Log the restore action
+        Logger::restore(
+            Location::class,
+            $location->id,
+            "Restored location {$location->location_name}"
+        );
+        
         $this->dispatch('toast', message: "{$location->location_name} has been restored.", type: 'success');
         $this->resetPage();
         } finally {
