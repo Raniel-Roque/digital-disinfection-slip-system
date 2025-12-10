@@ -981,8 +981,8 @@ class Trucks extends Component
         $this->appliedCreatedFrom = null;
         $this->appliedCreatedTo = null;
         
-        // Reset exclude deleted items filter to default
-        $this->excludeDeletedItems = true;
+        // Clear exclude deleted items filter (set to false so pill disappears)
+        $this->excludeDeletedItems = false;
         
         $this->filtersActive = false;
         $this->resetPage();
