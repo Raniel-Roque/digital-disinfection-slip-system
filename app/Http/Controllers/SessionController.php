@@ -99,10 +99,14 @@ class SessionController extends Controller
 
     public function destroy()
     {
+        // Create redirect response first to avoid 404 errors
+        $redirect = redirect('/');
+        
+        // Then clear the session
         Auth::logout();
         request()->session()->invalidate();
         request()->session()->regenerateToken();
     
-        return redirect('/');
+        return $redirect;
     }
 }

@@ -515,45 +515,35 @@ class Admins extends Component
             return;
         }
 
-        $user = User::onlyTrashed()->findOrFail($this->selectedUserId);
+        // Atomic restore: Only restore if currently deleted to prevent race conditions
+        // Do the atomic update first, then load the model only if successful
+        $restored = User::where('id', $this->selectedUserId)
+            ->whereNotNull('deleted_at') // Only restore if currently deleted
+            ->update(['deleted_at' => null]);
+        
+        if ($restored === 0) {
+            // User was already restored or doesn't exist
+            $this->showRestoreModal = false;
+            $this->reset(['selectedUserId', 'selectedUserName']);
+            $this->dispatch('toast', message: 'This admin was already restored or does not exist. Please refresh the page.', type: 'error');
+            $this->resetPage();
+            return;
+        }
+        
+        // Now load the restored user
+        $user = User::findOrFail($this->selectedUserId);
         
         // Verify the user is an admin (user_type = 1)
         if ($user->user_type !== 1) {
+            // Rollback the restore by deleting again
+            $user->delete();
             $this->showRestoreModal = false;
             $this->reset(['selectedUserId', 'selectedUserName']);
             $this->dispatch('toast', message: 'Cannot restore this user.', type: 'error');
             return;
         }
 
-        // Atomic restore: Only restore if currently deleted to prevent race conditions
-        $restored = User::where('id', $this->selectedUserId)
-            ->whereNotNull('deleted_at') // Only restore if currently deleted
-            ->update(['deleted_at' => null]);
-        
-        if ($restored === 0) {
-            // User was already restored by another process
-            $this->showRestoreModal = false;
-            $this->reset(['selectedUserId', 'selectedUserName']);
-            $this->dispatch('toast', message: 'This admin was already restored by another administrator. Please refresh the page.', type: 'error');
-            $this->resetPage();
-            return;
-        }
-        
-        // Refresh user to get updated data
-        $user->refresh();
-        
-        $oldValues = [
-            'first_name' => $user->first_name,
-            'middle_name' => $user->middle_name,
-            'last_name' => $user->last_name,
-            'username' => $user->username,
-            'user_type' => $user->user_type,
-            'deleted_at' => $user->deleted_at,
-        ];
-
         $adminName = $this->getAdminFullName($user);
-        
-        $user->restore();
         
         // Log the restore action
         Logger::restore(

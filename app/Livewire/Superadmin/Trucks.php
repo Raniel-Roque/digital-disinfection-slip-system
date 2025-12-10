@@ -1397,7 +1397,7 @@ class Trucks extends Component
         
         if ($deleted === 0) {
             // Slip was already deleted by another process
-            $this->showDeleteModal = false;
+            $this->showDeleteConfirmation = false;
             $this->dispatch('toast', message: 'This slip was already deleted by another administrator. Please refresh the page.', type: 'error');
             return;
         }
@@ -1448,22 +1448,21 @@ class Trucks extends Component
             abort(403, 'Unauthorized action.');
         }
 
-        $slip = DisinfectionSlipModel::onlyTrashed()->findOrFail($slipId);
-        
         // Atomic restore: Only restore if currently deleted to prevent race conditions
+        // Do the atomic update first, then load the model only if successful
         $restored = DisinfectionSlipModel::where('id', $slipId)
             ->whereNotNull('deleted_at') // Only restore if currently deleted
             ->update(['deleted_at' => null]);
         
         if ($restored === 0) {
-            // Slip was already restored by another process
-            $this->dispatch('toast', message: 'This slip was already restored by another administrator. Please refresh the page.', type: 'error');
+            // Slip was already restored or doesn't exist
+            $this->dispatch('toast', message: 'This slip was already restored or does not exist. Please refresh the page.', type: 'error');
             $this->resetPage();
             return;
         }
         
-        // Refresh slip to get updated data
-        $slip->refresh();
+        // Now load the restored slip
+        $slip = DisinfectionSlipModel::findOrFail($slipId);
         
         // Log the restore action
         Logger::restore(

@@ -600,22 +600,21 @@ class PlateNumbers extends Component
             abort(403, 'Unauthorized action.');
         }
 
-        $truck = Truck::onlyTrashed()->findOrFail($truckId);
-        
         // Atomic restore: Only restore if currently deleted to prevent race conditions
+        // Do the atomic update first, then load the model only if successful
         $restored = Truck::where('id', $truckId)
             ->whereNotNull('deleted_at') // Only restore if currently deleted
             ->update(['deleted_at' => null]);
         
         if ($restored === 0) {
-            // Truck was already restored by another process
-            $this->dispatch('toast', message: 'This plate number was already restored by another administrator. Please refresh the page.', type: 'error');
+            // Truck was already restored or doesn't exist
+            $this->dispatch('toast', message: 'This plate number was already restored or does not exist. Please refresh the page.', type: 'error');
             $this->resetPage();
             return;
         }
         
-        // Refresh truck to get updated data
-        $truck->refresh();
+        // Now load the restored truck
+        $truck = Truck::findOrFail($truckId);
         
         $this->dispatch('toast', message: "{$truck->plate_number} has been restored.", type: 'success');
         $this->resetPage();

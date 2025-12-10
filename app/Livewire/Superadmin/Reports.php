@@ -361,23 +361,22 @@ class Reports extends Component
         $this->isRestoring = true;
 
         try {
-        $report = Report::onlyTrashed()->findOrFail($reportId);
-        $reportType = $report->slip_id ? "for slip " . ($report->slip->slip_id ?? 'N/A') : "for misc";
-        
         // Atomic restore: Only restore if currently deleted to prevent race conditions
+        // Do the atomic update first, then load the model only if successful
         $restored = Report::where('id', $reportId)
             ->whereNotNull('deleted_at') // Only restore if currently deleted
             ->update(['deleted_at' => null]);
         
         if ($restored === 0) {
-            // Report was already restored by another process
-            $this->dispatch('toast', message: 'This report was already restored by another administrator. Please refresh the page.', type: 'error');
+            // Report was already restored or doesn't exist
+            $this->dispatch('toast', message: 'This report was already restored or does not exist. Please refresh the page.', type: 'error');
             $this->resetPage();
             return;
         }
         
-        // Refresh report to get updated data
-        $report->refresh();
+        // Now load the restored report
+        $report = Report::findOrFail($reportId);
+        $reportType = $report->slip_id ? "for slip " . ($report->slip->slip_id ?? 'N/A') : "for misc";
         
         Logger::restore(
             Report::class,

@@ -687,22 +687,21 @@ class Drivers extends Component
             abort(403, 'Unauthorized action.');
         }
 
-        $driver = Driver::onlyTrashed()->findOrFail($driverId);
-        
         // Atomic restore: Only restore if currently deleted to prevent race conditions
+        // Do the atomic update first, then load the model only if successful
         $restored = Driver::where('id', $driverId)
             ->whereNotNull('deleted_at') // Only restore if currently deleted
             ->update(['deleted_at' => null]);
         
         if ($restored === 0) {
-            // Driver was already restored by another process
-            $this->dispatch('toast', message: 'This driver was already restored by another administrator. Please refresh the page.', type: 'error');
+            // Driver was already restored or doesn't exist
+            $this->dispatch('toast', message: 'This driver was already restored or does not exist. Please refresh the page.', type: 'error');
             $this->resetPage();
             return;
         }
         
-        // Refresh driver to get updated data
-        $driver->refresh();
+        // Now load the restored driver
+        $driver = Driver::findOrFail($driverId);
         
         $driverName = trim(implode(' ', array_filter([$driver->first_name, $driver->middle_name, $driver->last_name])));
         $this->dispatch('toast', message: "{$driverName} has been restored.", type: 'success');

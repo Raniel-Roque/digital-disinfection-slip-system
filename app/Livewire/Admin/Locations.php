@@ -216,8 +216,8 @@ class Locations extends Component
             'edit_logo' => 'Logo',
         ]);
 
-        // Sanitize and trim input
-        $locationName = trim($this->location_name);
+        // Sanitize, trim, and capitalize input
+        $locationName = $this->sanitizeAndCapitalizeLocationName($this->location_name);
         
         $location = Location::findOrFail($this->selectedLocationId);
         
@@ -466,8 +466,8 @@ class Locations extends Component
             'create_logo' => 'Logo',
         ]);
 
-        // Sanitize and trim input
-        $locationName = trim($this->create_location_name);
+        // Sanitize, trim, and capitalize input
+        $locationName = $this->sanitizeAndCapitalizeLocationName($this->create_location_name);
 
         // Handle logo upload if provided
         $attachmentId = null;
@@ -710,5 +710,30 @@ class Locations extends Component
         $printUrl = route('admin.print.locations', ['token' => $token]);
         
         $this->dispatch('open-print-window', ['url' => $printUrl]);
+    }
+
+    private function sanitizeAndCapitalizeLocationName($name)
+    {
+        if (empty($name)) {
+            return '';
+        }
+
+        // Remove HTML tags and trim whitespace
+        $name = strip_tags(trim($name));
+        
+        // Decode HTML entities (e.g., &amp; becomes &, &#39; becomes ')
+        $name = html_entity_decode($name, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        
+        // Remove any null bytes and other control characters (except newlines/spaces)
+        $name = preg_replace('/[\x00-\x08\x0B-\x1F\x7F]/u', '', $name);
+        
+        // Normalize whitespace (replace multiple spaces with single space)
+        $name = preg_replace('/\s+/', ' ', $name);
+        
+        // Trim again after normalization
+        $name = trim($name);
+        
+        // Convert to title case (handles multiple words correctly)
+        return mb_convert_case($name, MB_CASE_TITLE, 'UTF-8');
     }
 }
