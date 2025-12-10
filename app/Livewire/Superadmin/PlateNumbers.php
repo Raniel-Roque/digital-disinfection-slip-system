@@ -186,10 +186,10 @@ class PlateNumbers extends Component
         }
 
         $this->validate([
-            'plate_number' => ['required', 'string', 'max:255', 'unique:trucks,plate_number,' . $this->selectedTruckId],
+            'plate_number' => ['required', 'string', 'max:7', 'unique:trucks,plate_number,' . $this->selectedTruckId],
         ], [
             'plate_number.required' => 'Plate number is required.',
-            'plate_number.max' => 'Plate number must not exceed 255 characters.',
+            'plate_number.max' => 'Plate number must not exceed 7 characters.',
             'plate_number.unique' => 'This plate number already exists.',
         ], [
             'plate_number' => 'Plate Number',
@@ -396,10 +396,10 @@ class PlateNumbers extends Component
         }
 
         $this->validate([
-            'create_plate_number' => ['required', 'string', 'max:255', 'unique:trucks,plate_number'],
+            'create_plate_number' => ['required', 'string', 'max:7', 'unique:trucks,plate_number'],
         ], [
             'create_plate_number.required' => 'Plate number is required.',
-            'create_plate_number.max' => 'Plate number must not exceed 255 characters.',
+            'create_plate_number.max' => 'Plate number must not exceed 7 characters.',
             'create_plate_number.unique' => 'This plate number already exists.',
         ], [
             'create_plate_number' => 'Plate Number',
