@@ -568,7 +568,7 @@
         {{-- Admin Create Modal --}}
         <x-modals.admin-slip-creation-modal :trucks="$trucks" :locations="$locations" :drivers="$drivers" :guards="$guards"
             :available-origins-options="$availableOriginsOptions" :available-destinations-options="$availableDestinationsOptions" :create-truck-options="$createTruckOptions" :create-driver-options="$createDriverOptions" :create-guard-options="$createGuardOptions"
-            :create-received-guard-options="$createReceivedGuardOptions" />
+            :create-received-guard-options="$createReceivedGuardOptions" :is-creating="$isCreating" />
 
         {{-- Admin Edit Modal --}}
         @if ($selectedSlip)

@@ -163,7 +163,7 @@
 
     {{-- CREATE MODAL --}}
     <x-modals.slip-creation-modal show="showCreateModal" :trucks="$trucks" :locations="$locations" :drivers="$drivers"
-        :truckOptions="$truckOptions" :locationOptions="$locationOptions" :driverOptions="$driverOptions" />
+        :truckOptions="$truckOptions" :locationOptions="$locationOptions" :driverOptions="$driverOptions" :is-creating="$isCreating" />
 
     {{-- Disinfection Slip Details Modal --}}
     <livewire:trucks.disinfection-slip />

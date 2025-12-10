@@ -5,6 +5,7 @@
     'truckOptions' => [],
     'locationOptions' => [],
     'driverOptions' => [],
+    'isCreating' => false,
 ])
 
 {{-- CREATE MODAL --}}
