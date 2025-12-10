@@ -26,8 +26,8 @@ class SuperAdminDashboard extends Component
             'total_plate_numbers' => $this->getPlateNumbersCount(),
             'total_locations' => $this->getLocationsCount(),
             'unresolved_reports' => $this->getUnresolvedReportsCount(),
-            'incoming_trucks_today' => $this->getIncomingTrucksTodayCount(),
-            'outgoing_trucks_today' => $this->getOutgoingTrucksTodayCount(),
+            'total_created_slips_today' => $this->getTotalCreatedSlipsTodayCount(),
+            'in_progress_slips_today' => $this->getInProgressSlipsTodayCount(),
         ];
     }
 
@@ -131,20 +131,19 @@ class SuperAdminDashboard extends Component
     }
 
     /**
-     * Get count of incoming trucks today (status 0 - Ongoing)
+     * Get count of total created slips today (all statuses)
      */
-    private function getIncomingTrucksTodayCount()
+    private function getTotalCreatedSlipsTodayCount()
     {
         return DisinfectionSlip::whereDate('created_at', Carbon::today())
-            ->where('status', 0)
             ->whereNull('deleted_at')
             ->count();
     }
 
     /**
-     * Get count of outgoing trucks today (status 0 or 1 - Ongoing or Disinfecting)
+     * Get count of in progress slips today (status 0 or 1 - Ongoing or Disinfecting)
      */
-    private function getOutgoingTrucksTodayCount()
+    private function getInProgressSlipsTodayCount()
     {
         return DisinfectionSlip::whereDate('created_at', Carbon::today())
             ->whereIn('status', [0, 1])

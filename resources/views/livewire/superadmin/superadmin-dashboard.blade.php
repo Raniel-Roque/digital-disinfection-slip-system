@@ -137,13 +137,13 @@
                                 </div>
                                 <div>
                                     <h2 class="text-xl font-bold text-gray-800">Today's Trucks</h2>
-                                    <p class="text-sm text-gray-500">Incoming and outgoing trucks for today</p>
+                                    <p class="text-sm text-gray-500">Disinfection slips created and in progress today</p>
                                 </div>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <!-- Incoming Trucks Today -->
+                            <!-- Total Created Slips Today -->
                             <a href="{{ route('superadmin.trucks') }}" wire:poll class="group">
                                 <div
                                     class="p-4 bg-linear-to-br from-emerald-50 to-emerald-100/50 rounded-2xl border-2 border-emerald-200 hover:border-emerald-400 transition-all duration-300 hover:shadow-md cursor-pointer">
@@ -153,21 +153,21 @@
                                             <svg class="h-6 w-6 text-emerald-700" fill="none" viewBox="0 0 24 24"
                                                 stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                             </svg>
                                         </div>
                                         <div class="flex-1">
                                             <p
                                                 class="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-0.5">
-                                                Incoming Trucks Today</p>
+                                                Total Created Slips Today</p>
                                             <p class="text-3xl font-bold text-gray-900">
-                                                {{ number_format($this->stats['incoming_trucks_today']) }}</p>
+                                                {{ number_format($this->stats['total_created_slips_today']) }}</p>
                                         </div>
                                     </div>
                                 </div>
                             </a>
 
-                            <!-- Outgoing Trucks Today -->
+                            <!-- In Progress Slips Today -->
                             <a href="{{ route('superadmin.trucks') }}" wire:poll class="group">
                                 <div
                                     class="p-4 bg-linear-to-br from-rose-50 to-rose-100/50 rounded-2xl border-2 border-rose-200 hover:border-rose-400 transition-all duration-300 hover:shadow-md cursor-pointer">
@@ -177,15 +177,15 @@
                                             <svg class="h-6 w-6 text-rose-700" fill="none" viewBox="0 0 24 24"
                                                 stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                         </div>
                                         <div class="flex-1">
                                             <p
                                                 class="text-xs font-semibold text-rose-700 uppercase tracking-wide mb-0.5">
-                                                Outgoing Trucks Today</p>
+                                                In Progress</p>
                                             <p class="text-3xl font-bold text-gray-900">
-                                                {{ number_format($this->stats['outgoing_trucks_today']) }}</p>
+                                                {{ number_format($this->stats['in_progress_slips_today']) }}</p>
                                         </div>
                                     </div>
                                 </div>

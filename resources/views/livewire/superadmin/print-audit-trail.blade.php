@@ -57,6 +57,46 @@
             font-weight: bold;
         }
 
+        /* Column width constraints */
+        th:nth-child(1),
+        td:nth-child(1) {
+            width: 12%;
+            white-space: nowrap;
+        }
+
+        th:nth-child(2),
+        td:nth-child(2) {
+            width: 12%;
+        }
+
+        th:nth-child(3),
+        td:nth-child(3) {
+            width: 8%;
+        }
+
+        th:nth-child(4),
+        td:nth-child(4) {
+            width: 8%;
+        }
+
+        th:nth-child(5),
+        td:nth-child(5) {
+            width: 12%;
+        }
+
+        th:nth-child(6),
+        td:nth-child(6) {
+            width: 35%;
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
+        }
+
+        th:nth-child(7),
+        td:nth-child(7) {
+            width: 13%;
+        }
+
         tr:nth-child(even) {
             background-color: #f9f9f9;
         }
