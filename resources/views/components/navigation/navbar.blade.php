@@ -16,13 +16,13 @@
 <nav x-data="{ userMenuOpen: false }" class="bg-[#ffb97f] shadow-md rounded-md px-2 sm:px-4 py-2 sm:py-3">
     <!-- Mobile: Simple Layout - Logo + Farm Name + User Menu -->
     <div class="flex items-center justify-between gap-3 sm:hidden">
-        <div class="flex items-center gap-2.5 min-w-0">
+        <a href="{{ route(auth()->user()->dashboardRoute()) }}" class="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition-opacity">
             <img src="{{ asset('storage/images/logo/BGC.png') }}" alt="Logo" class="h-10 w-10 object-contain shrink-0">
             <div class="flex flex-col">
                 <span class="font-semibold text-gray-800 text-base truncate">{{ $locationName }}</span>
                 <span class="text-xs text-gray-600">{{ now()->format('F d, Y') }}</span>
             </div>
-        </div>
+        </a>
         <!-- User Menu Button (Mobile) -->
         <div class="relative shrink-0" @click.away="userMenuOpen = false">
             <button type="button" @click="userMenuOpen = !userMenuOpen"
@@ -87,14 +87,14 @@
     <!-- Desktop: Horizontal Layout -->
     <div class="hidden sm:flex items-center justify-between gap-3">
         <!-- Left: Logo + Farm Name + Date -->
-        <div class="flex items-center gap-3 min-w-0">
+        <a href="{{ route(auth()->user()->dashboardRoute()) }}" class="flex items-center gap-3 min-w-0 hover:opacity-80 transition-opacity">
                 <img src="{{ asset('storage/images/logo/BGC.png') }}" alt="Logo" class="h-12 w-12 object-contain shrink-0">
                 <!-- Farm Name + Date (stacked) -->
                 <div class="flex flex-col">
                     <span class="font-semibold text-gray-800 text-lg truncate">{{ $locationName }}</span>
                     <span class="text-sm text-gray-600">{{ now()->format('F d, Y') }}</span>
             </div>
-        </div>
+        </a>
 
         <!-- Right: User Menu -->
         <div class="flex items-center gap-3 shrink-0 ml-auto">
