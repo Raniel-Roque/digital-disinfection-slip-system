@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50 p-6">
+<div class="min-h-screen bg-gray-50 p-6" @if (!$showFilters && !$showDetailsModal) wire:poll.keep-alive @endif>
     <div class="max-w-7xl mx-auto">
         {{-- Header --}}
         <div class="mb-6">
@@ -196,7 +196,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-semibold text-gray-900">
                                         @if ($report->slip_id && $report->slip)
-                                            <button wire:click="$dispatch('open-disinfection-details', { id: {{ $report->slip->id }}, type: 'incoming' })" 
+                                            <button wire:click="openSlipDetailsModal({{ $report->slip->id }})" 
                                                 class="text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-150 hover:cursor-pointer cursor-pointer">
                                                 Slip: {{ $report->slip->slip_id ?? 'N/A' }}
                                             </button>
@@ -277,7 +277,7 @@
         </x-modals.filter-modal>
 
         {{-- View Details Modal --}}
-        @if ($showDetailsModal && $selectedReport)
+        @if ($showDetailsModal && $selectedReport && !$selectedSlip)
             @php
                 $isResolved = $selectedReport->resolved_at !== null;
                 $headerClass = $isResolved ? 'border-t-4 border-t-green-500 bg-green-50' : 'border-t-4 border-t-red-500 bg-red-50';
@@ -388,5 +388,8 @@
                 </x-slot>
             </x-modals.modal-template>
         @endif
+
+        {{-- Slip Details Modal --}}
+        @include('livewire.admin.slip-details-modal')
     </div>
 </div>

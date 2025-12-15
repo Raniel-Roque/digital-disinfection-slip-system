@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Models\Report;
+use App\Models\DisinfectionSlip as DisinfectionSlipModel;
 use App\Services\Logger;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -41,6 +42,9 @@ class Reports extends Component
     // View Details Modal
     public $showDetailsModal = false;
     public $selectedReport = null;
+    
+    // Slip Details Modal (reusing showDetailsModal for slip, will be set when slip is selected)
+    public $selectedSlip = null;
     
     // Protection flags
     public $isResolving = false;
@@ -146,6 +150,26 @@ class Reports extends Component
     {
         $this->showDetailsModal = false;
         $this->selectedReport = null;
+        $this->selectedSlip = null;
+    }
+    
+    public function openSlipDetailsModal($slipId)
+    {
+        // Close report details modal if open
+        $this->showDetailsModal = false;
+        $this->selectedReport = null;
+        
+        $this->selectedSlip = DisinfectionSlipModel::with([
+            'truck' => function($q) { $q->withTrashed(); },
+            'location',
+            'destination',
+            'driver',
+            'attachment',
+            'hatcheryGuard',
+            'receivedGuard'
+        ])->find($slipId);
+        
+        $this->showDetailsModal = true;
     }
     
     public function resolveReport()
