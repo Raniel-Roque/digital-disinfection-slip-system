@@ -221,7 +221,7 @@
                             color="green" 
                             wire:loading.attr="disabled" 
                             wire:target="save"
-                            :disabled="!$this->hasChanges">
+                            x-bind:disabled="!$wire.hasChanges">
                             <span wire:loading.remove wire:target="save">Save</span>
                             <span wire:loading wire:target="save" class="inline-flex items-center gap-2">
                                 Saving...

@@ -484,7 +484,7 @@
                             </button>
                             <button wire:click.prevent="updateUser" wire:loading.attr="disabled" wire:target="updateUser"
                                 class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                :disabled="!$this->hasChanges">
+                                x-bind:disabled="!$wire.hasChanges">
                                 <span wire:loading.remove wire:target="updateUser">Save Changes</span>
                                 <span wire:loading wire:target="updateUser" class="inline-flex items-center gap-2">
                                     Saving...

@@ -386,7 +386,7 @@
                 </x-buttons.submit-button>
 
                 <x-buttons.submit-button wire:click.prevent="saveEdit" color="green" wire:loading.attr="disabled" wire:target="saveEdit"
-                    :disabled="!$this->hasChanges">
+                    x-bind:disabled="!$wire.hasChanges">
                     <span wire:loading.remove wire:target="saveEdit">Save Changes</span>
                     <span wire:loading wire:target="saveEdit" class="inline-flex items-center gap-2">
                         Saving...
