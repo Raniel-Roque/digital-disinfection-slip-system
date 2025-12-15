@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Superadmin;
+namespace App\Livewire\SuperAdmin;
 
 use App\Models\Location;
 use App\Models\Attachment;
@@ -270,12 +270,6 @@ class Locations extends Component
             ]);
             
             $attachmentId = $attachment->id;
-
-            \Log::info('File upload attempt', [
-                'authenticated' => Auth::check(),
-                'user_id' => Auth::id(),
-                'file_name' => $this->edit_logo?->getClientOriginalName(),
-            ]);
         }
         
         // Check if there are any changes
