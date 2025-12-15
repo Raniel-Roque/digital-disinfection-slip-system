@@ -371,7 +371,7 @@
                                 Cancel
                             </button>
                             <button wire:click.prevent="restoreReport" wire:loading.attr="disabled" wire:target="restoreReport"
-                                :disabled="@entangle('isRestoring')"
+                                x-bind:disabled="$wire.isRestoring"
                                 class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
                                 <span wire:loading.remove wire:target="restoreReport">Restore Report</span>
                                 <span wire:loading wire:target="restoreReport" class="inline-flex items-center gap-2">

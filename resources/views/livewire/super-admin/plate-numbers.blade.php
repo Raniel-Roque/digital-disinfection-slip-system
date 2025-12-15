@@ -393,69 +393,9 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Plate Number <span
                                             class="text-red-500">*</span></label>
-                                    <div x-data="{
-                                        prefix: '{{ $plate_number ? (str_contains($plate_number, ' ') ? explode(' ', $plate_number)[0] : (str_contains($plate_number, '-') ? explode('-', $plate_number)[0] : substr($plate_number, 0, 3))) : '' }}',
-                                        suffix: '{{ $plate_number ? (str_contains($plate_number, ' ') ? explode(' ', $plate_number)[1] ?? '' : (str_contains($plate_number, '-') ? explode('-', $plate_number)[1] ?? '' : substr($plate_number, 3, 4))) : '' }}',
-                                        updatePlateNumber() {
-                                            const fullPlate = (this.prefix + ' ' + this.suffix).replace(/\s+$/, '');
-                                            $wire.plate_number = fullPlate;
-                                        },
-                                        handlePrefixInput(event) {
-                                            this.prefix = event.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 3);
-                                            this.updatePlateNumber();
-                                            if (this.prefix.length === 3) {
-                                                $nextTick(() => $refs.suffixInput.focus());
-                                            }
-                                        },
-                                        handlePrefixKeydown(event) {
-                                            if (event.key === 'ArrowRight' && this.prefix.length === 3) {
-                                                event.preventDefault();
-                                                $refs.suffixInput.focus();
-                                            }
-                                        },
-                                        handleSuffixInput(event) {
-                                            this.suffix = event.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 4);
-                                            this.updatePlateNumber();
-                                        },
-                                        handleSuffixKeydown(event) {
-                                            if (event.key === 'Backspace') {
-                                                const input = event.target;
-                                                const cursorPos = input.selectionStart;
-                                                if (cursorPos === 0 && this.prefix.length > 0) {
-                                                    event.preventDefault();
-                                                    $nextTick(() => {
-                                                        $refs.prefixInput.focus();
-                                                        $refs.prefixInput.setSelectionRange(this.prefix.length, this.prefix.length);
-                                                    });
-                                                }
-                                            } else if (event.key === 'ArrowLeft') {
-                                                const input = event.target;
-                                                if (input.selectionStart === 0) {
-                                                    event.preventDefault();
-                                                    $refs.prefixInput.focus();
-                                                    $refs.prefixInput.setSelectionRange(this.prefix.length, this.prefix.length);
-                                                }
-                                            }
-                                        }
-                                    }" class="flex items-center gap-2">
-                                        <input type="text" 
-                                            x-ref="prefixInput"
-                                            x-model="prefix"
-                                            x-on:input="handlePrefixInput($event)"
-                                            x-on:keydown="handlePrefixKeydown($event)"
-                                            maxlength="3"
-                                            class="block w-20 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center uppercase"
-                                            placeholder="XXX">
-                                        <span class="text-gray-500 text-lg font-semibold">&nbsp;</span>
-                                        <input type="text" 
-                                            x-ref="suffixInput"
-                                            x-model="suffix"
-                                            x-on:input="handleSuffixInput($event)"
-                                            x-on:keydown="handleSuffixKeydown($event)"
-                                            maxlength="4"
-                                            class="block flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center uppercase"
-                                            placeholder="XXXX">
-                                    </div>
+                                    <input type="text" wire:model="plate_number" maxlength="20"
+                                        class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
+                                        placeholder="Enter plate number">
                                     @error('plate_number')
                                         <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                                     @enderror
@@ -581,69 +521,9 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Plate Number <span
                                             class="text-red-500">*</span></label>
-                                    <div x-data="{
-                                        prefix: '{{ $create_plate_number ? (str_contains($create_plate_number, '-') ? explode('-', $create_plate_number)[0] : substr($create_plate_number, 0, 3)) : '' }}',
-                                        suffix: '{{ $create_plate_number ? (str_contains($create_plate_number, '-') ? explode('-', $create_plate_number)[1] ?? '' : substr($create_plate_number, 3, 4)) : '' }}',
-                                        updatePlateNumber() {
-                                            const fullPlate = (this.prefix + '-' + this.suffix).replace(/-+$/, '');
-                                            $wire.create_plate_number = fullPlate;
-                                        },
-                                        handlePrefixInput(event) {
-                                            this.prefix = event.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 3);
-                                            this.updatePlateNumber();
-                                            if (this.prefix.length === 3) {
-                                                $nextTick(() => $refs.suffixInput.focus());
-                                            }
-                                        },
-                                        handlePrefixKeydown(event) {
-                                            if (event.key === 'ArrowRight' && this.prefix.length === 3) {
-                                                event.preventDefault();
-                                                $refs.suffixInput.focus();
-                                            }
-                                        },
-                                        handleSuffixInput(event) {
-                                            this.suffix = event.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 4);
-                                            this.updatePlateNumber();
-                                        },
-                                        handleSuffixKeydown(event) {
-                                            if (event.key === 'Backspace') {
-                                                const input = event.target;
-                                                const cursorPos = input.selectionStart;
-                                                if (cursorPos === 0 && this.prefix.length > 0) {
-                                                    event.preventDefault();
-                                                    $nextTick(() => {
-                                                        $refs.prefixInput.focus();
-                                                        $refs.prefixInput.setSelectionRange(this.prefix.length, this.prefix.length);
-                                                    });
-                                                }
-                                            } else if (event.key === 'ArrowLeft') {
-                                                const input = event.target;
-                                                if (input.selectionStart === 0) {
-                                                    event.preventDefault();
-                                                    $refs.prefixInput.focus();
-                                                    $refs.prefixInput.setSelectionRange(this.prefix.length, this.prefix.length);
-                                                }
-                                            }
-                                        }
-                                    }" class="flex items-center gap-2">
-                                        <input type="text" 
-                                            x-ref="prefixInput"
-                                            x-model="prefix"
-                                            x-on:input="handlePrefixInput($event)"
-                                            x-on:keydown="handlePrefixKeydown($event)"
-                                            maxlength="3"
-                                            class="block w-20 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center uppercase"
-                                            placeholder="XXX">
-                                        <span class="text-gray-500 text-lg font-semibold">&nbsp;</span>
-                                        <input type="text" 
-                                            x-ref="suffixInput"
-                                            x-model="suffix"
-                                            x-on:input="handleSuffixInput($event)"
-                                            x-on:keydown="handleSuffixKeydown($event)"
-                                            maxlength="4"
-                                            class="block flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center uppercase"
-                                            placeholder="XXXX">
-                                    </div>
+                                    <input type="text" wire:model="create_plate_number" maxlength="20"
+                                        class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
+                                        placeholder="Enter plate number">
                                     @error('create_plate_number')
                                         <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                                     @enderror

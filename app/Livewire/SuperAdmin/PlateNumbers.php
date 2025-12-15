@@ -186,11 +186,17 @@ class PlateNumbers extends Component
             abort(403, 'Unauthorized action.');
         }
 
+        // Ensure selectedTruckId is set
+        if (!$this->selectedTruckId) {
+            $this->dispatch('toast', message: 'No truck selected.', type: 'error');
+            return;
+        }
+
         $this->validate([
-            'plate_number' => ['required', 'string', 'max:8', 'unique:trucks,plate_number,' . $this->selectedTruckId],
+            'plate_number' => ['required', 'string', 'max:20', 'unique:trucks,plate_number,' . $this->selectedTruckId],
         ], [
             'plate_number.required' => 'Plate number is required.',
-            'plate_number.max' => 'Plate number must be in the format XXX XXXX (8 characters total).',
+            'plate_number.max' => 'Plate number must not exceed 20 characters.',
             'plate_number.unique' => 'This plate number already exists.',
         ], [
             'plate_number' => 'Plate Number',
@@ -199,9 +205,9 @@ class PlateNumbers extends Component
         // Sanitize and uppercase input
         $plateNumber = $this->sanitizeAndUppercasePlateNumber($this->plate_number);
         
-        // Validate format (XXX XXXX) - 3 alphanumeric, space, 4 alphanumeric
-        if (!preg_match('/^[A-Z0-9]{3} [A-Z0-9]{4}$/', strtoupper($plateNumber))) {
-            $this->addError('plate_number', 'Plate number must be in the format XXX XXXX (3 alphanumeric, space, 4 alphanumeric).');
+        // Basic validation - just ensure it's not empty after sanitization
+        if (empty(trim($plateNumber))) {
+            $this->addError('plate_number', 'Plate number is required.');
             return;
         }
 
@@ -407,10 +413,10 @@ class PlateNumbers extends Component
         }
 
         $this->validate([
-            'create_plate_number' => ['required', 'string', 'max:8', 'unique:trucks,plate_number'],
+            'create_plate_number' => ['required', 'string', 'max:20', 'unique:trucks,plate_number'],
         ], [
             'create_plate_number.required' => 'Plate number is required.',
-            'create_plate_number.max' => 'Plate number must be in the format XXX XXXX (8 characters total).',
+            'create_plate_number.max' => 'Plate number must not exceed 20 characters.',
             'create_plate_number.unique' => 'This plate number already exists.',
         ], [
             'create_plate_number' => 'Plate Number',
@@ -419,9 +425,9 @@ class PlateNumbers extends Component
         // Sanitize and uppercase input
         $plateNumber = $this->sanitizeAndUppercasePlateNumber($this->create_plate_number);
         
-        // Validate format (XXX XXXX) - 3 alphanumeric, space, 4 alphanumeric
-        if (!preg_match('/^[A-Z0-9]{3} [A-Z0-9]{4}$/', strtoupper($plateNumber))) {
-            $this->addError('create_plate_number', 'Plate number must be in the format XXX XXXX (3 alphanumeric, space, 4 alphanumeric).');
+        // Basic validation - just ensure it's not empty after sanitization
+        if (empty(trim($plateNumber))) {
+            $this->addError('create_plate_number', 'Plate number is required.');
             return;
         }
 
