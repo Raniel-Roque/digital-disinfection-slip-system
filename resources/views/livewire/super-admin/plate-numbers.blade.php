@@ -394,10 +394,10 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Plate Number <span
                                             class="text-red-500">*</span></label>
                                     <div x-data="{
-                                        prefix: '{{ $plate_number ? (str_contains($plate_number, '-') ? explode('-', $plate_number)[0] : substr($plate_number, 0, 3)) : '' }}',
-                                        suffix: '{{ $plate_number ? (str_contains($plate_number, '-') ? explode('-', $plate_number)[1] ?? '' : substr($plate_number, 3, 4)) : '' }}',
+                                        prefix: '{{ $plate_number ? (str_contains($plate_number, ' ') ? explode(' ', $plate_number)[0] : (str_contains($plate_number, '-') ? explode('-', $plate_number)[0] : substr($plate_number, 0, 3))) : '' }}',
+                                        suffix: '{{ $plate_number ? (str_contains($plate_number, ' ') ? explode(' ', $plate_number)[1] ?? '' : (str_contains($plate_number, '-') ? explode('-', $plate_number)[1] ?? '' : substr($plate_number, 3, 4))) : '' }}',
                                         updatePlateNumber() {
-                                            const fullPlate = (this.prefix + '-' + this.suffix).replace(/-+$/, '');
+                                            const fullPlate = (this.prefix + ' ' + this.suffix).replace(/\s+$/, '');
                                             $wire.plate_number = fullPlate;
                                         },
                                         handlePrefixInput(event) {
@@ -446,7 +446,7 @@
                                             maxlength="3"
                                             class="block w-20 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center uppercase"
                                             placeholder="XXX">
-                                        <span class="text-gray-500 text-lg font-semibold">-</span>
+                                        <span class="text-gray-500 text-lg font-semibold">&nbsp;</span>
                                         <input type="text" 
                                             x-ref="suffixInput"
                                             x-model="suffix"
@@ -634,7 +634,7 @@
                                             maxlength="3"
                                             class="block w-20 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center uppercase"
                                             placeholder="XXX">
-                                        <span class="text-gray-500 text-lg font-semibold">-</span>
+                                        <span class="text-gray-500 text-lg font-semibold">&nbsp;</span>
                                         <input type="text" 
                                             x-ref="suffixInput"
                                             x-model="suffix"

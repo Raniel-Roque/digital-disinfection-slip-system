@@ -190,7 +190,7 @@ class PlateNumbers extends Component
             'plate_number' => ['required', 'string', 'max:8', 'unique:trucks,plate_number,' . $this->selectedTruckId],
         ], [
             'plate_number.required' => 'Plate number is required.',
-            'plate_number.max' => 'Plate number must be in the format ABC-1234 (8 characters total).',
+            'plate_number.max' => 'Plate number must be in the format XXX XXXX (8 characters total).',
             'plate_number.unique' => 'This plate number already exists.',
         ], [
             'plate_number' => 'Plate Number',
@@ -199,9 +199,9 @@ class PlateNumbers extends Component
         // Sanitize and uppercase input
         $plateNumber = $this->sanitizeAndUppercasePlateNumber($this->plate_number);
         
-        // Validate format (XXX-XXXX)
-        if (!preg_match('/^[A-Z]{3}-[0-9]{4}$/', strtoupper($plateNumber))) {
-            $this->addError('plate_number', 'Plate number must be in the format ABC-1234 (3 letters, dash, 4 numbers).');
+        // Validate format (XXX XXXX) - 3 alphanumeric, space, 4 alphanumeric
+        if (!preg_match('/^[A-Z0-9]{3} [A-Z0-9]{4}$/', strtoupper($plateNumber))) {
+            $this->addError('plate_number', 'Plate number must be in the format XXX XXXX (3 alphanumeric, space, 4 alphanumeric).');
             return;
         }
 
@@ -386,6 +386,9 @@ class PlateNumbers extends Component
         // Remove any null bytes and other control characters (except newlines/spaces)
         $plateNumber = preg_replace('/[\x00-\x08\x0B-\x1F\x7F]/u', '', $plateNumber);
         
+        // Convert dashes to spaces for backward compatibility
+        $plateNumber = str_replace('-', ' ', $plateNumber);
+        
         // Normalize whitespace (replace multiple spaces with single space)
         $plateNumber = preg_replace('/\s+/', ' ', $plateNumber);
         
@@ -407,7 +410,7 @@ class PlateNumbers extends Component
             'create_plate_number' => ['required', 'string', 'max:8', 'unique:trucks,plate_number'],
         ], [
             'create_plate_number.required' => 'Plate number is required.',
-            'create_plate_number.max' => 'Plate number must be in the format ABC-1234 (8 characters total).',
+            'create_plate_number.max' => 'Plate number must be in the format XXX XXXX (8 characters total).',
             'create_plate_number.unique' => 'This plate number already exists.',
         ], [
             'create_plate_number' => 'Plate Number',
@@ -416,9 +419,9 @@ class PlateNumbers extends Component
         // Sanitize and uppercase input
         $plateNumber = $this->sanitizeAndUppercasePlateNumber($this->create_plate_number);
         
-        // Validate format (XXX-XXXX)
-        if (!preg_match('/^[A-Z]{3}-[0-9]{4}$/', strtoupper($plateNumber))) {
-            $this->addError('create_plate_number', 'Plate number must be in the format ABC-1234 (3 letters, dash, 4 numbers).');
+        // Validate format (XXX XXXX) - 3 alphanumeric, space, 4 alphanumeric
+        if (!preg_match('/^[A-Z0-9]{3} [A-Z0-9]{4}$/', strtoupper($plateNumber))) {
+            $this->addError('create_plate_number', 'Plate number must be in the format XXX XXXX (3 alphanumeric, space, 4 alphanumeric).');
             return;
         }
 
