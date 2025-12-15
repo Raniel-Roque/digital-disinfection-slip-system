@@ -382,7 +382,7 @@
                 {{-- Modal Panel --}}
                 <div class="flex min-h-full items-center justify-center p-4">
                     <div
-                        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-lg">
+                        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-md">
                         <div class="px-6 py-4 bg-white border-b border-gray-200">
                             <h3 class="text-lg font-semibold text-gray-900">Edit Plate Number</h3>
                         </div>
@@ -407,6 +407,12 @@
                                                 $nextTick(() => $refs.suffixInput.focus());
                                             }
                                         },
+                                        handlePrefixKeydown(event) {
+                                            if (event.key === 'ArrowRight' && this.prefix.length === 3) {
+                                                event.preventDefault();
+                                                $refs.suffixInput.focus();
+                                            }
+                                        },
                                         handleSuffixInput(event) {
                                             this.suffix = event.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 4);
                                             this.updatePlateNumber();
@@ -422,6 +428,13 @@
                                                         $refs.prefixInput.setSelectionRange(this.prefix.length, this.prefix.length);
                                                     });
                                                 }
+                                            } else if (event.key === 'ArrowLeft') {
+                                                const input = event.target;
+                                                if (input.selectionStart === 0) {
+                                                    event.preventDefault();
+                                                    $refs.prefixInput.focus();
+                                                    $refs.prefixInput.setSelectionRange(this.prefix.length, this.prefix.length);
+                                                }
                                             }
                                         }
                                     }" class="flex items-center gap-2">
@@ -429,6 +442,7 @@
                                             x-ref="prefixInput"
                                             x-model="prefix"
                                             x-on:input="handlePrefixInput($event)"
+                                            x-on:keydown="handlePrefixKeydown($event)"
                                             maxlength="3"
                                             class="block w-20 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center uppercase"
                                             placeholder="XXX">
@@ -478,7 +492,7 @@
                 {{-- Modal Panel --}}
                 <div class="flex min-h-full items-center justify-center p-4">
                     <div
-                        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-lg">
+                        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-md">
                         <div class="px-6 py-4 bg-white border-b border-gray-200">
                             <div class="flex items-center">
                                 @if ($selectedTruckDisabled)
@@ -556,7 +570,7 @@
                 {{-- Modal Panel --}}
                 <div class="flex min-h-full items-center justify-center p-4">
                     <div
-                        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-lg">
+                        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-md">
                         <div class="px-6 py-4 bg-white border-b border-gray-200">
                             <h3 class="text-lg font-semibold text-gray-900">Create Plate Number</h3>
                         </div>
@@ -581,6 +595,12 @@
                                                 $nextTick(() => $refs.suffixInput.focus());
                                             }
                                         },
+                                        handlePrefixKeydown(event) {
+                                            if (event.key === 'ArrowRight' && this.prefix.length === 3) {
+                                                event.preventDefault();
+                                                $refs.suffixInput.focus();
+                                            }
+                                        },
                                         handleSuffixInput(event) {
                                             this.suffix = event.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 4);
                                             this.updatePlateNumber();
@@ -596,6 +616,13 @@
                                                         $refs.prefixInput.setSelectionRange(this.prefix.length, this.prefix.length);
                                                     });
                                                 }
+                                            } else if (event.key === 'ArrowLeft') {
+                                                const input = event.target;
+                                                if (input.selectionStart === 0) {
+                                                    event.preventDefault();
+                                                    $refs.prefixInput.focus();
+                                                    $refs.prefixInput.setSelectionRange(this.prefix.length, this.prefix.length);
+                                                }
                                             }
                                         }
                                     }" class="flex items-center gap-2">
@@ -603,6 +630,7 @@
                                             x-ref="prefixInput"
                                             x-model="prefix"
                                             x-on:input="handlePrefixInput($event)"
+                                            x-on:keydown="handlePrefixKeydown($event)"
                                             maxlength="3"
                                             class="block w-20 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center uppercase"
                                             placeholder="XXX">
@@ -655,7 +683,7 @@
                 {{-- Modal Panel --}}
                 <div class="flex min-h-full items-center justify-center p-4">
                     <div
-                        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-lg">
+                        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-md">
                         <div class="px-6 py-4 bg-white border-b border-gray-200">
                             <div class="flex items-center">
                                 <div class="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-full">

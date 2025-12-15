@@ -20,11 +20,13 @@ class Reports extends Component
     public $sortDirection = 'desc';
     
     // Filter properties
+    public $filterReportType = null; // null = All, 'slip' = Slip, 'misc' = Miscellaneous
     public $filterResolved = '0'; // Default to Unresolved, null = All, 0 = Unresolved, 1 = Resolved
     public $filterCreatedFrom = '';
     public $filterCreatedTo = '';
     
     // Applied filters
+    public $appliedReportType = null;
     public $appliedResolved = '0'; // Default to Unresolved
     public $appliedCreatedFrom = '';
     public $appliedCreatedTo = '';
@@ -75,11 +77,13 @@ class Reports extends Component
     
     public function applyFilters()
     {
+        $this->appliedReportType = $this->filterReportType;
         $this->appliedResolved = $this->filterResolved;
         $this->appliedCreatedFrom = $this->filterCreatedFrom;
         $this->appliedCreatedTo = $this->filterCreatedTo;
         
-        $this->filtersActive = !is_null($this->appliedResolved) || 
+        $this->filtersActive = !is_null($this->appliedReportType) ||
+                               !is_null($this->appliedResolved) || 
                                !empty($this->appliedCreatedFrom) || 
                                !empty($this->appliedCreatedTo);
         
@@ -90,6 +94,10 @@ class Reports extends Component
     public function removeFilter($filterName)
     {
         switch ($filterName) {
+            case 'report_type':
+                $this->appliedReportType = null;
+                $this->filterReportType = null;
+                break;
             case 'resolved':
                 $this->appliedResolved = null;
                 $this->filterResolved = null;
@@ -104,7 +112,8 @@ class Reports extends Component
                 break;
         }
         
-        $this->filtersActive = !is_null($this->appliedResolved) || 
+        $this->filtersActive = !is_null($this->appliedReportType) ||
+                               !is_null($this->appliedResolved) || 
                                !empty($this->appliedCreatedFrom) || 
                                !empty($this->appliedCreatedTo);
         
@@ -113,10 +122,12 @@ class Reports extends Component
     
     public function clearFilters()
     {
+        $this->filterReportType = null;
         $this->filterResolved = null;
         $this->filterCreatedFrom = '';
         $this->filterCreatedTo = '';
         
+        $this->appliedReportType = null;
         $this->appliedResolved = null;
         $this->appliedCreatedFrom = '';
         $this->appliedCreatedTo = '';
@@ -287,6 +298,14 @@ class Reports extends Component
         }
         
         // Filters
+        if (!is_null($this->appliedReportType) && $this->appliedReportType !== '') {
+            if ($this->appliedReportType === 'slip') {
+                $query->whereNotNull('slip_id');
+            } elseif ($this->appliedReportType === 'misc') {
+                $query->whereNull('slip_id');
+            }
+        }
+        
         if (!is_null($this->appliedResolved) && $this->appliedResolved !== '') {
             if ($this->appliedResolved == '1' || $this->appliedResolved === 1) {
                 $query->whereNotNull('resolved_at');
