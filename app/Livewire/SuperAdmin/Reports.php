@@ -65,6 +65,8 @@ class Reports extends Component
     
     // Slip Details Modal (reusing showDetailsModal for slip, will be set when slip is selected)
     public $selectedSlip = null;
+    public $showAttachmentModal = false;
+    public $attachmentFile = null;
     
     protected $queryString = ['search'];
     
@@ -178,6 +180,8 @@ class Reports extends Component
         $this->showDetailsModal = false;
         $this->selectedReport = null;
         $this->selectedSlip = null;
+        $this->showAttachmentModal = false;
+        $this->attachmentFile = null;
     }
     
     public function openSlipDetailsModal($slipId)
@@ -204,6 +208,46 @@ class Reports extends Component
         $this->showRestoreModal = false;
         $this->selectedReportId = null;
         $this->selectedReportName = null;
+    }
+    
+    // Slip details modal methods (stubs for slip-details-modal component)
+    public function canEdit()
+    {
+        // Reports page cannot edit slips
+        return false;
+    }
+    
+    public function openEditModal()
+    {
+        // Not used in reports context
+    }
+    
+    public function openAttachmentModal($file)
+    {
+        $this->attachmentFile = $file;
+        $this->showAttachmentModal = true;
+    }
+    
+    public function closeAttachmentModal()
+    {
+        $this->showAttachmentModal = false;
+        $this->attachmentFile = null;
+    }
+    
+    public function canRemoveAttachment()
+    {
+        // Reports page cannot remove attachments
+        return false;
+    }
+    
+    public function confirmRemoveAttachment()
+    {
+        // Not used in reports context
+    }
+    
+    public function removeAttachment()
+    {
+        // Not used in reports context
     }
     
     public function resolveReport()
