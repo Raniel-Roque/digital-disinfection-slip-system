@@ -2,5 +2,5 @@
     <x-navigation.navbar module="Audit Trail">
     </x-navigation.navbar>
 
-    <livewire:super-admin.audit-trail />
+    <livewire:superadmin.audit-trail />
 </x-layout>

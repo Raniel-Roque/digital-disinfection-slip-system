@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\SuperAdmin;
+namespace App\Livewire\Superadmin;
 
 use App\Models\Driver;
 use Livewire\Component;

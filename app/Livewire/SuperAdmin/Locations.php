@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\SuperAdmin;
+namespace App\Livewire\Superadmin;
 
 use App\Models\Location;
 use App\Models\Attachment;

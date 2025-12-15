@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\SuperAdmin;
+namespace App\Livewire\Superadmin;
 
 use Livewire\Component;
 use App\Models\DisinfectionSlip as DisinfectionSlipModel;
