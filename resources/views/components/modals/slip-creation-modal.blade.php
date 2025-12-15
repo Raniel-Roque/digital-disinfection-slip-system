@@ -63,7 +63,7 @@
 
     {{-- Footer --}}
     <x-slot name="footer">
-        <div x-data="{ isCreating: @js($isCreating) }">
+        <div x-data="{ isCreating: @js($isCreating) }" class="flex justify-end gap-2">
             <x-buttons.submit-button wire:click="closeCreateModal" color="white" wire:loading.attr="disabled" wire:target="createSlip">
                 Cancel
             </x-buttons.submit-button>

@@ -115,7 +115,7 @@
             return filtered;
         },
         get displayText() {
-            if (!this.selected || this.selected.length === 0) return 'Select model types...';
+            if (!this.selected || this.selected.length === 0) return 'Select record type...';
             if (this.selected.length === 1) {
                 return this.options[this.selected[0]] || this.selected[0];
             }
@@ -141,7 +141,7 @@
         }
     }" x-ref="modelTypeDropdown" @click.outside="closeDropdown()">
         <div class="flex items-center justify-between mb-1">
-            <label class="block text-sm font-medium text-gray-700">Model Type</label>
+            <label class="block text-sm font-medium text-gray-700">Record Type</label>
             <button type="button" x-on:click="selected = []; $wire.set('filterModelType', [])"
                 x-show="selected && selected.length > 0"
                 class="text-xs text-blue-600 hover:text-blue-800 font-medium">
@@ -162,7 +162,7 @@
             </button>
             <div x-show="open" x-transition class="absolute right-0 mt-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 p-1 z-50"
                 style="display: none;" x-cloak @click.stop>
-                <input type="text" x-model="searchTerm" placeholder="Search model types..."
+                <input type="text" x-model="searchTerm" placeholder="Search records..."
                     class="block w-full px-4 py-2 text-gray-800 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-1"
                     autocomplete="off">
                 <div class="max-h-48 overflow-y-auto">
@@ -204,7 +204,7 @@
             return filtered;
         },
         get displayText() {
-            if (!this.selected || this.selected.length === 0) return 'Select user types...';
+            if (!this.selected || this.selected.length === 0) return 'Select user role...';
             if (this.selected.length === 1) {
                 return this.options[this.selected[0]] || this.selected[0];
             }
@@ -232,7 +232,7 @@
         }
     }" x-ref="userTypeDropdown" @click.outside="closeDropdown()">
         <div class="flex items-center justify-between mb-1">
-            <label class="block text-sm font-medium text-gray-700">User Type</label>
+            <label class="block text-sm font-medium text-gray-700">User Role</label>
             <button type="button" x-on:click="selected = []; $wire.set('filterUserType', [])"
                 x-show="selected && selected.length > 0"
                 class="text-xs text-blue-600 hover:text-blue-800 font-medium">
@@ -253,7 +253,7 @@
             </button>
             <div x-show="open" x-transition class="absolute right-0 mt-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 p-1 z-50"
                 style="display: none;" x-cloak @click.stop>
-                <input type="text" x-model="searchTerm" placeholder="Search user types..."
+                <input type="text" x-model="searchTerm" placeholder="Search roles..."
                     class="block w-full px-4 py-2 text-gray-800 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-1"
                     autocomplete="off">
                 <div class="max-h-48 overflow-y-auto">

@@ -146,7 +146,7 @@
                             <th scope="col"
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <div class="inline-flex items-center gap-2">
-                                    <span>Date</span>
+                                    <span>Date & Time</span>
                                     <button wire:click.prevent="applySort('created_at')" type="button"
                                         class="inline-flex flex-col items-center text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 transition-colors p-0.5 rounded hover:bg-gray-200 hover:cursor-pointer cursor-pointer"
                                         title="Sort by Date">
@@ -225,8 +225,13 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-semibold text-gray-900">
-                                        @if ($report->slip_id)
-                                            <span class="text-blue-600">Slip: {{ $report->slip->slip_id ?? 'N/A' }}</span>
+                                        @if ($report->slip_id && $report->slip)
+                                            <button wire:click="$dispatch('open-disinfection-details', { id: {{ $report->slip->id }}, type: 'incoming' })" 
+                                                class="text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-150 hover:cursor-pointer cursor-pointer">
+                                                Slip: {{ $report->slip->slip_id ?? 'N/A' }}
+                                            </button>
+                                        @elseif ($report->slip_id)
+                                            <span class="text-blue-600">Slip: {{ $report->slip_id ?? 'N/A' }}</span>
                                         @else
                                             <span class="text-gray-500 italic">Miscellaneous</span>
                                         @endif
@@ -367,7 +372,7 @@
 
                         <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
                             <button wire:click="closeRestoreModal" wire:loading.attr="disabled" wire:target="restoreReport"
-                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 hover:cursor-pointer cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 cursor-pointer hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                                 Cancel
                             </button>
                             <button wire:click.prevent="restoreReport" wire:loading.attr="disabled" wire:target="restoreReport"
