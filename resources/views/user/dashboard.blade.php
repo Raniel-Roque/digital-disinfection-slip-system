@@ -9,8 +9,9 @@
 
                 <!-- Incoming Trucks Card -->
                 <a href="{{ route('user.incoming-trucks') }}"
-                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl hover:cursor-pointer transition-all duration-300 border border-gray-200 hover:border-green-400">
-                    <div class="p-6" wire:poll>
+                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl hover:cursor-pointer transition-all duration-300 border border-gray-200 hover:border-green-400"
+                    wire:poll>
+                    <div class="p-6">
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex items-center gap-3">
                                 <div class="p-3 bg-green-100 rounded-xl group-hover:bg-green-200 transition-colors">
@@ -44,8 +45,9 @@
 
                 <!-- Outgoing Trucks Card -->
                 <a href="{{ route('user.outgoing-trucks') }}"
-                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl hover:cursor-pointer transition-all duration-300 border border-gray-200 hover:border-red-400">
-                    <div class="p-6" wire:poll>
+                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl hover:cursor-pointer transition-all duration-300 border border-gray-200 hover:border-red-400"
+                    wire:poll>
+                    <div class="p-6">
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex items-center gap-3">
                                 <div class="p-3 bg-red-100 rounded-xl group-hover:bg-red-200 transition-colors">
