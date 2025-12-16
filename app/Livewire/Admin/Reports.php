@@ -81,10 +81,57 @@ class Reports extends Component
     public $isDeleting = false;
     public $showSlipDeleteConfirmation = false;
     
+    // Cached properties
+    private $cachedLocations = null;
+    private $cachedDrivers = null;
+    private $cachedTrucks = null;
+    private $cachedGuards = null;
+    
     public function mount()
     {
         // Apply default filter on mount
         $this->applyFilters();
+    }
+    
+    // Helper methods to get cached collections
+    private function getCachedLocations()
+    {
+        if ($this->cachedLocations === null) {
+            $this->cachedLocations = Location::orderBy('location_name')->get();
+        }
+        return $this->cachedLocations;
+    }
+    
+    private function getCachedDrivers()
+    {
+        if ($this->cachedDrivers === null) {
+            $this->cachedDrivers = Driver::orderBy('first_name')->get();
+        }
+        return $this->cachedDrivers;
+    }
+    
+    private function getCachedTrucks()
+    {
+        if ($this->cachedTrucks === null) {
+            $this->cachedTrucks = Truck::orderBy('plate_number')->get();
+        }
+        return $this->cachedTrucks;
+    }
+    
+    private function getCachedGuards()
+    {
+        if ($this->cachedGuards === null) {
+            $this->cachedGuards = User::where('user_type', 0)
+                ->where('disabled', false)
+                ->orderBy('first_name')
+                ->orderBy('last_name')
+                ->get()
+                ->mapWithKeys(function ($user) {
+                    $name = trim("{$user->first_name} {$user->middle_name} {$user->last_name}");
+                    return [$user->id => $name];
+                });
+        }
+        return $this->cachedGuards;
     }
     
     protected $queryString = ['search'];

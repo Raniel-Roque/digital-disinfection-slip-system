@@ -50,8 +50,11 @@ class SessionController extends Controller
             "password"=> ['required'],
         ]);
 
+        // Trim @ symbol from the beginning of username if present
+        $username = ltrim($attributes['username'], '@');
+
         // Find user by username (case-insensitive) - SoftDeletes automatically excludes deleted users
-        $user = User::whereRaw('LOWER(username) = ?', [strtolower($attributes['username'])])->first();
+        $user = User::whereRaw('LOWER(username) = ?', [strtolower($username)])->first();
 
         // Verify user exists and password is correct
         if (!$user || !Hash::check($attributes['password'], $user->password)) {
