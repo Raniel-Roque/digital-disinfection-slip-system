@@ -164,6 +164,10 @@
                         <tr>
                             <th scope="col"
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                ID
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <div class="flex items-center gap-2">
                                     <span>Date & Time</span>
                                     <button wire:click.prevent="applySort('created_at')" type="button"
@@ -235,6 +239,11 @@
                         @forelse($logs as $log)
                             <tr class="hover:bg-gray-50 transition-colors duration-150">
                                 <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900 font-mono">
+                                        {{ $log->id }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-semibold text-gray-900">
                                         {{ $log->created_at->format('M d, Y') }}
                                     </div>
@@ -291,7 +300,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-6 py-12 text-center">
+                                <td colspan="7" class="px-6 py-12 text-center">
                                     <div class="flex flex-col items-center">
                                         <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24"
                                             stroke="currentColor">

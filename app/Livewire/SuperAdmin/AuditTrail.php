@@ -285,6 +285,7 @@ class AuditTrail extends Component
             
             // Header row
             fputcsv($file, [
+                'ID',
                 'Date & Time',
                 'User',
                 'User Type',
@@ -303,6 +304,7 @@ class AuditTrail extends Component
                 ])));
                 
                 fputcsv($file, [
+                    $log->id,
                     $log->created_at->format('Y-m-d H:i:s'),
                     $userName ?: 'N/A',
                     $this->availableUserTypes[$log->user_type] ?? 'N/A',
@@ -330,6 +332,7 @@ class AuditTrail extends Component
             ])));
             
             return [
+                'id' => $log->id,
                 'created_at' => $log->created_at->toIso8601String(),
                 'user_name' => $userName ?: 'N/A',
                 'user_username' => $log->user_username ?? 'N/A',
