@@ -8,10 +8,13 @@ use App\Models\Truck;
 use App\Models\Location;
 use App\Models\Driver;
 use App\Models\User;
+use App\Models\Attachment;
 use App\Services\Logger;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class Reports extends Component
 {
@@ -51,6 +54,7 @@ class Reports extends Component
     public $selectedSlip = null;
     public $showAttachmentModal = false;
     public $attachmentFile = null;
+    public $showRemoveAttachmentConfirmation = false;
     
     // Edit Modal
     public $showEditModal = false;
@@ -74,6 +78,8 @@ class Reports extends Component
     
     // Protection flags
     public $isResolving = false;
+    public $isDeleting = false;
+    public $showSlipDeleteConfirmation = false;
     
     public function mount()
     {
@@ -410,6 +416,77 @@ class Reports extends Component
         // Admin cannot edit completed slips (status == 2 or completed_at is set)
         // Only SuperAdmins can edit completed slips
         return $this->selectedSlip->status != 2 && $this->selectedSlip->completed_at === null;
+    }
+    
+    public function canDelete()
+    {
+        if (!$this->selectedSlip) {
+            return false;
+        }
+
+        // Admin can delete any slip, including completed ones
+        return true;
+    }
+    
+    public function deleteSlip()
+    {
+        // Prevent multiple submissions
+        if ($this->isDeleting) {
+            return;
+        }
+
+        $this->isDeleting = true;
+
+        try {
+            if (!$this->canDelete()) {
+                $this->dispatch('toast', message: 'You are not authorized to delete this slip.', type: 'error');
+                return;
+            }
+
+            $slipId = $this->selectedSlip->slip_id;
+            $slipIdForLog = $this->selectedSlip->id;
+            
+            // Capture old values for logging
+            $oldValues = $this->selectedSlip->only([
+                'slip_id',
+                'truck_id',
+                'location_id',
+                'destination_id',
+                'driver_id',
+                'hatchery_guard_id',
+                'received_guard_id',
+                'reason_for_disinfection',
+                'status'
+            ]);
+            
+            // Atomic delete: Only delete if not already deleted to prevent race conditions
+            $deleted = DisinfectionSlipModel::where('id', $this->selectedSlip->id)
+                ->whereNull('deleted_at') // Only delete if not already deleted
+                ->update(['deleted_at' => now()]);
+            
+            if ($deleted === 0) {
+                // Slip was already deleted by another process
+                $this->showSlipDeleteConfirmation = false;
+                $this->dispatch('toast', message: 'This slip was already deleted by another administrator. Please refresh the page.', type: 'error');
+                $this->selectedSlip->refresh();
+                return;
+            }
+            
+            // Log the delete action
+            Logger::delete(
+                DisinfectionSlipModel::class,
+                $slipIdForLog,
+                "Deleted slip {$slipId}",
+                $oldValues
+            );
+            
+            $this->showSlipDeleteConfirmation = false;
+            $this->closeDetailsModal();
+            $this->dispatch('toast', message: "Slip {$slipId} has been deleted.", type: 'success');
+            $this->dispatch('slip-updated');
+        } finally {
+            $this->isDeleting = false;
+        }
     }
     
     public function openEditModal()
@@ -781,11 +858,60 @@ class Reports extends Component
     
     public function confirmRemoveAttachment()
     {
-        // Not used in reports context
+        $this->showRemoveAttachmentConfirmation = true;
     }
     
     public function removeAttachment()
     {
-        // Not used in reports context
+        try {
+            if (!$this->canRemoveAttachment()) {
+                $this->dispatch('toast', message: 'Cannot remove attachment from a completed slip.', type: 'error');
+                return;
+            }
+
+            // Check if attachment exists
+            if (!$this->selectedSlip->attachment_id) {
+                $this->dispatch('toast', message: 'No attachment found to remove.', type: 'error');
+                return;
+            }
+
+            // Get the attachment record
+            $attachment = Attachment::find($this->selectedSlip->attachment_id);
+
+            if ($attachment) {
+                // Delete the physical file from storage (except BGC.png logo)
+                if ($attachment->file_path !== 'images/logo/BGC.png') {
+                    if (Storage::disk('public')->exists($attachment->file_path)) {
+                        Storage::disk('public')->delete($attachment->file_path);
+                    }
+                }
+
+                // Remove attachment reference from slip
+                $this->selectedSlip->update([
+                    'attachment_id' => null,
+                ]);
+
+                // Hard delete the attachment record (except BGC.png logo)
+                if ($attachment->file_path !== 'images/logo/BGC.png') {
+                    $attachment->forceDelete();
+                }
+
+                // Refresh the slip
+                $this->selectedSlip->refresh();
+                $this->selectedSlip->load('attachment');
+
+                // Close attachment modal and confirmation
+                $this->showAttachmentModal = false;
+                $this->showRemoveAttachmentConfirmation = false;
+                $this->attachmentFile = null;
+
+                $slipId = $this->selectedSlip->slip_id;
+                $this->dispatch('toast', message: "{$slipId}'s attachment has been removed.", type: 'success');
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Attachment removal error: ' . $e->getMessage());
+            $this->dispatch('toast', message: 'Failed to remove attachment. Please try again.', type: 'error');
+        }
     }
 }

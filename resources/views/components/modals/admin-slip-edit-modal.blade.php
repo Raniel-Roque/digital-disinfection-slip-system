@@ -375,7 +375,7 @@
             <div>
                 {{-- Delete Button --}}
                 @if ($this->canDelete())
-                    <x-buttons.submit-button wire:click="$set('showDeleteConfirmation', true)" color="red">
+                    <x-buttons.submit-button wire:click="$set('showSlipDeleteConfirmation', true)" color="red">
                         Delete
                     </x-buttons.submit-button>
                 @endif

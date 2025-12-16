@@ -273,13 +273,23 @@ class Guards extends Component
         $user->refresh();
         $guardName = $this->getGuardFullName($user);
         
+        // Check if username changed
+        $usernameChanged = isset($updateData['username']) && $oldValues['username'] !== $updateData['username'];
+        
+        // If username changed, invalidate all sessions for this user (force logout)
+        if ($usernameChanged) {
+            DB::table('sessions')
+                ->where('user_id', $user->id)
+                ->delete();
+        }
+        
         // Generate description based on what changed
         $changedFields = [];
         if ($user->first_name !== $firstName || $user->last_name !== $lastName) {
             $changedFields[] = "name to \"{$guardName}\"";
         }
         $newValues = $user->only(['first_name', 'middle_name', 'last_name', 'username']);
-        if (isset($newValues['username']) && $oldValues['username'] !== $newValues['username']) {
+        if ($usernameChanged) {
             $changedFields[] = "username";
         }
         $description = !empty($changedFields) ? "Updated " . implode(" and ", $changedFields) : "Updated \"{$guardName}\"";
@@ -295,7 +305,12 @@ class Guards extends Component
 
         $this->showEditModal = false;
         $this->reset(['selectedUserId', 'first_name', 'middle_name', 'last_name', 'original_first_name', 'original_middle_name', 'original_last_name']);
-        $this->dispatch('toast', message: "{$guardName} has been updated.", type: 'success');
+        
+        $message = "{$guardName} has been updated.";
+        if ($usernameChanged) {
+            $message .= " The user has been logged out and must log in again with the new username.";
+        }
+        $this->dispatch('toast', message: $message, type: 'success');
     }
 
     public function openDisableModal($userId)
