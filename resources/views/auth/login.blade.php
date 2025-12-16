@@ -70,8 +70,8 @@
                             </svg>
                         </div>
                         <input type="text" name="username" id="username" required value="{{ old('username') }}"
-                            placeholder="Username" :disabled="submitting"
-                            class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                            placeholder="Username" :readonly="submitting"
+                            class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors text-sm read-only:opacity-50 read-only:cursor-not-allowed">
                     </div>
                     <x-forms.error name="username" />
                 </div>
@@ -86,8 +86,8 @@
                             </svg>
                         </div>
                         <input :type="showPassword ? 'text' : 'password'" name="password" id="password" required
-                            placeholder="Password" :disabled="submitting"
-                            class="block w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                            placeholder="Password" :readonly="submitting"
+                            class="block w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors text-sm read-only:opacity-50 read-only:cursor-not-allowed">
                         <button type="button" @click="showPassword = !showPassword"
                             class="absolute inset-y-0 right-0 pr-3 flex items-center">
                             <svg x-show="!showPassword" class="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none"

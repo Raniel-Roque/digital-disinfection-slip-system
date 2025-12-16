@@ -65,33 +65,36 @@
                         </svg>
                         <span>{{ session('status') }}</span>
                     </div>
-                    <form method="POST" action="{{ route('logout') }}" x-data="{ submitting: false, showConfirm: false }" @submit.prevent="showConfirm = true">
-                        @csrf
-                        <button type="button" @click="showConfirm = true" :disabled="submitting"
+                    <div x-data="{ showLogoutConfirm: false, isLoggingOut: false }">
+                        <button type="button" @click="showLogoutConfirm = true" :disabled="isLoggingOut"
                             class="ml-4 text-sm font-medium text-blue-700 hover:text-blue-900 underline hover:cursor-pointer cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                             Logout
                         </button>
                         
                         <!-- Confirmation Dialog -->
-                        <div x-show="showConfirm" x-cloak
-                            class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-                            @click.self="showConfirm = false">
+                        <div x-show="showLogoutConfirm" x-cloak
+                            class="fixed inset-0 z-100 flex items-center justify-center bg-black bg-opacity-50"
+                            @click.self="showLogoutConfirm = false"
+                            style="display: none;">
                             <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
                                 <h3 class="text-lg font-semibold text-gray-900 mb-2">Confirm Logout</h3>
                                 <p class="text-gray-600 mb-6">Are you sure you want to logout?</p>
-                                <div class="flex justify-end gap-3">
-                                    <button type="button" @click="showConfirm = false"
-                                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer hover:cursor-pointer">
-                                        Cancel
-                                    </button>
-                                    <button type="submit" @click="submitting = true; showConfirm = false" :disabled="submitting"
-                                        class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:cursor-pointer">
-                                        <span x-text="submitting ? 'Logging out...' : 'Logout'"></span>
-                                    </button>
-                                </div>
+                                <form method="POST" action="{{ route('logout') }}" @submit="isLoggingOut = true">
+                                    @csrf
+                                    <div class="flex justify-end gap-3">
+                                        <button type="button" @click="showLogoutConfirm = false" :disabled="isLoggingOut"
+                                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                                            Cancel
+                                        </button>
+                                        <button type="submit" :disabled="isLoggingOut"
+                                            class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:cursor-pointer">
+                                            <span x-text="isLoggingOut ? 'Logging out...' : 'Logout'"></span>
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
-                    </form>
+                    </div>
                 </div>
             @endif
 
