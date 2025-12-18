@@ -182,11 +182,10 @@
                                 this.uploading = true;
                                 
                                 try {
-                                    // Upload the first photo (you can modify this to upload all if needed)
-                                    const photoToUpload = this.photos[0];
-                                    
-                                    // Call Livewire method
-                                    await $wire.uploadAttachment(photoToUpload.data);
+                                    // Upload all photos sequentially
+                                    for (const photo of this.photos) {
+                                        await $wire.uploadAttachment(photo.data);
+                                    }
                                     
                                     // Reset on success
                                     this.photos = [];
@@ -213,14 +212,14 @@
                                         See Attachments ({{ $attachmentCount }})
                                     </button>
                                     @if ($this->canManageAttachment())
-                                        <button wire:click="openAddAttachmentModal"
+                                        <button @click="showCameraModal = true; startCamera()"
                                             class="text-blue-500 hover:text-blue-600 underline cursor-pointer text-xs">
                                             + Add More
                                         </button>
                                     @endif
                                 </div>
                             @elseif ($this->canManageAttachment())
-                                <button wire:click="openAddAttachmentModal"
+                                <button @click="showCameraModal = true; startCamera()"
                                     class="text-blue-500 hover:text-blue-600 underline cursor-pointer">
                                     Add Attachment
                                 </button>
@@ -234,7 +233,7 @@
                                 class="fixed inset-0 z-50 overflow-y-auto"
                                 style="display: none;">
                                 
-                                <div class="fixed inset-0 bg-black bg-opacity-50" @click="showCameraModal = false; stopCamera()"></div>
+                                <div class="fixed inset-0 bg-black/80" @click="showCameraModal = false; stopCamera()"></div>
                                 
                                 <div class="relative min-h-screen flex items-center justify-center p-4">
                                     <div class="relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
@@ -307,8 +306,10 @@
                                             
                                             <button @click="uploadPhotos()" 
                                                     x-show="photos.length > 0 && !uploading"
-                                                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold">
-                                                Upload Photo
+                                                    :disabled="uploading"
+                                                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+                                                <span x-show="!uploading">Upload <span x-text="photos.length"></span> Photo<span x-show="photos.length > 1">s</span></span>
+                                                <span x-show="uploading">Uploading...</span>
                                             </button>
                                         </div>
                                     </div>
@@ -486,8 +487,7 @@
     {{-- Attachment Modal --}}
     <x-modals.attachment show="showAttachmentModal" :selectedSlip="$selectedSlip" />
 
-    {{-- Add Attachment Modal --}}
-    <x-modals.add-attachment show="showAddAttachmentModal" />
+    {{-- Add Attachment Modal is now inline Alpine.js modal above --}}
 
     {{-- Report Modal --}}
     <x-modals.modal-template show="showReportModal" title="REPORT DISINFECTION SLIP" max-width="max-w-3xl"

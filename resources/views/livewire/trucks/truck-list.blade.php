@@ -186,8 +186,7 @@
         :truckOptions="$truckOptions" :locationOptions="$locationOptions" :driverOptions="$driverOptions" :is-creating="$isCreating"
         :pendingAttachmentIds="$pendingAttachmentIds" />
 
-    {{-- Add Attachment Modal --}}
-    <x-modals.add-attachment show="showAddAttachmentModal" />
+    {{-- Add Attachment Modal is now inline Alpine.js modal in slip-creation-modal --}}
 
     {{-- Disinfection Slip Details Modal --}}
     <livewire:trucks.disinfection-slip />
