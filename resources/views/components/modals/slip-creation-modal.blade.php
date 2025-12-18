@@ -146,21 +146,28 @@
                             + Add More
                         </button>
                     </div>
-                    <div class="grid grid-cols-3 gap-2 mb-2">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
                         @foreach ($pendingAttachmentIds ?? [] as $attachmentId)
                             @php
                                 $attachment = \App\Models\Attachment::find($attachmentId);
                                 $currentUser = \Illuminate\Support\Facades\Auth::user();
-                                $isAdminOrSuperAdmin = $currentUser && in_array($currentUser->user_type, [1, 2]); // 1 = Admin, 2 = SuperAdmin
+                                $currentRoute = \Illuminate\Support\Facades\Request::path();
+                                
+                                // Check if user has admin/superadmin privileges in current context
+                                // On /user routes (guards), even superadmins should only have guard privileges
+                                $isOnUserRoute = str_starts_with($currentRoute, 'user');
+                                $isAdminOrSuperAdmin = !$isOnUserRoute && $currentUser && in_array($currentUser->user_type, [1, 2]); // 1 = Admin, 2 = SuperAdmin
+                                
+                                // Can delete if admin/superadmin (and not on user route) OR if user uploaded it
                                 $canDelete = $attachment && ($isAdminOrSuperAdmin || $attachment->user_id === \Illuminate\Support\Facades\Auth::id());
                             @endphp
                             @if ($attachment)
-                                <div class="relative rounded-lg overflow-hidden shadow-md">
+                                <div class="relative rounded-lg overflow-hidden shadow-lg border border-gray-200 aspect-square">
                                     <img src="{{ \Illuminate\Support\Facades\Storage::url($attachment->file_path) }}" 
-                                         class="w-full h-24 object-cover">
+                                         class="w-full h-full object-contain bg-gray-50">
                                     @if ($canDelete)
                                         <button wire:click="confirmRemovePendingAttachment({{ $attachmentId }})" 
-                                                class="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded">
+                                                class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-1.5 rounded-md shadow-md transition-colors">
                                             Remove
                                         </button>
                                     @endif

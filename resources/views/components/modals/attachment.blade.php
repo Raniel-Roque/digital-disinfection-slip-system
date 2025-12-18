@@ -9,7 +9,12 @@
         $status = $selectedSlip?->status ?? null;
         $currentUserId = \Illuminate\Support\Facades\Auth::id();
         $currentUser = \Illuminate\Support\Facades\Auth::user();
-        $isAdminOrSuperAdmin = $currentUser && in_array($currentUser->user_type, [1, 2]); // 1 = Admin, 2 = SuperAdmin
+        $currentRoute = \Illuminate\Support\Facades\Request::path();
+        
+        // Check if user has admin/superadmin privileges in current context
+        // On /user routes (guards), even superadmins should only have guard privileges
+        $isOnUserRoute = str_starts_with($currentRoute, 'user');
+        $isAdminOrSuperAdmin = !$isOnUserRoute && $currentUser && in_array($currentUser->user_type, [1, 2]); // 1 = Admin, 2 = SuperAdmin
     @endphp
 
     @if ($totalAttachments > 0)
@@ -139,13 +144,15 @@
                     attachments: @js($attachmentsData),
                     currentUserId: @js($currentUserId),
                     isAdminOrSuperAdmin: @js($isAdminOrSuperAdmin),
+                    canManage: @js($canManage),
                     getCurrentAttachment() {
                         const index = $wire.get('currentAttachmentIndex');
                         return this.attachments[index] || null;
                     },
                     canShowDelete() {
                         const attachment = this.getCurrentAttachment();
-                        return attachment && (this.isAdminOrSuperAdmin || attachment.user_id === this.currentUserId);
+                        // Admin/SuperAdmin can delete any photo, or user can delete their own photo if they have manage permission
+                        return attachment && (this.isAdminOrSuperAdmin || (this.canManage && attachment.user_id === this.currentUserId));
                     },
                     deleteCurrentPhoto() {
                         const attachment = this.getCurrentAttachment();
