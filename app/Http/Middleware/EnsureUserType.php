@@ -12,6 +12,8 @@ class EnsureUserType
     /**
      * Ensure the authenticated user matches one of the allowed user_type values.
      * Also check if user is disabled and block access if so.
+     * 
+     * Special case: Superadmins (type 2) can access user routes (type 0) if they have a location in session.
      */
     public function handle(Request $request, Closure $next, string ...$types): Response
     {
@@ -20,7 +22,18 @@ class EnsureUserType
         $allowed = array_map('intval', $types);
         $current = (int) optional($user)->user_type;
 
-        if (! $user || ! in_array($current, $allowed, true)) {
+        // Check if user type is allowed
+        $isAllowed = in_array($current, $allowed, true);
+        
+        // Special case: Superadmins (type 2) can access user routes (type 0) if they have a location in session
+        if (!$isAllowed && $current === 2 && in_array(0, $allowed, true)) {
+            $hasLocation = $request->session()->has('location_id');
+            if ($hasLocation) {
+                $isAllowed = true;
+            }
+        }
+
+        if (! $user || ! $isAllowed) {
             abort(Response::HTTP_FORBIDDEN);
         }
 

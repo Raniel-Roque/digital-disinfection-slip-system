@@ -202,13 +202,25 @@
                                 }
                             }
                         }">
-                            @if ($selectedSlip->attachment)
-                                <button wire:click="openAttachmentModal('{{ $selectedSlip->attachment->file_path }}')"
-                                    class="text-orange-500 hover:text-orange-600 underline cursor-pointer">
-                                    See Attachment
-                                </button>
+                            @php
+                                $attachments = $selectedSlip->attachments();
+                                $attachmentCount = $attachments->count();
+                            @endphp
+                            @if ($attachmentCount > 0)
+                                <div class="flex items-center gap-2">
+                                    <button wire:click="openAttachmentModal(0)"
+                                        class="text-orange-500 hover:text-orange-600 underline cursor-pointer">
+                                        See Attachments ({{ $attachmentCount }})
+                                    </button>
+                                    @if ($this->canManageAttachment())
+                                        <button wire:click="openAddAttachmentModal"
+                                            class="text-blue-500 hover:text-blue-600 underline cursor-pointer text-xs">
+                                            + Add More
+                                        </button>
+                                    @endif
+                                </div>
                             @elseif ($this->canManageAttachment())
-                                <button @click="showCameraModal = true"
+                                <button wire:click="openAddAttachmentModal"
                                     class="text-blue-500 hover:text-blue-600 underline cursor-pointer">
                                     Add Attachment
                                 </button>
@@ -472,7 +484,7 @@
     </x-modals.modal-template>
 
     {{-- Attachment Modal --}}
-    <x-modals.attachment show="showAttachmentModal" :file="$attachmentFile" :selectedSlip="$selectedSlip" />
+    <x-modals.attachment show="showAttachmentModal" :selectedSlip="$selectedSlip" />
 
     {{-- Add Attachment Modal --}}
     <x-modals.add-attachment show="showAddAttachmentModal" />

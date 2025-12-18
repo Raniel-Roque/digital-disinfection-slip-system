@@ -8,10 +8,25 @@ use App\Models\DisinfectionSlip;
 use App\Models\Truck;
 use App\Models\Location;
 use App\Models\Driver;
+use App\Models\Attachment;
 use App\Services\Logger;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
+/**
+ * @method void resetPage()
+ * @method void dispatch(string $event, mixed ...$params)
+ * @method void resetErrorBag()
+ * @method array validate(array $rules)
+ * @property-read \Illuminate\Database\Eloquent\Collection $trucks
+ * @property-read \Illuminate\Database\Eloquent\Collection $locations
+ * @property-read \Illuminate\Database\Eloquent\Collection $drivers
+ * @property-read array $truckOptions
+ * @property-read array $locationOptions
+ * @property-read array $driverOptions
+ */
 class TruckList extends Component
 {
     use WithPagination;
@@ -47,6 +62,12 @@ class TruckList extends Component
     public $driver_id;
     public $reason_for_disinfection;
     public $isCreating = false;
+
+    // Attachment properties for creation
+    public $showAddAttachmentModal = false;
+    public $pendingAttachmentIds = []; // Store attachment IDs before slip is created
+    public $showRemovePendingAttachmentConfirmation = false;
+    public $pendingAttachmentToDelete = null;
 
     // Search properties for dropdowns
     public $searchTruck = '';
@@ -97,6 +118,21 @@ class TruckList extends Component
     public function getDriversProperty()
     {
         return Driver::all();
+    }
+
+    public function getCanCreateSlipProperty()
+    {
+        if ($this->type !== 'outgoing') {
+            return false;
+        }
+        
+        $currentLocationId = Session::get('location_id');
+        if (!$currentLocationId) {
+            return false;
+        }
+        
+        $location = Location::find($currentLocationId);
+        return $location && ($location->create_slip ?? false);
     }
     
     // Helper method to ensure selected values are always included in filtered options
@@ -232,6 +268,11 @@ class TruckList extends Component
 
     public function closeCreateModal()
     {
+        // Clean up pending attachments if modal is closed without creating
+        if (!empty($this->pendingAttachmentIds)) {
+            $this->cleanupPendingAttachments();
+        }
+        
         $this->showCreateModal = false;
         // Use dispatch to reset form after modal animation completes
         $this->dispatch('modal-closed');
@@ -239,10 +280,32 @@ class TruckList extends Component
 
     public function cancelCreate()
     {
+        // Clean up pending attachments
+        $this->cleanupPendingAttachments();
+        
         // Reset all form fields and close modals
         $this->resetCreateForm();
         $this->showCancelCreateConfirmation = false;
         $this->showCreateModal = false;
+    }
+
+    private function cleanupPendingAttachments()
+    {
+        foreach ($this->pendingAttachmentIds as $attachmentId) {
+            try {
+                $attachment = Attachment::find($attachmentId);
+                if ($attachment) {
+                    // Delete the physical file from storage
+                    if (Storage::disk('public')->exists($attachment->file_path)) {
+                        Storage::disk('public')->delete($attachment->file_path);
+                    }
+                    // Hard delete the attachment record
+                    $attachment->forceDelete();
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to cleanup attachment ' . $attachmentId . ': ' . $e->getMessage());
+            }
+        }
     }
 
     public function resetCreateForm()
@@ -254,6 +317,10 @@ class TruckList extends Component
         $this->searchTruck = '';
         $this->searchDestination = '';
         $this->searchDriver = '';
+        $this->pendingAttachmentIds = [];
+        $this->showAddAttachmentModal = false;
+        $this->showRemovePendingAttachmentConfirmation = false;
+        $this->pendingAttachmentToDelete = null;
         $this->resetErrorBag();
     }
 
@@ -312,6 +379,7 @@ class TruckList extends Component
             'hatchery_guard_id' => Auth::id(),
             'status' => 0, // Ongoing
             'slip_id' => $this->generateSlipId(),
+            'attachment_ids' => !empty($this->pendingAttachmentIds) ? $this->pendingAttachmentIds : null,
         ]);
 
         // Log the create action
@@ -356,6 +424,162 @@ class TruckList extends Component
         
         // Format: YY-NNNNN (e.g., 25-00001)
         return $year . '-' . str_pad($newNumber, 5, '0', STR_PAD_LEFT);
+    }
+
+    public function openAddAttachmentModal()
+    {
+        if ($this->isUserDisabled()) {
+            $this->dispatch('toast', message: 'Your account has been disabled. Please contact an administrator.', type: 'error');
+            return;
+        }
+        $this->showAddAttachmentModal = true;
+        $this->dispatch('showAddAttachmentModal');
+    }
+
+    public function closeAddAttachmentModal()
+    {
+        $this->showAddAttachmentModal = false;
+    }
+
+    public function uploadAttachment($imageData)
+    {
+        try {
+            if ($this->isUserDisabled()) {
+                $this->dispatch('toast', message: 'Your account has been disabled. Please contact an administrator.', type: 'error');
+                return;
+            }
+
+            // Validate image data format
+            if (!preg_match('/^data:image\/(jpeg|jpg|png|gif|webp);base64,/', $imageData)) {
+                $this->dispatch('toast', message: 'Invalid image format. Only JPEG, PNG, GIF, and WebP are allowed.', type: 'error');
+                return;
+            }
+
+            // Extract image type
+            preg_match('/^data:image\/(jpeg|jpg|png|gif|webp);base64,/', $imageData, $matches);
+            $imageType = $matches[1];
+            
+            // Normalize jpg to jpeg
+            if ($imageType === 'jpg') {
+                $imageType = 'jpeg';
+            }
+
+            // Decode base64 image
+            $imageData = preg_replace('/^data:image\/\w+;base64,/', '', $imageData);
+            $imageData = str_replace(' ', '+', $imageData);
+            $imageDecoded = base64_decode($imageData);
+
+            // Validate base64 decode success
+            if ($imageDecoded === false) {
+                $this->dispatch('toast', message: 'Failed to decode image data.', type: 'error');
+                return;
+            }
+
+            // Validate file size (15MB max)
+            $fileSizeInMB = strlen($imageDecoded) / 1024 / 1024;
+            if ($fileSizeInMB > 15) {
+                $this->dispatch('toast', message: 'Image size exceeds 15MB limit.', type: 'error');
+                return;
+            }
+
+            // Validate image using getimagesizefromstring
+            $imageInfo = @getimagesizefromstring($imageDecoded);
+            if ($imageInfo === false) {
+                $this->dispatch('toast', message: 'Invalid image file. Please capture a valid image.', type: 'error');
+                return;
+            }
+
+            // Validate MIME type
+            $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!in_array($imageInfo['mime'], $allowedMimeTypes)) {
+                $this->dispatch('toast', message: 'Invalid image type. Only JPEG, PNG, GIF, and WebP are allowed.', type: 'error');
+                return;
+            }
+
+            // Generate unique filename with correct extension
+            $extension = $imageType;
+            $filename = 'disinfection_slip_pending_' . time() . '_' . Str::random(8) . '.' . $extension;
+            
+            // Use Storage facade for consistency - save to public disk
+            Storage::disk('public')->put('images/uploads/' . $filename, $imageDecoded);
+
+            // Store relative path in database
+            $relativePath = 'images/uploads/' . $filename;
+
+            // Create attachment record
+            $attachment = Attachment::create([
+                'file_path' => $relativePath,
+                'user_id' => Auth::id(),
+            ]);
+
+            // Add new attachment ID to pending array
+            $this->pendingAttachmentIds[] = $attachment->id;
+
+            $totalAttachments = count($this->pendingAttachmentIds);
+            $this->dispatch('toast', message: "Photo added ({$totalAttachments} total).", type: 'success');
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Attachment upload error: ' . $e->getMessage());
+            $this->dispatch('toast', message: 'Failed to upload photo. Please try again.', type: 'error');
+        }
+    }
+
+    public function confirmRemovePendingAttachment($attachmentId)
+    {
+        $this->pendingAttachmentToDelete = $attachmentId;
+        $this->showRemovePendingAttachmentConfirmation = true;
+    }
+
+    public function removePendingAttachment()
+    {
+        try {
+            if (!$this->pendingAttachmentToDelete) {
+                $this->dispatch('toast', message: 'No attachment specified to remove.', type: 'error');
+                $this->showRemovePendingAttachmentConfirmation = false;
+                return;
+            }
+
+            $attachmentId = $this->pendingAttachmentToDelete;
+            
+            // Find and remove from pending array
+            $key = array_search($attachmentId, $this->pendingAttachmentIds);
+            if ($key !== false) {
+                unset($this->pendingAttachmentIds[$key]);
+                $this->pendingAttachmentIds = array_values($this->pendingAttachmentIds); // Re-index array
+
+                // Get the attachment record
+                $attachment = Attachment::find($attachmentId);
+                if ($attachment) {
+                    // Check if current user is the one who uploaded this attachment (unless admin/superadmin)
+                    $user = Auth::user();
+                    $isAdminOrSuperAdmin = in_array($user->user_type, [1, 2]); // 1 = Admin, 2 = SuperAdmin
+                    
+                    if (!$isAdminOrSuperAdmin && $attachment->user_id !== Auth::id()) {
+                        $this->dispatch('toast', message: 'You can only delete attachments that you uploaded.', type: 'error');
+                        $this->showRemovePendingAttachmentConfirmation = false;
+                        $this->pendingAttachmentToDelete = null;
+                        return;
+                    }
+
+                    // Delete the physical file from storage
+                    if (Storage::disk('public')->exists($attachment->file_path)) {
+                        Storage::disk('public')->delete($attachment->file_path);
+                    }
+                    // Hard delete the attachment record
+                    $attachment->forceDelete();
+                }
+
+                $this->dispatch('toast', message: 'Photo removed.', type: 'success');
+            }
+            
+            $this->showRemovePendingAttachmentConfirmation = false;
+            $this->pendingAttachmentToDelete = null;
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Attachment removal error: ' . $e->getMessage());
+            $this->dispatch('toast', message: 'Failed to remove photo. Please try again.', type: 'error');
+            $this->showRemovePendingAttachmentConfirmation = false;
+            $this->pendingAttachmentToDelete = null;
+        }
     }
 
     /**

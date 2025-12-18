@@ -74,8 +74,15 @@
             <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
                 <div class="font-semibold text-gray-500">Plate No:<span class="text-red-500">*</span></div>
                 <div class="text-gray-900">
+                    @php
+                        $isTruckSoftDeleted = $selectedSlip && $selectedSlip->truck && $selectedSlip->truck->trashed();
+                    @endphp
                     <x-forms.searchable-dropdown wire-model="editTruckId" :options="$editTruckOptions" search-property="searchEditTruck"
-                        placeholder="Select plate number..." search-placeholder="Search plates..." />
+                        placeholder="Select plate number..." search-placeholder="Search plates..." 
+                        :disabled="$isTruckSoftDeleted" />
+                    @if ($isTruckSoftDeleted)
+                        <p class="text-xs text-red-600 mt-1">This truck has been deleted and cannot be changed.</p>
+                    @endif
                     @error('editTruckId')
                         <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
                     @enderror
@@ -375,7 +382,7 @@
             <div>
                 {{-- Delete Button --}}
                 @if ($this->canDelete())
-                    <x-buttons.submit-button wire:click="$set('showSlipDeleteConfirmation', true)" color="red">
+                    <x-buttons.submit-button wire:click="confirmDeleteSlip" color="red">
                         Delete
                     </x-buttons.submit-button>
                 @endif

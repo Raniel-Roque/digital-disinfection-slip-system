@@ -10,6 +10,7 @@ return new class extends Migration {
         Schema::create('attachments', function (Blueprint $table) {
             $table->id();
             $table->string('file_path');
+            $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnUpdate()->nullOnDelete();
             $table->timestamps(); // Used to track 30+ days old
         });
     }

@@ -28,7 +28,8 @@ class DisinfectionSlip extends Component
     public $showRemoveAttachmentConfirmation = false;
     public $showReportModal = false;
     public $selectedSlip = null;
-    public $attachmentFile = null;
+    public $currentAttachmentIndex = 0;
+    public $attachmentToDelete = null;
     public $reportDescription = '';
 
     public $isEditing = false;
@@ -173,7 +174,6 @@ class DisinfectionSlip extends Component
             'driver' => function($q) {
                 $q->withTrashed();
             },
-            'attachment',
             'hatcheryGuard' => function($q) {
                 $q->withTrashed();
             },
@@ -278,11 +278,23 @@ class DisinfectionSlip extends Component
             return false;
         }
 
-        // Can manage attachment ONLY on INCOMING
-        return $this->type === 'incoming'
+        // Can manage attachment on INCOMING when disinfecting
+        if ($this->type === 'incoming'
             && Auth::id() === $this->selectedSlip->received_guard_id 
             && $this->selectedSlip->status == 1
-            && $this->selectedSlip->destination_id === Session::get('location_id');
+            && $this->selectedSlip->destination_id === Session::get('location_id')) {
+            return true;
+        }
+
+        // Can manage attachment on OUTGOING when editing (hatchery guard can add/edit attachments)
+        if ($this->type === 'outgoing'
+            && Auth::id() === $this->selectedSlip->hatchery_guard_id 
+            && $this->selectedSlip->location_id === Session::get('location_id')
+            && $this->selectedSlip->status != 2) {
+            return true;
+        }
+
+        return false;
     }
 
     public function editDetailsModal()
@@ -355,7 +367,6 @@ class DisinfectionSlip extends Component
                 'location',
                 'destination',
                 'driver',
-                'attachment',
                 'hatcheryGuard',
                 'receivedGuard',
             ]);
@@ -372,7 +383,6 @@ class DisinfectionSlip extends Component
             'location',
             'destination',
             'driver',
-            'attachment',
             'hatcheryGuard',
             'receivedGuard'
         ]);
@@ -414,7 +424,6 @@ class DisinfectionSlip extends Component
             'location',
             'destination',
             'driver',
-            'attachment',
             'hatcheryGuard',
             'receivedGuard'
         ]);
@@ -526,7 +535,6 @@ class DisinfectionSlip extends Component
             'location',
             'destination',
             'driver',
-            'attachment',
             'hatcheryGuard',
             'receivedGuard'
         ]);
@@ -664,21 +672,32 @@ class DisinfectionSlip extends Component
         $this->selectedSlip = null;
     }
 
-    public function openAttachmentModal($file)
+    public function openAttachmentModal($index = 0)
     {
-        $this->attachmentFile = $file;
+        $this->currentAttachmentIndex = (int) $index;
         $this->showAttachmentModal = true;
     }
 
     public function closeAttachmentModal()
     {
         $this->showAttachmentModal = false;
-        $this->js('setTimeout(() => $wire.clearAttachment(), 300)');
+        $this->currentAttachmentIndex = 0;
+        $this->attachmentToDelete = null;
     }
 
-    public function clearAttachment()
+    public function nextAttachment()
     {
-        $this->attachmentFile = null;
+        $attachments = $this->selectedSlip->attachments();
+        if ($this->currentAttachmentIndex < $attachments->count() - 1) {
+            $this->currentAttachmentIndex++;
+        }
+    }
+
+    public function previousAttachment()
+    {
+        if ($this->currentAttachmentIndex > 0) {
+            $this->currentAttachmentIndex--;
+        }
     }
 
     public function openAddAttachmentModal()
@@ -698,25 +717,53 @@ class DisinfectionSlip extends Component
         $this->showAddAttachmentModal = false;
     }
 
+    public function confirmRemoveAttachment($attachmentId)
+    {
+        $this->attachmentToDelete = $attachmentId;
+        $this->showRemoveAttachmentConfirmation = true;
+    }
+
     public function removeAttachment()
     {
         try {
-            // Authorization check using canManageAttachment
-            if (!$this->canManageAttachment()) {
+            // Check if user is admin or superadmin
+            $user = Auth::user();
+            $isAdminOrSuperAdmin = in_array($user->user_type, [1, 2]); // 1 = Admin, 2 = SuperAdmin
+            
+            // Authorization check using canManageAttachment (unless admin/superadmin)
+            if (!$isAdminOrSuperAdmin && !$this->canManageAttachment()) {
                 $this->dispatch('toast', message: 'You are not authorized to remove attachments.', type: 'error');
                 return;
             }
 
-            // Check if attachment exists
-            if (!$this->selectedSlip->attachment_id) {
-                $this->dispatch('toast', message: 'No attachment found to remove.', type: 'error');
+            if (!$this->attachmentToDelete) {
+                $this->dispatch('toast', message: 'No attachment specified to remove.', type: 'error');
+                return;
+            }
+
+            // Get current attachment IDs
+            $attachmentIds = $this->selectedSlip->attachment_ids ?? [];
+            
+            if (empty($attachmentIds) || !in_array($this->attachmentToDelete, $attachmentIds)) {
+                $this->dispatch('toast', message: 'Attachment not found.', type: 'error');
                 return;
             }
 
             // Get the attachment record
-            $attachment = Attachment::find($this->selectedSlip->attachment_id);
+            $attachment = Attachment::find($this->attachmentToDelete);
 
             if ($attachment) {
+                // Check if current user is the one who uploaded this attachment (unless admin/superadmin)
+                $user = Auth::user();
+                $isAdminOrSuperAdmin = in_array($user->user_type, [1, 2]); // 1 = Admin, 2 = SuperAdmin
+                
+                if (!$isAdminOrSuperAdmin && $attachment->user_id !== Auth::id()) {
+                    $this->dispatch('toast', message: 'You can only delete attachments that you uploaded.', type: 'error');
+                    $this->showRemoveAttachmentConfirmation = false;
+                    $this->attachmentToDelete = null;
+                    return;
+                }
+
                 // Delete the physical file from storage (except BGC.png logo)
                 if ($attachment->file_path !== 'images/logo/BGC.png') {
                     if (Storage::disk('public')->exists($attachment->file_path)) {
@@ -724,9 +771,12 @@ class DisinfectionSlip extends Component
                     }
                 }
 
-                // Remove attachment reference from slip
+                // Remove attachment ID from array
+                $attachmentIds = array_values(array_filter($attachmentIds, fn($id) => $id != $this->attachmentToDelete));
+
+                // Update slip with remaining attachment IDs (or null if empty)
                 $this->selectedSlip->update([
-                    'attachment_id' => null,
+                    'attachment_ids' => empty($attachmentIds) ? null : $attachmentIds,
                 ]);
 
                 // Hard delete the attachment record (except BGC.png logo)
@@ -736,15 +786,23 @@ class DisinfectionSlip extends Component
 
                 // Refresh the slip
                 $this->selectedSlip->refresh();
-                $this->selectedSlip->load('attachment');
 
-                // Close attachment modal and confirmation
-                $this->showAttachmentModal = false;
+                // Adjust current index if needed
+                $attachments = $this->selectedSlip->attachments();
+                if ($this->currentAttachmentIndex >= $attachments->count() && $attachments->count() > 0) {
+                    $this->currentAttachmentIndex = $attachments->count() - 1;
+                } elseif ($attachments->count() === 0) {
+                    // No more attachments, close modal
+                    $this->showAttachmentModal = false;
+                    $this->currentAttachmentIndex = 0;
+                }
+
+                // Close confirmation modal
                 $this->showRemoveAttachmentConfirmation = false;
-                $this->attachmentFile = null;
+                $this->attachmentToDelete = null;
 
                 $slipId = $this->selectedSlip->slip_id;
-                $this->dispatch('toast', message: "{$slipId}'s attachment has been removed.", type: 'success');
+                $this->dispatch('toast', message: "Attachment has been removed from {$slipId}.", type: 'success');
             }
 
         } catch (\Exception $e) {
@@ -762,11 +820,8 @@ class DisinfectionSlip extends Component
                 return;
             }
 
-            // Check if attachment already exists
-            if ($this->selectedSlip->attachment_id) {
-                $this->dispatch('toast', message: 'This slip already has an attachment.', type: 'error');
-                return;
-            }
+            // Get current attachment IDs (initialize as empty array if null)
+            $attachmentIds = $this->selectedSlip->attachment_ids ?? [];
 
             // Validate image data format
             if (!preg_match('/^data:image\/(jpeg|jpg|png|gif|webp);base64,/', $imageData)) {
@@ -828,20 +883,26 @@ class DisinfectionSlip extends Component
             // Create attachment record
             $attachment = Attachment::create([
                 'file_path' => $relativePath,
+                'user_id' => Auth::id(),
             ]);
 
-            // Update disinfection slip with attachment_id
+            // Add new attachment ID to array
+            $attachmentIds[] = $attachment->id;
+
+            // Update disinfection slip with attachment_ids array
             $this->selectedSlip->update([
-                'attachment_id' => $attachment->id,
+                'attachment_ids' => $attachmentIds,
             ]);
 
-            // Refresh the slip with relationships
+            // Refresh the slip
             $this->selectedSlip->refresh();
-            $this->selectedSlip->load('attachment');
 
             $slipId = $this->selectedSlip->slip_id;
-            $this->dispatch('toast', message: "{$slipId}'s attachment has been uploaded.", type: 'success');
-            $this->closeAddAttachmentModal();
+            $totalAttachments = count($attachmentIds);
+            $this->dispatch('toast', message: "Photo added to {$slipId} ({$totalAttachments} total).", type: 'success');
+            
+            // Don't close modal automatically - allow user to add more photos
+            // $this->closeAddAttachmentModal();
 
         } catch (\Exception $e) {
             Log::error('Attachment upload error: ' . $e->getMessage());

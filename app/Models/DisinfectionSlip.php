@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class DisinfectionSlip extends Model
 {
@@ -17,12 +19,19 @@ class DisinfectionSlip extends Model
         'destination_id',
         'driver_id',
         'reason_for_disinfection',
-        'attachment_id',
+        'attachment_ids',
         'hatchery_guard_id',
         'received_guard_id',
         'status',
         'completed_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'attachment_ids' => 'array',
+        ];
+    }
     protected static function boot()
     {
         parent::boot();
@@ -32,6 +41,46 @@ class DisinfectionSlip extends Model
                 $slip->slip_id = self::generateSlipId();
             }
         });
+
+        // Delete attachments when slip is force deleted
+        static::deleting(function ($slip) {
+            // Only delete attachments on force delete (hard delete), not soft delete
+            if ($slip->isForceDeleting()) {
+                $slip->deleteAttachments();
+            }
+        });
+    }
+
+    /**
+     * Delete all attachments associated with this slip
+     */
+    public function deleteAttachments()
+    {
+        if (!$this->attachment_ids || empty($this->attachment_ids)) {
+            return;
+        }
+
+        $attachments = Attachment::whereIn('id', $this->attachment_ids)->get();
+        
+        foreach ($attachments as $attachment) {
+            // Delete the file from storage
+            if ($attachment->file_path && Storage::disk('public')->exists($attachment->file_path)) {
+                // Don't delete default logo (BGC.png)
+                if ($attachment->file_path !== 'images/logo/BGC.png') {
+                    Storage::disk('public')->delete($attachment->file_path);
+                }
+            }
+            
+            // Check if attachment is used by locations (logo_attachment_id)
+            $isUsedByLocation = DB::table('locations')
+                ->where('logo_attachment_id', $attachment->id)
+                ->exists();
+            
+            // Only delete attachment record if not used by locations
+            if (!$isUsedByLocation) {
+                $attachment->forceDelete();
+            }
+        }
     }
 
     public static function generateSlipId()
@@ -78,9 +127,27 @@ class DisinfectionSlip extends Model
         return $this->belongsTo(Driver::class);
     }
 
+    /**
+     * Get a single attachment (for backward compatibility)
+     * Returns the first attachment if multiple exist
+     */
     public function attachment()
     {
-        return $this->belongsTo(Attachment::class);
+        if (!$this->attachment_ids || empty($this->attachment_ids)) {
+            return null;
+        }
+        return Attachment::find($this->attachment_ids[0]);
+    }
+
+    /**
+     * Get all attachments as a collection
+     */
+    public function attachments()
+    {
+        if (!$this->attachment_ids || empty($this->attachment_ids)) {
+            return collect([]);
+        }
+        return Attachment::whereIn('id', $this->attachment_ids)->get();
     }
 
     public function hatcheryGuard()

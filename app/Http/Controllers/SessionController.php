@@ -113,10 +113,10 @@ class SessionController extends Controller
                 ]);
             }
             
-            // Only allow regular users (type 0) for location login
-            if ($user->user_type !== 0) {
+            // Only allow regular users (type 0) or superadmins (type 2) for location login
+            if ($user->user_type !== 0 && $user->user_type !== 2) {
                 throw ValidationException::withMessages([
-                    'username' => 'Only guards can login through locations. Admins must use the admin login.',
+                    'username' => 'Only guards and superadmins can login through locations. Admins must use the admin login.',
                     'password' => '',
                 ]);
             }
@@ -136,7 +136,7 @@ class SessionController extends Controller
         // Regenerate session to prevent session fixation
         request()->session()->regenerate();
 
-        // Store location in session if provided (for regular users)
+        // Store location in session if provided (for regular users and superadmins)
         // Location is already validated above, so we can safely use it
         if ($location && isset($locationModel)) {
             $request->session()->put('location_id', $locationModel->id);
@@ -145,6 +145,12 @@ class SessionController extends Controller
 
         // Ensure session is saved before redirecting
         $request->session()->save();
+
+        // If superadmin logged in through a location, redirect to guard dashboard
+        // Otherwise, use their normal dashboard route
+        if ($user->user_type === 2 && $location && isset($locationModel)) {
+            return redirect()->route('user.dashboard');
+        }
 
         return redirect()->route($user->dashboardRoute());
     }

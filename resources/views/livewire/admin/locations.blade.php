@@ -223,6 +223,10 @@
                             </th>
                             <th scope="col"
                                 class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Create Slip
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Actions
                             </th>
                         </tr>
@@ -255,6 +259,17 @@
                                     <div class="text-xs text-gray-500 mt-0.5">
                                         {{ \Carbon\Carbon::parse($location->created_at)->format('h:i A') }}
                                     </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                    @if ($location->create_slip)
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            Allowed
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            Not Allowed
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                     <div class="flex items-center justify-center gap-2">
@@ -300,7 +315,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-6 py-12 text-center">
+                                <td colspan="5" class="px-6 py-12 text-center">
                                     <div class="flex flex-col items-center">
                                         <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24"
                                             stroke="currentColor">
@@ -454,6 +469,16 @@
                                     <p class="text-xs text-gray-600 mt-3 leading-relaxed">
                                         Supported formats: JPEG, PNG, GIF, WebP (Max 15MB)
                                     </p>
+                                </div>
+
+                                {{-- Create Slip Toggle --}}
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Allow Create Slip</label>
+                                    <label class="relative inline-flex items-center cursor-pointer" x-data="{ createSlip: @entangle('create_slip') }">
+                                        <input type="checkbox" x-model="createSlip" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" :class="createSlip ? 'bg-blue-600' : 'bg-gray-200'"></div>
+                                        <span class="ml-3 text-sm text-gray-700" x-text="createSlip ? 'Enabled - Guards can create slips on outgoing trucks' : 'Disabled - Guards cannot create slips on outgoing trucks'"></span>
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -641,6 +666,16 @@
                                     <p class="text-xs text-gray-600 mt-3 leading-relaxed">
                                         Supported formats: JPEG, PNG, GIF, WebP (Max 15MB)
                                     </p>
+                                </div>
+
+                                {{-- Create Slip Toggle --}}
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Allow Create Slip</label>
+                                    <label class="relative inline-flex items-center cursor-pointer" x-data="{ createSlip: @entangle('create_create_slip') }">
+                                        <input type="checkbox" x-model="createSlip" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" :class="createSlip ? 'bg-blue-600' : 'bg-gray-200'"></div>
+                                        <span class="ml-3 text-sm text-gray-700" x-text="createSlip ? 'Enabled - Guards can create slips on outgoing trucks' : 'Disabled - Guards cannot create slips on outgoing trucks'"></span>
+                                    </label>
                                 </div>
                             </div>
                         </div>

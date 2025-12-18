@@ -14,6 +14,7 @@ class Location extends Model
         'location_name',
         'attachment_id', // updated from logo_attachment_id
         'disabled',
+        'create_slip',
     ];
 
     // Logo attachment (images/logos/)

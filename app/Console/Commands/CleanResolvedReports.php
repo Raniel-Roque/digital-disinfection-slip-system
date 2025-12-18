@@ -27,9 +27,9 @@ class CleanResolvedReports extends Command
      */
     public function handle(): int
     {
-        // Get retention period from settings (default to 6 months if not set)
+        // Get retention period from settings (default to 3 months if not set)
         $retentionSetting = Setting::where('setting_name', 'resolved_reports_retention_months')->first();
-        $retentionMonths = $retentionSetting ? (int) $retentionSetting->value : 6;
+        $retentionMonths = $retentionSetting ? (int) $retentionSetting->value : 3;
 
         // Calculate the cutoff date
         $cutoffDate = now()->subMonths($retentionMonths);

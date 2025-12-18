@@ -10,6 +10,7 @@ class Attachment extends Model
     use HasFactory;
     protected $fillable = [
         'file_path',
+        'user_id',
     ];
 
     // If you want: attachments can be reused in future
@@ -21,5 +22,10 @@ class Attachment extends Model
     public function locations()
     {
         return $this->hasMany(Location::class, 'logo_attachment_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

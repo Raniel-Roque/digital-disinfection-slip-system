@@ -92,14 +92,50 @@ class User extends Authenticatable
 
     /**
      * Resolve the named route for the user's dashboard.
+     * Superadmins with a location in session are redirected to user dashboard.
      */
     public function dashboardRoute(): string
     {
+        // If superadmin is in guard view (has location in session), return user dashboard
+        if ($this->isGuardView()) {
+            return 'user.dashboard';
+        }
+        
         return match ((int) $this->user_type) {
             1 => 'admin.dashboard',
             2 => 'superadmin.dashboard',
             default => 'user.dashboard', // includes 0 and null
         };
+    }
+
+    /**
+     * Check if user should be treated as a guard (user_type 0 or superadmin with location)
+     */
+    public function isGuardView(): bool
+    {
+        // Regular guards
+        if ($this->user_type === 0) {
+            return true;
+        }
+        
+        // Superadmins with location in session should act as guards
+        if ($this->user_type === 2 && session()->has('location_id')) {
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Get effective user type for view purposes (treats superadmin with location as guard)
+     */
+    public function effectiveUserType(): int
+    {
+        if ($this->isGuardView()) {
+            return 0;
+        }
+        
+        return (int) $this->user_type;
     }
 
     /**

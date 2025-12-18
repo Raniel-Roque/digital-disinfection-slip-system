@@ -200,7 +200,7 @@ class Trucks extends Component
     private function getCachedTrucks()
     {
         if ($this->cachedTrucks === null) {
-            $this->cachedTrucks = Truck::orderBy('plate_number')->get();
+            $this->cachedTrucks = Truck::withTrashed()->orderBy('plate_number')->get();
         }
         return $this->cachedTrucks;
     }
@@ -591,6 +591,15 @@ class Trucks extends Component
     {
         $trucks = $this->getCachedTrucks();
         $allOptions = $trucks->pluck('plate_number', 'id');
+        
+        // If selected truck is soft-deleted, include it in options
+        if ($this->editTruckId) {
+            $selectedTruck = Truck::withTrashed()->find($this->editTruckId);
+            if ($selectedTruck && $selectedTruck->trashed() && !isset($allOptions[$this->editTruckId])) {
+                $allOptions[$this->editTruckId] = $selectedTruck->plate_number . ' (Deleted)';
+            }
+        }
+        
         $options = $allOptions;
         
         if (!empty($this->searchEditTruck)) {
@@ -598,11 +607,21 @@ class Trucks extends Component
             $options = $options->filter(function ($label) use ($searchTerm) {
                 return str_contains(strtolower($label), $searchTerm);
             });
-            // Ensure selected value is always included
+            // Ensure selected value is always included (even if soft-deleted)
             $options = $this->ensureSelectedInOptions($options, $this->editTruckId, $allOptions);
         }
         
         return $options->toArray();
+    }
+
+    public function getIsSelectedTruckSoftDeletedProperty()
+    {
+        if (!$this->editTruckId || !$this->selectedSlip) {
+            return false;
+        }
+        
+        $truck = Truck::withTrashed()->find($this->editTruckId);
+        return $truck && $truck->trashed();
     }
     
     public function getEditDriverOptionsProperty()
@@ -986,11 +1005,10 @@ class Trucks extends Component
     public function openDetailsModal($id)
     {
         $this->selectedSlip = DisinfectionSlipModel::with([
-            'truck',
+            'truck' => function($q) { $q->withTrashed(); },
             'location',
             'destination',
             'driver',
-            'attachment',
             'hatcheryGuard',
             'receivedGuard'
         ])->find($id);
@@ -1001,6 +1019,11 @@ class Trucks extends Component
     public function canEdit()
     {
         if (!$this->selectedSlip) {
+            return false;
+        }
+
+        // Cannot edit if truck is soft-deleted
+        if ($this->selectedSlip->truck && $this->selectedSlip->truck->trashed()) {
             return false;
         }
 
@@ -1015,7 +1038,12 @@ class Trucks extends Component
             return false;
         }
 
-        // Admin can delete any slip, including completed ones
+        // Cannot delete if truck is soft-deleted
+        if ($this->selectedSlip->truck && $this->selectedSlip->truck->trashed()) {
+            return false;
+        }
+
+        // Admin can delete any slip, including completed ones (unless truck is soft-deleted)
         return true;
     }
 
@@ -1031,7 +1059,8 @@ class Trucks extends Component
             return false;
         }
 
-        return $this->selectedSlip->attachment_id !== null;
+        $attachmentIds = $this->selectedSlip->attachment_ids ?? [];
+        return !empty($attachmentIds);
     }
 
     public function openEditModal()
@@ -1335,7 +1364,6 @@ class Trucks extends Component
             'location',
             'destination',
             'driver',
-            'attachment',
             'hatcheryGuard',
             'receivedGuard'
         ]);
@@ -1729,45 +1757,49 @@ class Trucks extends Component
                 return;
             }
 
-            // Check if attachment exists
-            if (!$this->selectedSlip->attachment_id) {
-                $this->dispatch('toast', message: 'No attachment found to remove.', type: 'error');
+            // Get current attachment IDs
+            $attachmentIds = $this->selectedSlip->attachment_ids ?? [];
+            
+            if (empty($attachmentIds)) {
+                $this->dispatch('toast', message: 'No attachments found to remove.', type: 'error');
                 return;
             }
 
-            // Get the attachment record
-            $attachment = Attachment::find($this->selectedSlip->attachment_id);
+            // Delete all attachments
+            foreach ($attachmentIds as $attachmentId) {
+                $attachment = Attachment::find($attachmentId);
+                
+                if ($attachment) {
+                    // Delete the physical file from storage (except BGC.png logo)
+                    if ($attachment->file_path !== 'images/logo/BGC.png') {
+                        if (Storage::disk('public')->exists($attachment->file_path)) {
+                            Storage::disk('public')->delete($attachment->file_path);
+                        }
+                    }
 
-            if ($attachment) {
-                // Delete the physical file from storage (except BGC.png logo)
-                if ($attachment->file_path !== 'images/logo/BGC.png') {
-                    if (Storage::disk('public')->exists($attachment->file_path)) {
-                        Storage::disk('public')->delete($attachment->file_path);
+                    // Hard delete the attachment record (except BGC.png logo)
+                    if ($attachment->file_path !== 'images/logo/BGC.png') {
+                        $attachment->forceDelete();
                     }
                 }
-
-                // Remove attachment reference from slip
-                $this->selectedSlip->update([
-                    'attachment_id' => null,
-                ]);
-
-                // Hard delete the attachment record (except BGC.png logo)
-                if ($attachment->file_path !== 'images/logo/BGC.png') {
-                    $attachment->forceDelete();
-                }
-
-                // Refresh the slip
-                $this->selectedSlip->refresh();
-                $this->selectedSlip->load('attachment');
-
-                // Close attachment modal and confirmation
-                $this->showAttachmentModal = false;
-                $this->showRemoveAttachmentConfirmation = false;
-                $this->attachmentFile = null;
-
-                $slipId = $this->selectedSlip->slip_id;
-                $this->dispatch('toast', message: "{$slipId}'s attachment has been removed.", type: 'success');
             }
+
+            // Remove all attachment references from slip
+            $this->selectedSlip->update([
+                'attachment_ids' => null,
+            ]);
+
+            // Refresh the slip
+            $this->selectedSlip->refresh();
+
+            // Close attachment modal and confirmation
+            $this->showAttachmentModal = false;
+            $this->showRemoveAttachmentConfirmation = false;
+            $this->attachmentFile = null;
+
+            $slipId = $this->selectedSlip->slip_id;
+            $attachmentCount = count($attachmentIds);
+            $this->dispatch('toast', message: "{$slipId}'s {$attachmentCount} attachment(s) have been removed.", type: 'success');
 
         } catch (\Exception $e) {
             FacadesLog::error('Attachment removal error: ' . $e->getMessage());

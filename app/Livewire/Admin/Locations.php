@@ -75,10 +75,12 @@ class Locations extends Component
     public $edit_logo;
     public $current_logo_path; // Track current logo path for edit
     public $remove_logo = false;
+    public $create_slip = false;
 
     // Create form fields
     public $create_location_name;
     public $create_logo;
+    public $create_create_slip = false;
 
     protected $queryString = ['search'];
     
@@ -158,12 +160,14 @@ class Locations extends Component
 
     public $original_location_name;
     public $original_attachment_id;
+    public $original_create_slip;
 
     public function openEditModal($locationId)
     {
         $location = Location::findOrFail($locationId);
         $this->selectedLocationId = $locationId;
         $this->location_name = $location->location_name;
+        $this->create_slip = $location->create_slip ?? false;
         $this->edit_logo = null;
         $this->remove_logo = false;
         
@@ -178,6 +182,7 @@ class Locations extends Component
         // Store original values for change detection
         $this->original_location_name = $location->location_name;
         $this->original_attachment_id = $location->attachment_id;
+        $this->original_create_slip = $location->create_slip ?? false;
         
         $this->showEditModal = true;
     }
@@ -191,8 +196,9 @@ class Locations extends Component
         $locationName = trim($this->location_name ?? '');
         $nameChanged = $this->original_location_name !== $locationName;
         $logoChanged = $this->edit_logo !== null || $this->remove_logo === true;
+        $createSlipChanged = $this->original_create_slip !== $this->create_slip;
 
-        return $nameChanged || $logoChanged;
+        return $nameChanged || $logoChanged || $createSlipChanged;
     }
 
     public function updateLocation()
@@ -261,6 +267,7 @@ class Locations extends Component
             // Create attachment record
             $attachment = Attachment::create([
                 'file_path' => $path,
+                'user_id' => Auth::id(),
             ]);
             
             $attachmentId = $attachment->id;
@@ -269,8 +276,9 @@ class Locations extends Component
         // Check if there are any changes
         $nameChanged = $location->location_name !== $locationName;
         $attachmentChanged = $location->attachment_id !== $attachmentId;
+        $createSlipChanged = ($location->create_slip ?? false) !== $this->create_slip;
         
-        if (!$nameChanged && !$attachmentChanged) {
+        if (!$nameChanged && !$attachmentChanged && !$createSlipChanged) {
             // Reset logo fields if no changes
             $this->edit_logo = null;
             $this->remove_logo = false;
@@ -279,11 +287,12 @@ class Locations extends Component
         }
         
         // Capture old values for logging
-        $oldValues = $location->only(['location_name', 'attachment_id']);
+        $oldValues = $location->only(['location_name', 'attachment_id', 'create_slip']);
         
         $location->update([
             'location_name' => $locationName,
             'attachment_id' => $attachmentId,
+            'create_slip' => $this->create_slip,
         ]);
         
         // Generate specific description based on what changed
@@ -297,6 +306,9 @@ class Locations extends Component
             } else {
                 $descriptionParts[] = "updated logo";
             }
+        }
+        if ($createSlipChanged) {
+            $descriptionParts[] = $this->create_slip ? "enabled create slip" : "disabled create slip";
         }
         $description = "Updated " . implode(" and ", $descriptionParts);
         
@@ -312,7 +324,7 @@ class Locations extends Component
         );
 
         $this->showEditModal = false;
-        $this->reset(['selectedLocationId', 'location_name', 'edit_logo', 'current_logo_path', 'remove_logo', 'original_location_name', 'original_attachment_id']);
+        $this->reset(['selectedLocationId', 'location_name', 'edit_logo', 'current_logo_path', 'remove_logo', 'original_location_name', 'original_attachment_id', 'create_slip', 'original_create_slip']);
         $this->dispatch('toast', message: "{$locationName} has been updated.", type: 'success');
     }
 
@@ -416,7 +428,7 @@ class Locations extends Component
         $this->showEditModal = false;
         $this->showDisableModal = false;
         $this->showCreateModal = false;
-        $this->reset(['selectedLocationId', 'selectedLocationDisabled', 'location_name', 'edit_logo', 'remove_logo', 'create_location_name', 'create_logo']);
+        $this->reset(['selectedLocationId', 'selectedLocationDisabled', 'location_name', 'edit_logo', 'remove_logo', 'create_location_name', 'create_logo', 'create_slip', 'create_create_slip', 'original_create_slip']);
         $this->resetValidation();
     }
 
@@ -482,6 +494,7 @@ class Locations extends Component
             // Create attachment record
             $attachment = Attachment::create([
                 'file_path' => $path,
+                'user_id' => Auth::id(),
             ]);
             
             $attachmentId = $attachment->id;
@@ -492,6 +505,7 @@ class Locations extends Component
             'location_name' => $locationName,
             'attachment_id' => $attachmentId,
             'disabled' => false,
+            'create_slip' => $this->create_create_slip,
         ]);
         
         // Log the creation
@@ -504,7 +518,7 @@ class Locations extends Component
         );
 
         $this->showCreateModal = false;
-        $this->reset(['create_location_name', 'create_logo']);
+        $this->reset(['create_location_name', 'create_logo', 'create_create_slip']);
         $this->dispatch('toast', message: "{$locationName} has been created.", type: 'success');
         $this->resetPage();
     }

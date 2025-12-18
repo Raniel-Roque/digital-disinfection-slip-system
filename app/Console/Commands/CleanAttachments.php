@@ -60,9 +60,14 @@ class CleanAttachments extends Command
 
             try {
                 // First, remove the attachment reference from any disinfection slips
-                // This ensures data consistency before deletion (even though nullOnDelete() handles it)
-                DisinfectionSlip::where('attachment_id', operator: $attachment->id)
-                    ->update(['attachment_id' => null]);
+                // Handle both old attachment_id (for migration compatibility) and new attachment_ids array
+                $slipsWithAttachment = DisinfectionSlip::whereJsonContains('attachment_ids', $attachment->id)->get();
+                
+                foreach ($slipsWithAttachment as $slip) {
+                    $attachmentIds = $slip->attachment_ids ?? [];
+                    $attachmentIds = array_filter($attachmentIds, fn($id) => $id != $attachment->id);
+                    $slip->update(['attachment_ids' => empty($attachmentIds) ? null : array_values($attachmentIds)]);
+                }
 
                 // Delete the physical file from storage
                 if (Storage::disk('public')->exists($attachment->file_path)) {

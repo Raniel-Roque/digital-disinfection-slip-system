@@ -20,8 +20,8 @@ return new class extends Migration {
             // Reason 
             $table->text('reason_for_disinfection')->nullable(); 
  
-            // Attachment reference
-            $table->foreignId('attachment_id')->nullable()->constrained('attachments')->cascadeOnUpdate()->nullOnDelete();
+            // Attachment references (stored as JSON array of attachment IDs)
+            $table->json('attachment_ids')->nullable();
  
             // Guards from users table
             $table->foreignId('hatchery_guard_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();

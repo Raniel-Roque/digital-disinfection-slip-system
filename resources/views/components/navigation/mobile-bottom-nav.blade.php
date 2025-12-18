@@ -3,7 +3,7 @@
 ])
 
 @php
-    $userType = auth()->user()->user_type ?? 0;
+    $userType = auth()->user()->effectiveUserType();
     
     // Determine active states
     $trucksRoutes = ['user.incoming-trucks', 'user.outgoing-trucks', 'user.completed-trucks'];

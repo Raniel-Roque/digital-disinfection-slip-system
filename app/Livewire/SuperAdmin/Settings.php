@@ -19,6 +19,7 @@ class Settings extends Component
     public $default_location_logo;
     public $log_retention_months;
     public $resolved_reports_retention_months;
+    public $soft_deleted_retention_months;
     
     // File upload
     public $default_logo_file;
@@ -29,6 +30,7 @@ class Settings extends Component
     public $original_default_guard_password;
     public $original_log_retention_months;
     public $original_resolved_reports_retention_months;
+    public $original_soft_deleted_retention_months;
 
     public function mount()
     {
@@ -43,12 +45,14 @@ class Settings extends Component
         $defaultLogo = Setting::where('setting_name', 'default_location_logo')->first();
         $logRetention = Setting::where('setting_name', 'log_retention_months')->first();
         $resolvedReportsRetention = Setting::where('setting_name', 'resolved_reports_retention_months')->first();
+        $softDeletedRetention = Setting::where('setting_name', 'soft_deleted_retention_months')->first();
 
         $this->attachment_retention_days = $attachmentRetention ? $attachmentRetention->value : '30';
         $this->default_guard_password = $defaultPassword ? $defaultPassword->value : 'brookside25';
         $this->default_location_logo = $defaultLogo ? $defaultLogo->value : 'images/logo/BGC.png';
-        $this->log_retention_months = $logRetention ? $logRetention->value : '6';
-        $this->resolved_reports_retention_months = $resolvedReportsRetention ? $resolvedReportsRetention->value : '6';
+        $this->log_retention_months = $logRetention ? $logRetention->value : '3';
+        $this->resolved_reports_retention_months = $resolvedReportsRetention ? $resolvedReportsRetention->value : '3';
+        $this->soft_deleted_retention_months = $softDeletedRetention ? $softDeletedRetention->value : '3';
         $this->current_logo_path = $this->default_location_logo;
         
         // Store original values for change detection
@@ -56,6 +60,7 @@ class Settings extends Component
         $this->original_default_guard_password = $this->default_guard_password;
         $this->original_log_retention_months = $this->log_retention_months;
         $this->original_resolved_reports_retention_months = $this->resolved_reports_retention_months;
+        $this->original_soft_deleted_retention_months = $this->soft_deleted_retention_months;
     }
 
     public function getHasChangesProperty()
@@ -64,9 +69,10 @@ class Settings extends Component
         $passwordChanged = $this->original_default_guard_password !== $this->default_guard_password;
         $logRetentionChanged = (string)$this->original_log_retention_months !== (string)$this->log_retention_months;
         $resolvedReportsRetentionChanged = (string)$this->original_resolved_reports_retention_months !== (string)$this->resolved_reports_retention_months;
+        $softDeletedRetentionChanged = (string)$this->original_soft_deleted_retention_months !== (string)$this->soft_deleted_retention_months;
         $logoChanged = $this->default_logo_file !== null;
 
-        return $attachmentChanged || $passwordChanged || $logRetentionChanged || $resolvedReportsRetentionChanged || $logoChanged;
+        return $attachmentChanged || $passwordChanged || $logRetentionChanged || $resolvedReportsRetentionChanged || $softDeletedRetentionChanged || $logoChanged;
     }
     
     public function clearLogo()
@@ -89,6 +95,7 @@ class Settings extends Component
             'default_guard_password' => ['required', 'string', 'min:6', 'max:255'],
             'log_retention_months' => ['required', 'integer', 'min:1', 'max:120'],
             'resolved_reports_retention_months' => ['required', 'integer', 'min:1', 'max:120'],
+            'soft_deleted_retention_months' => ['required', 'integer', 'min:1', 'max:120'],
             'default_logo_file' => ['nullable', 'image', 'max:2048'], // 2MB max
         ], [
             'attachment_retention_days.required' => 'Attachment retention days is required.',
@@ -105,6 +112,10 @@ class Settings extends Component
             'resolved_reports_retention_months.integer' => 'Resolved reports retention months must be a number.',
             'resolved_reports_retention_months.min' => 'Resolved reports retention months must be at least 1 month.',
             'resolved_reports_retention_months.max' => 'Resolved reports retention months cannot exceed 120 months (10 years).',
+            'soft_deleted_retention_months.required' => 'Soft-deleted retention months is required.',
+            'soft_deleted_retention_months.integer' => 'Soft-deleted retention months must be a number.',
+            'soft_deleted_retention_months.min' => 'Soft-deleted retention months must be at least 1 month.',
+            'soft_deleted_retention_months.max' => 'Soft-deleted retention months cannot exceed 120 months (10 years).',
             'default_logo_file.image' => 'The default logo must be an image file.',
             'default_logo_file.max' => 'The default logo must not be larger than 2MB.',
         ]);
@@ -114,9 +125,10 @@ class Settings extends Component
         $passwordChanged = $this->original_default_guard_password !== $this->default_guard_password;
         $logRetentionChanged = (string)$this->original_log_retention_months !== (string)$this->log_retention_months;
         $resolvedReportsRetentionChanged = (string)$this->original_resolved_reports_retention_months !== (string)$this->resolved_reports_retention_months;
+        $softDeletedRetentionChanged = (string)$this->original_soft_deleted_retention_months !== (string)$this->soft_deleted_retention_months;
         $logoChanged = $this->default_logo_file !== null;
 
-        if (!$attachmentChanged && !$passwordChanged && !$logRetentionChanged && !$resolvedReportsRetentionChanged && !$logoChanged) {
+        if (!$attachmentChanged && !$passwordChanged && !$logRetentionChanged && !$resolvedReportsRetentionChanged && !$softDeletedRetentionChanged && !$logoChanged) {
             $this->dispatch('toast', message: 'No changes detected.', type: 'info');
             return;
         }
@@ -128,6 +140,7 @@ class Settings extends Component
             'default_location_logo' => Setting::where('setting_name', 'default_location_logo')->value('value'),
             'log_retention_months' => Setting::where('setting_name', 'log_retention_months')->value('value'),
             'resolved_reports_retention_months' => Setting::where('setting_name', 'resolved_reports_retention_months')->value('value'),
+            'soft_deleted_retention_months' => Setting::where('setting_name', 'soft_deleted_retention_months')->value('value'),
         ];
         
         // Update or create settings
@@ -149,6 +162,11 @@ class Settings extends Component
         Setting::updateOrCreate(
             ['setting_name' => 'resolved_reports_retention_months'],
             ['value' => (string)$this->resolved_reports_retention_months]
+        );
+
+        Setting::updateOrCreate(
+            ['setting_name' => 'soft_deleted_retention_months'],
+            ['value' => (string)$this->soft_deleted_retention_months]
         );
 
         // Handle logo file upload
@@ -179,6 +197,7 @@ class Settings extends Component
             'default_location_logo' => $this->default_location_logo,
             'log_retention_months' => (string)$this->log_retention_months,
             'resolved_reports_retention_months' => (string)$this->resolved_reports_retention_months,
+            'soft_deleted_retention_months' => (string)$this->soft_deleted_retention_months,
         ];
         
         Logger::update(
@@ -194,6 +213,7 @@ class Settings extends Component
         $this->original_default_guard_password = $this->default_guard_password;
         $this->original_log_retention_months = (string)$this->log_retention_months;
         $this->original_resolved_reports_retention_months = (string)$this->resolved_reports_retention_months;
+        $this->original_soft_deleted_retention_months = (string)$this->soft_deleted_retention_months;
         
         $this->dispatch('toast', message: 'Settings have been updated successfully.', type: 'success');
     }

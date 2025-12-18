@@ -93,10 +93,17 @@
                 <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if ($status == 2 && $selectedSlip->completed_at) bg-gray-100 @else bg-white @endif">
                     <div class="font-semibold text-gray-500">Attachment:</div>
                     <div class="text-gray-900">
-                        @if ($selectedSlip->attachment)
-                            <button wire:click="openAttachmentModal('{{ $selectedSlip->attachment->file_path }}')"
+                        @php
+                            $attachments = $selectedSlip->attachments();
+                            $attachmentCount = $attachments->count();
+                        @endphp
+                        @if ($attachmentCount > 0)
+                            @php
+                                $firstAttachment = $attachments->first();
+                            @endphp
+                            <button wire:click="openAttachmentModal('{{ $firstAttachment->file_path }}')"
                                 class="text-orange-500 hover:text-orange-600 underline cursor-pointer">
-                                See Attachment
+                                See Attachment{{ $attachmentCount > 1 ? 's (' . $attachmentCount . ')' : '' }}
                             </button>
                         @else
                             N/A

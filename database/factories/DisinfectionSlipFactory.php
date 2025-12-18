@@ -34,7 +34,7 @@ class DisinfectionSlipFactory extends Factory
             'destination_id' => Location::factory(),
             'driver_id' => Driver::factory(),
             'reason_for_disinfection' => $this->faker->optional(0.7)->sentence(),
-            'attachment_id' => $hasAttachment ? Attachment::factory() : null,
+            'attachment_ids' => $hasAttachment ? [Attachment::factory()->create()->id] : null,
             'hatchery_guard_id' => User::factory()->guard(),
             'received_guard_id' => $hasReceivedGuard ? User::factory()->guard() : null,
             'status' => $status,

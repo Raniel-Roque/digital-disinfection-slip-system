@@ -23,3 +23,8 @@ Schedule::command('clean:resolved-reports')
     ->daily()
     ->at('00:00')
     ->description('Clean up old resolved reports based on retention period');
+
+Schedule::command('clean:soft-deleted')
+    ->daily()
+    ->at('00:00')
+    ->description('Hard delete soft-deleted records older than retention period (cascades to disinfection slips)');

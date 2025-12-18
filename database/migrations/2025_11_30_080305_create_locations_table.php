@@ -19,6 +19,7 @@ return new class extends Migration {
                   ->nullOnDelete();
 
             $table->boolean('disabled')->default(false);
+            $table->boolean('create_slip')->default(false);
             $table->timestamps();
             $table->softDeletes(); 
 

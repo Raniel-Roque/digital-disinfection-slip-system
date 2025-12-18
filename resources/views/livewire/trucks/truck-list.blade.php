@@ -57,15 +57,15 @@
             </div>
         </div>
 
-        {{-- Create Button (Only for Outgoing) --}}
-        @if ($type === 'outgoing')
+        {{-- Create Button (Only for Outgoing and if location allows) --}}
+        @if ($type === 'outgoing' && $this->canCreateSlip)
             <x-buttons.submit-button wire:click="openCreateModal" color="blue">
                 <div class="flex items-center gap-2">
                     <svg class="size-4" xmlns="https://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                     </svg>
-                    <span>Create</span>
+                    <span>Create Slip</span>
                 </div>
             </x-buttons.submit-button>
         @endif
@@ -183,7 +183,11 @@
 
     {{-- CREATE MODAL --}}
     <x-modals.slip-creation-modal show="showCreateModal" :trucks="$trucks" :locations="$locations" :drivers="$drivers"
-        :truckOptions="$truckOptions" :locationOptions="$locationOptions" :driverOptions="$driverOptions" :is-creating="$isCreating" />
+        :truckOptions="$truckOptions" :locationOptions="$locationOptions" :driverOptions="$driverOptions" :is-creating="$isCreating"
+        :pendingAttachmentIds="$pendingAttachmentIds" />
+
+    {{-- Add Attachment Modal --}}
+    <x-modals.add-attachment show="showAddAttachmentModal" />
 
     {{-- Disinfection Slip Details Modal --}}
     <livewire:trucks.disinfection-slip />

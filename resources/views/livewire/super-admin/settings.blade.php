@@ -45,14 +45,35 @@
                                     <input type="number" id="resolved_reports_retention_months"
                                         wire:model="resolved_reports_retention_months" min="1" max="120"
                                         class="block w-24 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="6">
+                                        placeholder="3">
                                     <span class="text-sm font-medium text-gray-700">months</span>
                                 </div>
                                 <p class="text-xs text-gray-600 leading-relaxed">
-                                    Resolved reports older than this period will be automatically deleted. Default is 6
+                                    Resolved reports older than this period will be automatically deleted. Default is 3
                                     months.
                                 </p>
                                 @error('resolved_reports_retention_months')
+                                    <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            {{-- Soft-Deleted Retention Months --}}
+                            <div class="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                                <label for="soft_deleted_retention_months"
+                                    class="block text-sm font-semibold text-gray-800 mb-3">
+                                    Soft-Deleted Data Retention
+                                </label>
+                                <div class="flex items-center gap-3 mb-2">
+                                    <input type="number" id="soft_deleted_retention_months"
+                                        wire:model="soft_deleted_retention_months" min="1" max="120"
+                                        class="block w-24 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="3">
+                                    <span class="text-sm font-medium text-gray-700">months</span>
+                                </div>
+                                <p class="text-xs text-gray-600 leading-relaxed">
+                                    Soft-deleted records (users, trucks, drivers, locations, slips, reports) older than this period will be permanently deleted. Related disinfection slips will be cascade deleted. Default is 3 months.
+                                </p>
+                                @error('soft_deleted_retention_months')
                                     <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
                                 @enderror
                             </div>
@@ -67,11 +88,11 @@
                                     <input type="number" id="log_retention_months" wire:model="log_retention_months"
                                         min="1" max="120"
                                         class="block w-24 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="6">
+                                        placeholder="3">
                                     <span class="text-sm font-medium text-gray-700">months</span>
                                 </div>
                                 <p class="text-xs text-gray-600 leading-relaxed">
-                                    Audit trail logs older than this period will be automatically deleted. Default is 6
+                                    Audit trail logs older than this period will be automatically deleted. Default is 3
                                     months.
                                 </p>
                                 @error('log_retention_months')

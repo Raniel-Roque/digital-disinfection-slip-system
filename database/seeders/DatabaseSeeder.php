@@ -16,12 +16,36 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create default user
+        // Create default users
         User::factory()->create([
-            'first_name' => 'John',
-            'middle_name' => 'Corpuz',
-            'last_name' => 'Doe',
-            'username' => 'JDoe',
+            'first_name' => 'Jeff',
+            'middle_name' => null,
+            'last_name' => 'Montiano',
+            'username' => 'JMontiano',
+            'user_type' => '2',
+        ]);
+
+        User::factory()->create([
+            'first_name' => 'Adam',
+            'middle_name' => null,
+            'last_name' => 'Trinidad',
+            'username' => 'ATrinidad',
+            'user_type' => '2',
+        ]);
+
+        User::factory()->create([
+            'first_name' => 'Iverson',
+            'middle_name' => null,
+            'last_name' => 'Guno',
+            'username' => 'IGuno',
+            'user_type' => '2',
+        ]);
+
+        User::factory()->create([
+            'first_name' => 'Raniel',
+            'middle_name' => null,
+            'last_name' => 'Roque',
+            'username' => 'RRoque',
             'user_type' => '2',
         ]);
 
@@ -41,11 +65,15 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'setting_name' => 'log_retention_months',
-                'value' => '6',
+                'value' => '3',
             ],
             [
                 'setting_name' => 'resolved_reports_retention_months',
-                'value' => '6',
+                'value' => '3',
+            ],
+            [
+                'setting_name' => 'soft_deleted_retention_months',
+                'value' => '3',
             ],
         ];
 

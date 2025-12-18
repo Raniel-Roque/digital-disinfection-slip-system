@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Attachment;
+use App\Models\User;
 
 class AttachmentFactory extends Factory
 {
@@ -18,6 +19,7 @@ class AttachmentFactory extends Factory
         
         return [
             'file_path' => 'images/uploads/' . $this->faker->uuid() . '.' . $extension,
+            'user_id' => User::factory(),
         ];
     }
 
