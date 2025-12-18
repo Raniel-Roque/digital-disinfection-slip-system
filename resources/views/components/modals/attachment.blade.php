@@ -141,7 +141,8 @@
                     currentUserId: @js($currentUserId),
                     isAdminOrSuperAdmin: @js($isAdminOrSuperAdmin),
                     getCurrentAttachment() {
-                        return this.attachments[this.$parent.currentIndex] || null;
+                        const index = $wire.get('currentAttachmentIndex');
+                        return this.attachments[index] || null;
                     },
                     canShowDelete() {
                         const attachment = this.getCurrentAttachment();
@@ -153,7 +154,7 @@
                             $wire.call('confirmRemoveAttachment', attachment.id);
                         }
                     }
-                }">
+                }" x-init="$watch(() => $wire.currentAttachmentIndex, () => {})">
                     <x-buttons.submit-button 
                         @click="deleteCurrentPhoto()"
                         color="red"
