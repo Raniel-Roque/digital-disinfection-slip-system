@@ -2,5 +2,5 @@
     <x-navigation.navbar module="Locations">
     </x-navigation.navbar>
 
-    <livewire:superadmin.locations />
+    <livewire:super-admin.locations />
 </x-layout>

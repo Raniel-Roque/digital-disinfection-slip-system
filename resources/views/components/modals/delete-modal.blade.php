@@ -30,6 +30,7 @@
                 </div>
 
                 <div class="px-6 py-4">
+                    @csrf
                     <p class="text-sm text-gray-600">
                         Are you sure you want to delete <span
                             class="font-semibold text-gray-900">{{ $name }}</span>? This action cannot be

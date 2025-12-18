@@ -2,5 +2,5 @@
     <x-navigation.navbar module="Drivers">
     </x-navigation.navbar>
 
-    <livewire:superadmin.drivers />
+    <livewire:super-admin.drivers />
 </x-layout>

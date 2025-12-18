@@ -2,7 +2,7 @@
     class="flex-1 flex flex-wrap items-center border border-orange-300 rounded-lg p-6 shadow-sm hover:shadow-md transition"
     wire:poll>
     <div class="flex items-center space-x-3 min-w-[150px] text-gray-700 shrink-0">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-gray-600" fill="none" viewBox="0 0 24 24"
+        <svg xmlns="https://www.w3.org/2000/svg" class="h-7 w-7 text-gray-600" fill="none" viewBox="0 0 24 24"
             stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 014-4h3" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 13l3 3 4-4" />

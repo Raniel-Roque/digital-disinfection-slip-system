@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50 p-6">
+<div class="min-h-screen bg-gray-50 p-6" @if (!$showFilters && !$showDetailsModal && !$showRestoreModal) wire:poll.keep-alive @endif>
     <div class="max-w-7xl mx-auto">
         {{-- Header --}}
         <div class="mb-6">
@@ -145,8 +145,12 @@
                         <tr>
                             <th scope="col"
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Report ID
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <div class="inline-flex items-center gap-2">
-                                    <span>Date</span>
+                                    <span>Date & Time</span>
                                     <button wire:click.prevent="applySort('created_at')" type="button"
                                         class="inline-flex flex-col items-center text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 transition-colors p-0.5 rounded hover:bg-gray-200 hover:cursor-pointer cursor-pointer"
                                         title="Sort by Date">
@@ -212,6 +216,11 @@
                             <tr class="hover:bg-gray-50 transition-colors duration-150">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-semibold text-gray-900">
+                                        #{{ $report->id }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-semibold text-gray-900">
                                         {{ $report->created_at->format('M d, Y') }}
                                     </div>
                                     <div class="text-xs text-gray-500 mt-0.5">
@@ -225,8 +234,13 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-semibold text-gray-900">
-                                        @if ($report->slip_id)
-                                            <span class="text-blue-600">Slip: {{ $report->slip->slip_id ?? 'N/A' }}</span>
+                                        @if ($report->slip_id && $report->slip)
+                                            <button wire:click="openSlipDetailsModal({{ $report->slip->id }})" 
+                                                class="text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-150 hover:cursor-pointer cursor-pointer">
+                                                Slip: {{ $report->slip->slip_id ?? 'N/A' }}
+                                            </button>
+                                        @elseif ($report->slip_id)
+                                            <span class="text-blue-600">Slip: {{ $report->slip_id ?? 'N/A' }}</span>
                                         @else
                                             <span class="text-gray-500 italic">Miscellaneous</span>
                                         @endif
@@ -297,7 +311,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-6 py-12 text-center">
+                                <td colspan="6" class="px-6 py-12 text-center">
                                     <div class="flex flex-col items-center">
                                         <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24"
                                             stroke="currentColor">
@@ -357,6 +371,7 @@
                         </div>
 
                         <div class="px-6 py-4">
+                    @csrf
                             <p class="text-sm text-gray-600">
                                 Are you sure you want to restore this report <span
                                     class="font-medium text-gray-900">{{ $selectedReportName }}</span>?
@@ -366,11 +381,11 @@
 
                         <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
                             <button wire:click="closeRestoreModal" wire:loading.attr="disabled" wire:target="restoreReport"
-                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 hover:cursor-pointer cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 cursor-pointer hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                                 Cancel
                             </button>
                             <button wire:click.prevent="restoreReport" wire:loading.attr="disabled" wire:target="restoreReport"
-                                :disabled="$isRestoring"
+                                x-bind:disabled="$wire.isRestoring"
                                 class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
                                 <span wire:loading.remove wire:target="restoreReport">Restore Report</span>
                                 <span wire:loading wire:target="restoreReport" class="inline-flex items-center gap-2">
@@ -384,7 +399,7 @@
         @endif
 
         {{-- View Details Modal --}}
-        @if ($showDetailsModal && $selectedReport)
+        @if ($showDetailsModal && $selectedReport && !$selectedSlip)
             @php
                 $isResolved = $selectedReport->resolved_at !== null;
                 $headerClass = $isResolved ? 'border-t-4 border-t-green-500 bg-green-50' : 'border-t-4 border-t-red-500 bg-red-50';
@@ -480,13 +495,13 @@
 
                         @if (!$selectedReport->resolved_at)
                             <x-buttons.submit-button wire:click.prevent="resolveReport" color="green" wire:loading.attr="disabled" wire:target="resolveReport"
-                                :disabled="$isResolving">
+                                x-bind:disabled="$wire.isResolving">
                                 <span wire:loading.remove wire:target="resolveReport">Resolve</span>
                                 <span wire:loading wire:target="resolveReport">Resolving...</span>
                             </x-buttons.submit-button>
                         @else
                             <x-buttons.submit-button wire:click.prevent="unresolveReport" color="orange" wire:loading.attr="disabled" wire:target="unresolveReport"
-                                :disabled="$isResolving">
+                                x-bind:disabled="$wire.isResolving">
                                 <span wire:loading.remove wire:target="unresolveReport">Unresolve</span>
                                 <span wire:loading wire:target="unresolveReport">Unresolving...</span>
                             </x-buttons.submit-button>
@@ -494,6 +509,23 @@
                     </div>
                 </x-slot>
             </x-modals.modal-template>
+        @endif
+
+        {{-- Slip Details Modal --}}
+        @include('livewire.admin.slip-details-modal')
+
+        {{-- Admin Edit Modal --}}
+        @if ($selectedSlip && $showEditModal)
+            <x-modals.admin-slip-edit-modal :trucks="$trucks" :locations="$locations" :drivers="$drivers" :guards="$guards"
+                :available-origins-options="$editAvailableOriginsOptions" :available-destinations-options="$editAvailableDestinationsOptions" :edit-truck-options="$editTruckOptions" :edit-driver-options="$editDriverOptions" :edit-guard-options="$editGuardOptions"
+                :edit-received-guard-options="$editReceivedGuardOptions" :slip-status="$selectedSlip->status" :edit-status="$editStatus" :selected-slip="$selectedSlip" />
+        @endif
+
+        {{-- Slip Delete Confirmation Modal --}}
+        @if ($selectedSlip)
+            <x-modals.delete-confirmation show="showSlipDeleteConfirmation" title="DELETE SLIP?"
+                message="Delete this disinfection slip?" :details="'Slip No: <span class=\'font-semibold\'>' . ($selectedSlip?->slip_id ?? '') . '</span>'" warning="This action cannot be undone!"
+                onConfirm="deleteSlip" />
         @endif
     </div>
 </div>

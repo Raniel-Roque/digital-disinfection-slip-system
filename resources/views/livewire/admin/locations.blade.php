@@ -364,6 +364,7 @@
                         </div>
 
                         <div class="px-6 py-4">
+                            @csrf
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Location Name <span
@@ -464,7 +465,7 @@
                             </button>
                             <button wire:click.prevent="updateLocation" wire:loading.attr="disabled" wire:target="updateLocation"
                                 class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                :disabled="!$this->hasChanges">
+                                x-bind:disabled="!$wire.hasChanges">
                                 <span wire:loading.remove wire:target="updateLocation">Save Changes</span>
                                 <span wire:loading wire:target="updateLocation" class="inline-flex items-center gap-2">
                                     Saving...
@@ -514,6 +515,7 @@
                         </div>
 
                         <div class="px-6 py-4">
+                    @csrf
                             <p class="text-sm text-gray-600">
                                 @if ($selectedLocationDisabled)
                                     Are you sure you want to enable this location? The location will be available for
@@ -527,7 +529,7 @@
 
                         <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
                             <button wire:click="closeModal" wire:loading.attr="disabled" wire:target="toggleLocationStatus"
-                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:cursor-pointer">
                                 Cancel
                             </button>
                             @if ($selectedLocationDisabled)
@@ -570,6 +572,7 @@
                         </div>
 
                         <div class="px-6 py-4">
+                    @csrf
                             <div class="space-y-4">
                                 {{-- Location Name --}}
                                 <div>
@@ -644,7 +647,7 @@
 
                         <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
                             <button wire:click="closeModal"
-                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 cursor-pointer hover:cursor-pointer">
                                 Cancel
                             </button>
                             <button wire:click.prevent="createLocation" wire:loading.attr="disabled" wire:target="createLocation"

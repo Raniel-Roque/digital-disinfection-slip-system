@@ -34,7 +34,7 @@
             <span class="shrink-0 w-5 h-5 flex items-center justify-center">{!! $icon !!}</span>
         @endif
         <span>{{ $label }}</span>
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform duration-200"
+        <svg xmlns="https://www.w3.org/2000/svg" class="w-4 h-4 transition-transform duration-200"
             :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>

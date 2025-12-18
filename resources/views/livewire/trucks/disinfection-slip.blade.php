@@ -115,24 +115,193 @@
                     </div>
                 @endif
 
-                {{-- Attachment --}}
+
+                {{-- CAMERA WITH UPLOAD FUNCTIONALITY --}}
                 @if (!$isEditing)
                     <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if ($status == 2 && $selectedSlip->completed_at) bg-gray-100 @else bg-white @endif">
                         <div class="font-semibold text-gray-500">Attachment:</div>
-                        <div class="text-gray-900">
-                        @if ($selectedSlip->attachment)
-                            <button wire:click="openAttachmentModal('{{ $selectedSlip->attachment->file_path }}')"
-                                class="text-orange-500 hover:text-orange-600 underline cursor-pointer">
-                                See Attachment
-                            </button>
-                        @elseif ($this->canManageAttachment())
-                            <button wire:click="openAddAttachmentModal"
-                                class="text-blue-500 hover:text-blue-600 underline cursor-pointer">
-                                Add Attachment
-                            </button>
-                        @else
-                            N/A
-                        @endif
+                        <div class="text-gray-900" x-data="{ 
+                            showCameraModal: false,
+                            stream: null,
+                            photos: [],
+                            cameraActive: false,
+                            uploading: false,
+                            async startCamera() {
+                                console.log('Starting camera...');
+                                
+                                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                                    alert('Camera not supported! You need HTTPS or localhost.');
+                                    return;
+                                }
+                                
+                                try {
+                                    this.stream = await navigator.mediaDevices.getUserMedia({ 
+                                        video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 640 } },
+                                        audio: false 
+                                    });
+                                    this.$refs.video.srcObject = this.stream;
+                                    this.cameraActive = true;
+                                    console.log('Camera started!');
+                                } catch(err) {
+                                    console.error('Camera error:', err);
+                                    alert('Camera error: ' + err.message);
+                                }
+                            },
+                            capturePhoto() {
+                                console.log('Capturing photo...');
+                                const video = this.$refs.video;
+                                const canvas = this.$refs.canvas;
+                                canvas.width = video.videoWidth;
+                                canvas.height = video.videoHeight;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(video, 0, 0);
+                                const imageData = canvas.toDataURL('image/jpeg', 0.85);
+                                this.photos.push({ id: Date.now(), data: imageData });
+                                console.log('Photo captured! Total photos:', this.photos.length);
+                            },
+                            stopCamera() {
+                                console.log('Stopping camera...');
+                                if (this.stream) {
+                                    this.stream.getTracks().forEach(track => track.stop());
+                                    this.stream = null;
+                                }
+                                this.$refs.video.srcObject = null;
+                                this.cameraActive = false;
+                            },
+                            deletePhoto(id) {
+                                console.log('Deleting photo:', id);
+                                this.photos = this.photos.filter(p => p.id !== id);
+                            },
+                            async uploadPhotos() {
+                                if (this.photos.length === 0) {
+                                    alert('No photos to upload!');
+                                    return;
+                                }
+                                
+                                console.log('Uploading photos...');
+                                this.uploading = true;
+                                
+                                try {
+                                    // Upload the first photo (you can modify this to upload all if needed)
+                                    const photoToUpload = this.photos[0];
+                                    
+                                    // Call Livewire method
+                                    await $wire.uploadAttachment(photoToUpload.data);
+                                    
+                                    // Reset on success
+                                    this.photos = [];
+                                    this.stopCamera();
+                                    this.showCameraModal = false;
+                                    
+                                    console.log('Upload complete!');
+                                } catch(err) {
+                                    console.error('Upload error:', err);
+                                    alert('Upload failed: ' + err.message);
+                                } finally {
+                                    this.uploading = false;
+                                }
+                            }
+                        }">
+                            @if ($selectedSlip->attachment)
+                                <button wire:click="openAttachmentModal('{{ $selectedSlip->attachment->file_path }}')"
+                                    class="text-orange-500 hover:text-orange-600 underline cursor-pointer">
+                                    See Attachment
+                                </button>
+                            @elseif ($this->canManageAttachment())
+                                <button @click="showCameraModal = true"
+                                    class="text-blue-500 hover:text-blue-600 underline cursor-pointer">
+                                    Add Attachment
+                                </button>
+                            @else
+                                N/A
+                            @endif
+
+                            {{-- Camera Modal --}}
+                            <div x-show="showCameraModal" 
+                                x-cloak
+                                class="fixed inset-0 z-50 overflow-y-auto"
+                                style="display: none;">
+                                
+                                <div class="fixed inset-0 bg-black bg-opacity-50" @click="showCameraModal = false; stopCamera()"></div>
+                                
+                                <div class="relative min-h-screen flex items-center justify-center p-4">
+                                    <div class="relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
+                                        
+                                        <div class="flex items-center justify-between mb-4">
+                                            <h3 class="text-lg font-semibold text-gray-900">Add Attachment</h3>
+                                            <button @click="showCameraModal = false; stopCamera()" class="text-gray-400 hover:text-gray-600">
+                                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+
+                                        <div class="flex flex-col items-center space-y-4">
+                                            {{-- Status --}}
+                                            <div class="w-full text-center py-2 px-4 rounded-lg font-medium text-sm"
+                                                :class="uploading ? 'bg-blue-100 text-blue-700' : (cameraActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700')">
+                                                <span x-text="uploading ? 'Uploading...' : (cameraActive ? 'Camera is active' : 'Click Start Camera to begin')"></span>
+                                            </div>
+                                            
+                                            {{-- Camera Preview --}}
+                                            <div class="relative w-80 h-80 bg-gray-900 rounded-lg overflow-hidden"
+                                                x-show="cameraActive">
+                                                <video x-ref="video" class="w-full h-full object-cover" autoplay playsinline></video>
+                                                <canvas x-ref="canvas" class="hidden"></canvas>
+                                            </div>
+
+                                            {{-- Photos Grid --}}
+                                            <div class="w-full" x-show="photos.length > 0">
+                                                <h4 class="text-lg font-semibold text-gray-700 mb-3">Captured Photos (<span x-text="photos.length"></span>)</h4>
+                                                <div class="grid grid-cols-3 gap-3">
+                                                    <template x-for="photo in photos" :key="photo.id">
+                                                        <div class="relative rounded-lg overflow-hidden shadow-md">
+                                                            <img :src="photo.data" class="w-full h-24 object-cover">
+                                                            <button @click="deletePhoto(photo.id)" 
+                                                                    class="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded">
+                                                                Delete
+                                                            </button>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Footer Buttons --}}
+                                        <div class="flex justify-end gap-2 mt-6">
+                                            <button @click="showCameraModal = false; stopCamera()" 
+                                                    :disabled="uploading"
+                                                    class="px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                                Cancel
+                                            </button>
+                                            
+                                            <button @click="startCamera()" 
+                                                    x-show="!cameraActive && !uploading"
+                                                    class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                                                Start Camera
+                                            </button>
+                                            
+                                            <button @click="capturePhoto()" 
+                                                    x-show="cameraActive && !uploading"
+                                                    class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
+                                                Capture Photo
+                                            </button>
+                                            
+                                            <button @click="stopCamera()" 
+                                                    x-show="cameraActive && !uploading"
+                                                    class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">
+                                                Stop Camera
+                                            </button>
+                                            
+                                            <button @click="uploadPhotos()" 
+                                                    x-show="photos.length > 0 && !uploading"
+                                                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold">
+                                                Upload Photo
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 @endif
@@ -221,7 +390,7 @@
                             color="green" 
                             wire:loading.attr="disabled" 
                             wire:target="save"
-                            :disabled="!$this->hasChanges">
+                            x-bind:disabled="!$wire.hasChanges">
                             <span wire:loading.remove wire:target="save">Save</span>
                             <span wire:loading wire:target="save" class="inline-flex items-center gap-2">
                                 Saving...
@@ -348,7 +517,7 @@
                 Cancel
             </x-buttons.submit-button>
             <x-buttons.submit-button wire:click.prevent="submitReport" color="red" wire:loading.attr="disabled" wire:target="submitReport"
-                :disabled="$isSubmitting ?? false">
+                x-bind:disabled="$wire.isSubmitting">
                 <span wire:loading.remove wire:target="submitReport">Submit Report</span>
                 <span wire:loading wire:target="submitReport" class="inline-flex items-center gap-2">
                     Submitting...

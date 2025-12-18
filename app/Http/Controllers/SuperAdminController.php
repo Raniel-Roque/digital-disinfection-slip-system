@@ -80,7 +80,7 @@ class SuperAdminController extends Controller
             }
         }
         
-        return view('livewire.superadmin.print-guards', [
+        return view('livewire.super-admin.print-guards', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -110,7 +110,7 @@ class SuperAdminController extends Controller
             }
         }
         
-        return view('livewire.superadmin.print-admins', [
+        return view('livewire.super-admin.print-admins', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -140,7 +140,7 @@ class SuperAdminController extends Controller
             }
         }
         
-        return view('livewire.superadmin.print-drivers', [
+        return view('livewire.super-admin.print-drivers', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -170,7 +170,7 @@ class SuperAdminController extends Controller
             }
         }
         
-        return view('livewire.superadmin.print-locations', [
+        return view('livewire.super-admin.print-locations', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -200,7 +200,7 @@ class SuperAdminController extends Controller
             }
         }
         
-        return view('livewire.superadmin.print-plate-numbers', [
+        return view('livewire.super-admin.print-plate-numbers', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -230,7 +230,7 @@ class SuperAdminController extends Controller
             }
         }
         
-        return view('livewire.superadmin.print-trucks', [
+        return view('livewire.super-admin.print-trucks', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -288,7 +288,7 @@ class SuperAdminController extends Controller
             }
         }
         
-        return view('livewire.superadmin.print-audit-trail', [
+        return view('livewire.super-admin.print-audit-trail', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting

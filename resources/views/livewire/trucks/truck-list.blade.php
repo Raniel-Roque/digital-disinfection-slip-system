@@ -61,7 +61,7 @@
         @if ($type === 'outgoing')
             <x-buttons.submit-button wire:click="openCreateModal" color="blue">
                 <div class="flex items-center gap-2">
-                    <svg class="size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    <svg class="size-4" xmlns="https://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                     </svg>
@@ -120,7 +120,7 @@
                         <span :class="{ 'text-gray-400': selected === null || selected === undefined || selected === '' }">
                             <span x-text="displayText"></span>
                         </span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 ml-2 -mr-1 transition-transform"
+                        <svg xmlns="https://www.w3.org/2000/svg" class="w-4 h-4 ml-2 -mr-1 transition-transform"
                             :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fill-rule="evenodd"
                                 d="M6.293 9.293a1 1 0 011.414 0L10 11.586l2.293-2.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"

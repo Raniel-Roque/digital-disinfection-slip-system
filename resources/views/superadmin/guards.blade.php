@@ -2,5 +2,5 @@
     <x-navigation.navbar module="Guards">
     </x-navigation.navbar>
 
-    <livewire:superadmin.guards />
+    <livewire:super-admin.guards />
 </x-layout>

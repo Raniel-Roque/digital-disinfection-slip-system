@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Superadmin;
+namespace App\Livewire\SuperAdmin;
 
 use App\Models\Driver;
 use Livewire\Component;
@@ -581,7 +581,7 @@ class Drivers extends Component
 
         $filtersActive = $this->appliedStatus !== null || !empty($this->appliedCreatedFrom) || !empty($this->appliedCreatedTo);
 
-        return view('livewire.superadmin.drivers', [
+        return view('livewire.super-admin.drivers', [
             'drivers' => $drivers,
             'filtersActive' => $filtersActive,
             'availableStatuses' => $this->availableStatuses,

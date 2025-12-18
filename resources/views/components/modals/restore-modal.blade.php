@@ -31,6 +31,7 @@
                 </div>
 
                 <div class="px-6 py-4">
+                    @csrf
                     <p class="text-sm text-gray-600">
                         Are you sure you want to restore <span
                             class="font-semibold text-gray-900">{{ $name }}</span>? This will make the item

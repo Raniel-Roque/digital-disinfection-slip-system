@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Superadmin;
+namespace App\Livewire\SuperAdmin;
 
 use App\Models\DisinfectionSlip;
 use App\Models\User;
@@ -153,7 +153,7 @@ class SuperAdminDashboard extends Component
 
     public function render()
     {
-        return view('livewire.superadmin.superadmin-dashboard');
+        return view('livewire.super-admin.super-admin-dashboard');
     }
 }
 

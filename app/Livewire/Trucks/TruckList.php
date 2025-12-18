@@ -58,8 +58,20 @@ class TruckList extends Component
     public function mount($type = 'incoming')
     {
         $this->type = $type;
-        $this->filterDateFrom = null;
-        $this->filterDateTo = null;
+        
+        // Outgoing: default filter to today
+        // Incoming: no default date filter
+        if ($this->type === 'outgoing') {
+            $today = now()->format('Y-m-d');
+            $this->filterDateFrom = $today;
+            $this->filterDateTo = $today;
+            $this->appliedDateFrom = $today;
+            $this->appliedDateTo = $today;
+        } else {
+            $this->filterDateFrom = null;
+            $this->filterDateTo = null;
+        }
+        
         $this->filterSortDirection = $this->sortDirection; // Initialize filter sort with current sort
         $this->checkFiltersActive();
 

@@ -64,7 +64,7 @@
                 class="inline-flex justify-between w-full px-4 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500 cursor-pointer"
                 :class="{ 'ring-2 ring-blue-500': open }">
                 <span :class="{ 'text-gray-400': !selected || selected.length === 0 }" x-text="displayText"></span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 -mr-1 transition-transform"
+                <svg xmlns="https://www.w3.org/2000/svg" class="w-5 h-5 ml-2 -mr-1 transition-transform"
                     :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd"
                         d="M6.293 9.293a1 1 0 011.414 0L10 11.586l2.293-2.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
@@ -115,7 +115,7 @@
             return filtered;
         },
         get displayText() {
-            if (!this.selected || this.selected.length === 0) return 'Select model types...';
+            if (!this.selected || this.selected.length === 0) return 'Select record type...';
             if (this.selected.length === 1) {
                 return this.options[this.selected[0]] || this.selected[0];
             }
@@ -141,7 +141,7 @@
         }
     }" x-ref="modelTypeDropdown" @click.outside="closeDropdown()">
         <div class="flex items-center justify-between mb-1">
-            <label class="block text-sm font-medium text-gray-700">Model Type</label>
+            <label class="block text-sm font-medium text-gray-700">Record Type</label>
             <button type="button" x-on:click="selected = []; $wire.set('filterModelType', [])"
                 x-show="selected && selected.length > 0"
                 class="text-xs text-blue-600 hover:text-blue-800 font-medium">
@@ -153,7 +153,7 @@
                 class="inline-flex justify-between w-full px-4 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500 cursor-pointer"
                 :class="{ 'ring-2 ring-blue-500': open }">
                 <span :class="{ 'text-gray-400': !selected || selected.length === 0 }" x-text="displayText"></span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 -mr-1 transition-transform"
+                <svg xmlns="https://www.w3.org/2000/svg" class="w-5 h-5 ml-2 -mr-1 transition-transform"
                     :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd"
                         d="M6.293 9.293a1 1 0 011.414 0L10 11.586l2.293-2.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
@@ -162,7 +162,7 @@
             </button>
             <div x-show="open" x-transition class="absolute right-0 mt-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 p-1 z-50"
                 style="display: none;" x-cloak @click.stop>
-                <input type="text" x-model="searchTerm" placeholder="Search model types..."
+                <input type="text" x-model="searchTerm" placeholder="Search records..."
                     class="block w-full px-4 py-2 text-gray-800 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-1"
                     autocomplete="off">
                 <div class="max-h-48 overflow-y-auto">
@@ -204,7 +204,7 @@
             return filtered;
         },
         get displayText() {
-            if (!this.selected || this.selected.length === 0) return 'Select user types...';
+            if (!this.selected || this.selected.length === 0) return 'Select user role...';
             if (this.selected.length === 1) {
                 return this.options[this.selected[0]] || this.selected[0];
             }
@@ -232,7 +232,7 @@
         }
     }" x-ref="userTypeDropdown" @click.outside="closeDropdown()">
         <div class="flex items-center justify-between mb-1">
-            <label class="block text-sm font-medium text-gray-700">User Type</label>
+            <label class="block text-sm font-medium text-gray-700">User Role</label>
             <button type="button" x-on:click="selected = []; $wire.set('filterUserType', [])"
                 x-show="selected && selected.length > 0"
                 class="text-xs text-blue-600 hover:text-blue-800 font-medium">
@@ -244,7 +244,7 @@
                 class="inline-flex justify-between w-full px-4 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500 cursor-pointer"
                 :class="{ 'ring-2 ring-blue-500': open }">
                 <span :class="{ 'text-gray-400': !selected || selected.length === 0 }" x-text="displayText"></span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 -mr-1 transition-transform"
+                <svg xmlns="https://www.w3.org/2000/svg" class="w-5 h-5 ml-2 -mr-1 transition-transform"
                     :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd"
                         d="M6.293 9.293a1 1 0 011.414 0L10 11.586l2.293-2.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
@@ -253,7 +253,7 @@
             </button>
             <div x-show="open" x-transition class="absolute right-0 mt-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 p-1 z-50"
                 style="display: none;" x-cloak @click.stop>
-                <input type="text" x-model="searchTerm" placeholder="Search user types..."
+                <input type="text" x-model="searchTerm" placeholder="Search roles..."
                     class="block w-full px-4 py-2 text-gray-800 border rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-1"
                     autocomplete="off">
                 <div class="max-h-48 overflow-y-auto">

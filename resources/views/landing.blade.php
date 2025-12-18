@@ -65,13 +65,58 @@
                         </svg>
                         <span>{{ session('status') }}</span>
                     </div>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit"
-                            class="ml-4 text-sm font-medium text-blue-700 hover:text-blue-900 underline hover:cursor-pointer cursor-pointer">
+                    <div x-data="{ showLogoutConfirm: false, isLoggingOut: false }">
+                        <button type="button" @click="showLogoutConfirm = true" :disabled="isLoggingOut"
+                            class="ml-4 text-sm font-medium text-blue-700 hover:text-blue-900 underline hover:cursor-pointer cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                             Logout
                         </button>
-                    </form>
+                        
+                        <!-- Confirmation Dialog -->
+                        <div x-show="showLogoutConfirm" x-cloak
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0"
+                            x-transition:enter-end="opacity-100"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100"
+                            x-transition:leave-end="opacity-0"
+                            class="fixed inset-0 z-100 flex items-center justify-center bg-black/80"
+                            @click.self="showLogoutConfirm = false"
+                            style="display: none;">
+                            <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100 scale-100"
+                                x-transition:leave-end="opacity-0 scale-95">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <div class="shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-lg font-semibold text-gray-900">Confirm Logout</h3>
+                                </div>
+                                <p class="text-gray-600 mb-6">Are you sure you want to logout?</p>
+                                <form method="POST" action="{{ route('logout') }}" @submit="isLoggingOut = true">
+                                    @csrf
+                                    <div class="flex justify-end gap-3">
+                                        <button type="button" @click="showLogoutConfirm = false" :disabled="isLoggingOut"
+                                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                                            Cancel
+                                        </button>
+                                        <button type="submit" :disabled="isLoggingOut"
+                                            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:cursor-pointer">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" x-show="!isLoggingOut">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                            </svg>
+                                            <span x-text="isLoggingOut ? 'Logging out...' : 'Logout'"></span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             @endif
 

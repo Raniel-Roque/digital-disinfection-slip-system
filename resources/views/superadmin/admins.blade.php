@@ -2,5 +2,5 @@
     <x-navigation.navbar module="Admins">
     </x-navigation.navbar>
 
-    <livewire:superadmin.admins />
+    <livewire:super-admin.admins />
 </x-layout>

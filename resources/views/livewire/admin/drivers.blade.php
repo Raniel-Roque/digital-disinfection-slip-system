@@ -352,6 +352,7 @@
                         </div>
 
                         <div class="px-6 py-4">
+                    @csrf
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">First Name <span
@@ -395,7 +396,7 @@
                             </button>
                             <button wire:click.prevent="updateDriver" wire:loading.attr="disabled" wire:target="updateDriver"
                                 class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                :disabled="!$this->hasChanges">
+                                x-bind:disabled="!$wire.hasChanges">
                                 <span wire:loading.remove wire:target="updateDriver">Save Changes</span>
                                 <span wire:loading wire:target="updateDriver" class="inline-flex items-center gap-2">
                                     Saving...
@@ -445,6 +446,7 @@
                         </div>
 
                         <div class="px-6 py-4">
+                    @csrf
                             <p class="text-sm text-gray-600">
                                 @if ($selectedDriverDisabled)
                                     Are you sure you want to enable this driver? The driver will be available for use
@@ -500,6 +502,7 @@
                         </div>
 
                         <div class="px-6 py-4">
+                    @csrf
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">First Name <span

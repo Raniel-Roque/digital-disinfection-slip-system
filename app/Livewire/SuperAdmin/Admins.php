@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Superadmin;
+namespace App\Livewire\SuperAdmin;
 
 use App\Models\User;
 use App\Models\Setting;
@@ -279,12 +279,22 @@ class Admins extends Component
         $user->refresh();
         $adminName = $this->getAdminFullName($user);
         
+        // Check if username changed
+        $usernameChanged = isset($updateData['username']) && $oldValues['username'] !== $updateData['username'];
+        
+        // If username changed, invalidate all sessions for this user (force logout)
+        if ($usernameChanged) {
+            DB::table('sessions')
+                ->where('user_id', $user->id)
+                ->delete();
+        }
+        
         // Generate description based on what changed
         $changedFields = [];
         if ($user->first_name !== $firstName || $user->last_name !== $lastName) {
             $changedFields[] = "name to \"{$adminName}\"";
         }
-        if (isset($updateData['username']) && $user->username !== $updateData['username']) {
+        if ($usernameChanged) {
             $changedFields[] = "username";
         }
         $description = !empty($changedFields) ? "Updated " . implode(" and ", $changedFields) : "Updated \"{$adminName}\"";
@@ -300,7 +310,12 @@ class Admins extends Component
 
         $this->showEditModal = false;
         $this->reset(['selectedUserId', 'first_name', 'middle_name', 'last_name', 'original_first_name', 'original_middle_name', 'original_last_name']);
-        $this->dispatch('toast', message: "{$adminName} has been updated.", type: 'success');
+        
+        $message = "{$adminName} has been updated.";
+        if ($usernameChanged) {
+            $message .= " The user has been logged out and must log in again with the new username.";
+        }
+        $this->dispatch('toast', message: $message, type: 'success');
     }
 
     public function openDisableModal($userId)
@@ -835,7 +850,7 @@ class Admins extends Component
 
         $filtersActive = $this->appliedStatus !== null || !empty($this->appliedCreatedFrom) || !empty($this->appliedCreatedTo);
 
-        return view('livewire.superadmin.admins', [
+        return view('livewire.super-admin.admins', [
             'users' => $users,
             'filtersActive' => $filtersActive,
             'availableStatuses' => $this->availableStatuses,

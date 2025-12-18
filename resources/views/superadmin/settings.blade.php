@@ -2,5 +2,5 @@
     <x-navigation.navbar module="Settings">
     </x-navigation.navbar>
 
-    <livewire:superadmin.settings />
+    <livewire:super-admin.settings />
 </x-layout>

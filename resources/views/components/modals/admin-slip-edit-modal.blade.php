@@ -157,7 +157,7 @@
                             <span :class="{ 'text-gray-400': !selectedOrigin }">
                                 <span x-text="displayText"></span>
                             </span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 -mr-1 transition-transform"
+                            <svg xmlns="https://www.w3.org/2000/svg" class="w-5 h-5 ml-2 -mr-1 transition-transform"
                                 :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd"
                                     d="M6.293 9.293a1 1 0 011.414 0L10 11.586l2.293-2.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
@@ -261,7 +261,7 @@
                             <span :class="{ 'text-gray-400': !selectedDestination }">
                                 <span x-text="displayText"></span>
                             </span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 ml-2 -mr-1 transition-transform"
+                            <svg xmlns="https://www.w3.org/2000/svg" class="w-5 h-5 ml-2 -mr-1 transition-transform"
                                 :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd"
                                     d="M6.293 9.293a1 1 0 011.414 0L10 11.586l2.293-2.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
@@ -375,7 +375,7 @@
             <div>
                 {{-- Delete Button --}}
                 @if ($this->canDelete())
-                    <x-buttons.submit-button wire:click="$set('showDeleteConfirmation', true)" color="red">
+                    <x-buttons.submit-button wire:click="$set('showSlipDeleteConfirmation', true)" color="red">
                         Delete
                     </x-buttons.submit-button>
                 @endif
@@ -386,7 +386,7 @@
                 </x-buttons.submit-button>
 
                 <x-buttons.submit-button wire:click.prevent="saveEdit" color="green" wire:loading.attr="disabled" wire:target="saveEdit"
-                    :disabled="!$this->hasChanges">
+                    x-bind:disabled="!$wire.hasChanges">
                     <span wire:loading.remove wire:target="saveEdit">Save Changes</span>
                     <span wire:loading wire:target="saveEdit" class="inline-flex items-center gap-2">
                         Saving...

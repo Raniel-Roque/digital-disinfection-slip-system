@@ -9,8 +9,9 @@
 
                 <!-- Incoming Trucks Card -->
                 <a href="{{ route('user.incoming-trucks') }}"
-                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl hover:cursor-pointer transition-all duration-300 border border-gray-200 hover:border-green-400">
-                    <div class="p-6" wire:poll>
+                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl hover:cursor-pointer transition-all duration-300 border border-gray-200 hover:border-green-400"
+                    wire:poll>
+                    <div class="p-6">
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex items-center gap-3">
                                 <div class="p-3 bg-green-100 rounded-xl group-hover:bg-green-200 transition-colors">
@@ -44,8 +45,9 @@
 
                 <!-- Outgoing Trucks Card -->
                 <a href="{{ route('user.outgoing-trucks') }}"
-                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl hover:cursor-pointer transition-all duration-300 border border-gray-200 hover:border-red-400">
-                    <div class="p-6" wire:poll>
+                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl hover:cursor-pointer transition-all duration-300 border border-gray-200 hover:border-red-400"
+                    wire:poll>
+                    <div class="p-6">
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex items-center gap-3">
                                 <div class="p-3 bg-red-100 rounded-xl group-hover:bg-red-200 transition-colors">
@@ -84,7 +86,7 @@
                         <div class="flex items-start justify-between mb-4">
                             <div
                                 class="p-3 bg-white/20 backdrop-blur-sm rounded-xl group-hover:bg-white/30 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none"
+                                <svg xmlns="https://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                                 </svg>

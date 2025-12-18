@@ -1,11 +1,19 @@
-<div class="min-h-screen bg-gray-50 p-6" @if (!$showFilters && !$showCreateModal && !$showEditModal && !$showDisableModal && !$showDeleteModal && !$showRestoreModal) wire:poll.keep-alive @endif>
+<div class="min-h-screen bg-gray-50 p-6" @if (
+    !$showFilters &&
+        !$showDeleted &&
+        !$showCreateModal &&
+        !$showEditModal &&
+        !$showDisableModal &&
+        !$showResetPasswordModal &&
+        !$showDeleteModal &&
+        !$showRestoreModal) wire:poll.keep-alive @endif>
     <div class="max-w-7xl mx-auto">
         {{-- Simple Header --}}
         <div class="mb-6">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900">Plate Numbers</h1>
-                    <p class="text-gray-600 text-sm mt-1">Manage all plate numbers in the system</p>
+                    <h1 class="text-2xl font-bold text-gray-900">Guards</h1>
+                    <p class="text-gray-600 text-sm mt-1">Manage all guards in the system</p>
                 </div>
 
                 {{-- Search and Filter Bar --}}
@@ -20,7 +28,7 @@
                         </div>
                         <input type="text" wire:model.live="search"
                             class="block w-full pl-10 {{ $search ? 'pr-20' : 'pr-12' }} py-2.5 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                            placeholder="Search by plate number...">
+                            placeholder="Search by name or @username...">
                         
                         {{-- Right Side Buttons Container --}}
                         <div class="absolute inset-y-0 right-0 flex items-center pr-2 gap-1">
@@ -48,20 +56,20 @@
                     </div>
 
                     {{-- Create Button (Primary action - Icon + Text) --}}
-                    @if (!($showDeleted ?? false))
+                    @if (!$showDeleted)
                         <x-buttons.submit-button wire:click="openCreateModal" color="blue" size="lg"
                             :fullWidth="false">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
                                 </path>
                             </svg>
-                            Create Plate Number
+                            Create Guard
                         </x-buttons.submit-button>
                     @endif
 
                     {{-- Restore Deleted Button (Icon + Text) --}}
                     <button wire:click="toggleDeletedView" wire:loading.attr="disabled" wire:target="toggleDeletedView"
-                        class="inline-flex items-center px-4 py-2.5 {{ $showDeleted ?? false ? 'bg-gray-600 hover:bg-gray-700' : 'bg-orange-600 hover:bg-orange-700' }} text-white rounded-lg text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 {{ $showDeleted ?? false ? 'focus:ring-gray-500' : 'focus:ring-orange-500' }} disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
+                        class="inline-flex items-center px-4 py-2.5 {{ $showDeleted ? 'bg-gray-600 hover:bg-gray-700' : 'bg-orange-600 hover:bg-orange-700' }} text-white rounded-lg text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 {{ $showDeleted ? 'focus:ring-gray-500' : 'focus:ring-orange-500' }} disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
                         <svg wire:loading.remove wire:target="toggleDeletedView" class="w-5 h-5 mr-2" fill="none"
                             stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -70,12 +78,12 @@
                         </svg>
 
                         <span wire:loading.remove
-                            wire:target="toggleDeletedView">{{ $showDeleted ?? false ? 'Back to Active' : 'Restore Deleted' }}</span>
+                            wire:target="toggleDeletedView">{{ $showDeleted ? 'Back to Active' : 'Restore Deleted' }}</span>
                         <span wire:loading wire:target="toggleDeletedView">Loading...</span>
                     </button>
 
                     {{-- Download Button (Icon only with dropdown) --}}
-                    @if (!($showDeleted ?? false))
+                    @if (!$showDeleted)
                         <x-buttons.export-button />
                     @endif
                 </div>
@@ -89,8 +97,9 @@
                     @if ($appliedStatus !== null)
                         <span
                             class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            Status: {{ $availableStatuses[(int) $appliedStatus] }}
-                            <button wire:click="removeFilter('status')" class="ml-1.5 inline-flex items-center hover:cursor-pointer">
+                            Status: {{ $availableStatuses[(int) $appliedStatus] ?? '' }}
+                            <button wire:click="removeFilter('status')"
+                                class="ml-1.5 inline-flex items-center hover:cursor-pointer">
                                 <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
@@ -104,7 +113,8 @@
                         <span
                             class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             From: {{ \Carbon\Carbon::parse($appliedCreatedFrom)->format('M d, Y') }}
-                            <button wire:click="removeFilter('createdFrom')" class="ml-1.5 inline-flex items-center hover:cursor-pointer">
+                            <button wire:click="removeFilter('createdFrom')"
+                                class="ml-1.5 inline-flex items-center hover:cursor-pointer">
                                 <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
@@ -118,7 +128,8 @@
                         <span
                             class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             To: {{ \Carbon\Carbon::parse($appliedCreatedTo)->format('M d, Y') }}
-                            <button wire:click="removeFilter('createdTo')" class="ml-1.5 inline-flex items-center hover:cursor-pointer">
+                            <button wire:click="removeFilter('createdTo')"
+                                class="ml-1.5 inline-flex items-center hover:cursor-pointer">
                                 <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
@@ -145,95 +156,106 @@
                             <th scope="col"
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <div class="inline-flex items-center gap-2">
-                                    <span>Plate Number</span>
-                                    <button wire:click.prevent="applySort('plate_number')" type="button"
-                                        class="inline-flex flex-col items-center text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 transition-colors p-0.5 rounded hover:bg-gray-200 hover:cursor-pointer cursor-pointer"
-                                        title="Sort by Plate Number">
-                                        @php
-                                            $plateDir = $this->getSortDirection('plate_number');
-                                        @endphp
-                                        @if ($plateDir === 'asc')
-                                            <svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M5 15l7-7 7 7" />
-                                            </svg>
-                                            <svg class="w-3 h-3 text-gray-300" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        @elseif ($plateDir === 'desc')
-                                            <svg class="w-3 h-3 text-gray-300" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M5 15l7-7 7 7" />
-                                            </svg>
-                                            <svg class="w-3 h-3 text-red-600" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        @else
-                                            <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M5 15l7-7 7 7" />
-                                            </svg>
-                                            <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        @endif
-                                    </button>
+                                    <span>Name</span>
+                                    <div
+                                        class="inline-flex items-center bg-gray-100 rounded-lg p-0.5 border border-gray-200">
+                                        <button wire:click.prevent="applySort('first_name')" type="button"
+                                            class="px-2 py-1 text-xs font-medium rounded transition-all duration-150 flex items-center gap-1 hover:cursor-pointer cursor-pointer {{ $this->getSortDirection('first_name') ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}"
+                                            title="Sort by First Name">
+                                            <span>First</span>
+                                            @php
+                                                $firstDir = $this->getSortDirection('first_name');
+                                            @endphp
+                                            @if ($firstDir === 'asc')
+                                                <svg class="w-3 h-3 text-green-600" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M5 15l7-7 7 7" />
+                                                </svg>
+                                            @elseif ($firstDir === 'desc')
+                                                <svg class="w-3 h-3 text-red-600" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            @endif
+                                        </button>
+                                        <div class="w-px h-4 bg-gray-300 mx-0.5"></div>
+                                        <button wire:click.prevent="applySort('last_name')" type="button"
+                                            class="px-2 py-1 text-xs font-medium rounded transition-all duration-150 flex items-center gap-1 hover:cursor-pointer cursor-pointer {{ $this->getSortDirection('last_name') ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900' }}"
+                                            title="Sort by Last Name">
+                                            <span>Last</span>
+                                            @php
+                                                $lastDir = $this->getSortDirection('last_name');
+                                            @endphp
+                                            @if ($lastDir === 'asc')
+                                                <svg class="w-3 h-3 text-green-600" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M5 15l7-7 7 7" />
+                                                </svg>
+                                            @elseif ($lastDir === 'desc')
+                                                <svg class="w-3 h-3 text-red-600" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            @endif
+                                        </button>
+                                    </div>
                                 </div>
                             </th>
                             <th scope="col"
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Username
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <div class="inline-flex items-center gap-2">
-                                    <span>Created Date</span>
-                                    <button wire:click.prevent="applySort('created_at')" type="button"
-                                        class="inline-flex flex-col items-center text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 transition-colors p-0.5 rounded hover:bg-gray-200 hover:cursor-pointer cursor-pointer"
-                                        title="Sort by Created Date">
-                                        @php
-                                            $dateDir = $this->getSortDirection('created_at');
-                                        @endphp
-                                        @if ($dateDir === 'asc')
-                                            <svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M5 15l7-7 7 7" />
-                                            </svg>
-                                            <svg class="w-3 h-3 text-gray-300" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        @elseif ($dateDir === 'desc')
-                                            <svg class="w-3 h-3 text-gray-300" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M5 15l7-7 7 7" />
-                                            </svg>
-                                            <svg class="w-3 h-3 text-red-600" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        @else
-                                            <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M5 15l7-7 7 7" />
-                                            </svg>
-                                            <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        @endif
-                                    </button>
+                                    <span>{{ $showDeleted ? 'Deleted Date' : 'Created Date' }}</span>
+                                    @if (!$showDeleted)
+                                        <button wire:click.prevent="applySort('created_at')" type="button"
+                                            class="inline-flex flex-col items-center text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700 transition-colors p-0.5 rounded hover:bg-gray-200 hover:cursor-pointer cursor-pointer"
+                                            title="Sort by Created Date">
+                                            @php
+                                                $dateDir = $this->getSortDirection('created_at');
+                                            @endphp
+                                            @if ($dateDir === 'asc')
+                                                <svg class="w-3 h-3 text-green-600" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M5 15l7-7 7 7" />
+                                                </svg>
+                                                <svg class="w-3 h-3 text-gray-300" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            @elseif ($dateDir === 'desc')
+                                                <svg class="w-3 h-3 text-gray-300" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M5 15l7-7 7 7" />
+                                                </svg>
+                                                <svg class="w-3 h-3 text-red-600" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            @else
+                                                <svg class="w-3 h-3 text-gray-400" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M5 15l7-7 7 7" />
+                                                </svg>
+                                                <svg class="w-3 h-3 text-gray-400" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            @endif
+                                        </button>
+                                    @endif
                                 </div>
                             </th>
                             <th scope="col"
@@ -243,24 +265,41 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($trucks as $truck)
+                        @forelse($users as $user)
                             <tr class="hover:bg-gray-50 transition-colors duration-150">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-semibold text-gray-900">
-                                        {{ $truck->plate_number }}
+                                        {{ $user->first_name }}
+                                        @if ($user->middle_name)
+                                            {{ $user->middle_name }}
+                                        @endif
+                                        {{ $user->last_name }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-700">
+                                        <span>@</span>{{ $user->username }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-semibold text-gray-900">
-                                        {{ \Carbon\Carbon::parse($truck->created_at)->format('M d, Y') }}
+                                        @if ($showDeleted)
+                                            {{ \Carbon\Carbon::parse($user->deleted_at)->format('M d, Y') }}
+                                        @else
+                                            {{ \Carbon\Carbon::parse($user->created_at)->format('M d, Y') }}
+                                        @endif
                                     </div>
                                     <div class="text-xs text-gray-500 mt-0.5">
-                                        {{ \Carbon\Carbon::parse($truck->created_at)->format('h:i A') }}
+                                        @if ($showDeleted)
+                                            {{ \Carbon\Carbon::parse($user->deleted_at)->format('h:i A') }}
+                                        @else
+                                            {{ \Carbon\Carbon::parse($user->created_at)->format('h:i A') }}
+                                        @endif
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                     @if ($showDeleted)
-                                        <x-buttons.submit-button wire:click="openRestoreModal({{ $truck->id }})"
+                                        <x-buttons.submit-button wire:click="openRestoreModal({{ $user->id }})"
                                             color="green" size="sm" :fullWidth="false">
                                             <div class="inline-flex items-center gap-1.5">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
@@ -274,19 +313,32 @@
                                         </x-buttons.submit-button>
                                     @else
                                         <div class="flex items-center justify-center gap-2">
-                                            <x-buttons.submit-button wire:click="openEditModal({{ $truck->id }})"
+                                            <x-buttons.submit-button wire:click="openEditModal({{ $user->id }})"
                                                 color="blue" size="sm" :fullWidth="false">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
                                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
                                                     </path>
                                                 </svg>
                                                 Edit
                                             </x-buttons.submit-button>
-                                            @if ($truck->disabled)
+                                            <x-buttons.submit-button
+                                                wire:click="openResetPasswordModal({{ $user->id }})"
+                                                color="gray" size="sm" :fullWidth="false">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z">
+                                                    </path>
+                                                </svg>
+                                                Reset Password
+                                            </x-buttons.submit-button>
+                                            @if ($user->disabled)
                                                 <x-buttons.submit-button
-                                                    wire:click="openDisableModal({{ $truck->id }})" color="green"
+                                                    wire:click="openDisableModal({{ $user->id }})" color="green"
                                                     size="sm" :fullWidth="false">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
@@ -299,7 +351,7 @@
                                                 </x-buttons.submit-button>
                                             @else
                                                 <x-buttons.submit-button
-                                                    wire:click="openDisableModal({{ $truck->id }})" color="orange"
+                                                    wire:click="openDisableModal({{ $user->id }})" color="orange"
                                                     size="sm" :fullWidth="false">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
@@ -311,7 +363,7 @@
                                                     Disable
                                                 </x-buttons.submit-button>
                                             @endif
-                                            <x-buttons.submit-button wire:click="openDeleteModal({{ $truck->id }})"
+                                            <x-buttons.submit-button wire:click="openDeleteModal({{ $user->id }})"
                                                 color="red" size="sm" :fullWidth="false">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -328,21 +380,21 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="px-6 py-12 text-center">
+                                <td colspan="4" class="px-6 py-12 text-center">
                                     <div class="flex flex-col items-center">
                                         <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24"
                                             stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4">
+                                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
                                             </path>
                                         </svg>
-                                        <h3 class="text-sm font-medium text-gray-900 mb-1">No plate numbers found</h3>
+                                        <h3 class="text-sm font-medium text-gray-900 mb-1">No guards found</h3>
                                         <p class="text-sm text-gray-500">
                                             @if ($search)
                                                 No results match your search "<span
                                                     class="font-medium text-gray-700">{{ $search }}</span>".
                                             @else
-                                                No plate numbers available in the system.
+                                                No guards available in the system.
                                             @endif
                                         </p>
                                         @if ($search)
@@ -361,14 +413,14 @@
 
             {{-- Pagination Footer --}}
             <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                <x-buttons.nav-pagination :paginator="$trucks" />
+                <x-buttons.nav-pagination :paginator="$users" />
             </div>
         </div>
 
         {{-- Filter Modal --}}
         <x-modals.filter-modal>
             <x-slot name="filters">
-                <x-modals.filter-plate-numbers-body :availableStatuses="$availableStatuses" />
+                <x-modals.filter-guards-body :availableStatuses="$availableStatuses" />
             </x-slot>
         </x-modals.filter-modal>
 
@@ -384,18 +436,41 @@
                     <div
                         class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-lg">
                         <div class="px-6 py-4 bg-white border-b border-gray-200">
-                            <h3 class="text-lg font-semibold text-gray-900">Edit Plate Number</h3>
+                            <h3 class="text-lg font-semibold text-gray-900">Edit Guard</h3>
                         </div>
 
                         <div class="px-6 py-4">
+                    @csrf
                             <div class="space-y-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Plate Number <span
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">First Name <span
                                             class="text-red-500">*</span></label>
-                                    <input type="text" wire:model.live="plate_number" maxlength="8"
-                                        class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
-                                        placeholder="Enter plate number (max 7 non-space characters)">
-                                    @error('plate_number')
+                                    <input type="text" wire:model.live="first_name" maxlength="70"
+                                        class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Enter first name">
+                                    @error('first_name')
+                                        <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Middle Name <span
+                                            class="text-gray-400">(Optional)</span></label>
+                                    <input type="text" wire:model.live="middle_name" maxlength="70"
+                                        class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Enter middle name">
+                                    @error('middle_name')
+                                        <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Last Name <span
+                                            class="text-red-500">*</span></label>
+                                    <input type="text" wire:model.live="last_name" maxlength="70"
+                                        class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Enter last name">
+                                    @error('last_name')
                                         <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                                     @enderror
                                 </div>
@@ -404,14 +479,14 @@
 
                         <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
                             <button wire:click="closeModal"
-                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 hover:cursor-pointer cursor-pointer">
+                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                                 Cancel
                             </button>
-                            <button wire:click.prevent="updateTruck" wire:loading.attr="disabled" wire:target="updateTruck"
+                            <button wire:click.prevent="updateUser" wire:loading.attr="disabled" wire:target="updateUser"
                                 class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                :disabled="!$this->hasChanges">
-                                <span wire:loading.remove wire:target="updateTruck">Save Changes</span>
-                                <span wire:loading wire:target="updateTruck" class="inline-flex items-center gap-2">
+                                x-bind:disabled="!$wire.hasChanges">
+                                <span wire:loading.remove wire:target="updateUser">Save Changes</span>
+                                <span wire:loading wire:target="updateUser" class="inline-flex items-center gap-2">
                                     Saving...
                                 </span>
                             </button>
@@ -434,7 +509,7 @@
                         class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-lg">
                         <div class="px-6 py-4 bg-white border-b border-gray-200">
                             <div class="flex items-center">
-                                @if ($selectedTruckDisabled)
+                                @if ($selectedUserDisabled)
                                     <div class="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full">
                                         <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
@@ -443,7 +518,7 @@
                                             </path>
                                         </svg>
                                     </div>
-                                    <h3 class="ml-4 text-lg font-semibold text-gray-900">Enable Plate Number</h3>
+                                    <h3 class="ml-4 text-lg font-semibold text-gray-900">Enable Guard</h3>
                                 @else
                                     <div class="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full">
                                         <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor"
@@ -453,41 +528,42 @@
                                             </path>
                                         </svg>
                                     </div>
-                                    <h3 class="ml-4 text-lg font-semibold text-gray-900">Disable Plate Number</h3>
+                                    <h3 class="ml-4 text-lg font-semibold text-gray-900">Disable Guard</h3>
                                 @endif
                             </div>
                         </div>
 
                         <div class="px-6 py-4">
+                    @csrf
                             <p class="text-sm text-gray-600">
-                                @if ($selectedTruckDisabled)
-                                    Are you sure you want to enable this plate number? The plate number will be
-                                    available for use again.
+                                @if ($selectedUserDisabled)
+                                    Are you sure you want to enable this guard? The guard will be able to access the
+                                    system again.
                                 @else
-                                    Are you sure you want to disable this plate number? The plate number will not be
-                                    available for use.
+                                    Are you sure you want to disable this guard? The guard will not be able to access
+                                    the system.
                                 @endif
                             </p>
                         </div>
 
                         <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
-                            <button wire:click="closeModal" wire:loading.attr="disabled" wire:target="toggleTruckStatus"
+                            <button wire:click="closeModal" wire:loading.attr="disabled" wire:target="toggleUserStatus"
                                 class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
                                 Cancel
                             </button>
-                            @if ($selectedTruckDisabled)
-                                <button wire:click="toggleTruckStatus" wire:loading.attr="disabled" wire:target="toggleTruckStatus"
+                            @if ($selectedUserDisabled)
+                                <button wire:click="toggleUserStatus" wire:loading.attr="disabled" wire:target="toggleUserStatus"
                                     class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
-                                    <span wire:loading.remove wire:target="toggleTruckStatus">Enable Plate Number</span>
-                                    <span wire:loading wire:target="toggleTruckStatus" class="inline-flex items-center gap-2">
+                                    <span wire:loading.remove wire:target="toggleUserStatus">Enable Guard</span>
+                                    <span wire:loading wire:target="toggleUserStatus" class="inline-flex items-center gap-2">
                                         Enabling...
                                     </span>
                                 </button>
                             @else
-                                <button wire:click="toggleTruckStatus" wire:loading.attr="disabled" wire:target="toggleTruckStatus"
+                                <button wire:click="toggleUserStatus" wire:loading.attr="disabled" wire:target="toggleUserStatus"
                                     class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
-                                    <span wire:loading.remove wire:target="toggleTruckStatus">Disable Plate Number</span>
-                                    <span wire:loading wire:target="toggleTruckStatus" class="inline-flex items-center gap-2">
+                                    <span wire:loading.remove wire:target="toggleUserStatus">Disable Guard</span>
+                                    <span wire:loading wire:target="toggleUserStatus" class="inline-flex items-center gap-2">
                                         Disabling...
                                     </span>
                                 </button>
@@ -498,7 +574,59 @@
             </div>
         @endif
 
-        {{-- Create Plate Number Modal --}}
+        {{-- Reset Password Modal --}}
+        @if ($showResetPasswordModal)
+            <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+                aria-modal="true">
+                {{-- Backdrop --}}
+                <div class="fixed inset-0 transition-opacity bg-black/80" wire:click="closeModal"></div>
+
+                {{-- Modal Panel --}}
+                <div class="flex min-h-full items-center justify-center p-4">
+                    <div
+                        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-lg">
+                        <div class="px-6 py-4 bg-white border-b border-gray-200">
+                            <div class="flex items-center">
+                                <div class="flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-full">
+                                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <h3 class="ml-4 text-lg font-semibold text-gray-900">Reset Password</h3>
+                            </div>
+                        </div>
+
+                        <div class="px-6 py-4">
+                    @csrf
+                            <p class="text-sm text-gray-600">
+                                Are you sure you want to reset this guard's password? The password will be reset to the
+                                default password "<span
+                                    class="font-medium text-gray-900">{{ $this->defaultPassword }}</span>".
+                            </p>
+                        </div>
+
+                        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+                            <button wire:click="closeModal" wire:loading.attr="disabled" wire:target="resetPassword"
+                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
+                                Cancel
+                            </button>
+                            <button wire:click="resetPassword" wire:loading.attr="disabled" wire:target="resetPassword"
+                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
+                                <span wire:loading.remove wire:target="resetPassword">Reset Password</span>
+                                <span wire:loading wire:target="resetPassword" class="inline-flex items-center gap-2">
+                                    Resetting...
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- Create Guard Modal --}}
         @if ($showCreateModal)
             <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
                 aria-modal="true">
@@ -510,18 +638,41 @@
                     <div
                         class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-lg">
                         <div class="px-6 py-4 bg-white border-b border-gray-200">
-                            <h3 class="text-lg font-semibold text-gray-900">Create Plate Number</h3>
+                            <h3 class="text-lg font-semibold text-gray-900">Create Guard</h3>
                         </div>
 
                         <div class="px-6 py-4">
+                    @csrf
                             <div class="space-y-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Plate Number <span
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">First Name <span
                                             class="text-red-500">*</span></label>
-                                    <input type="text" wire:model="create_plate_number" maxlength="8"
-                                        class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
-                                        placeholder="Enter plate number (max 7 non-space characters)">
-                                    @error('create_plate_number')
+                                    <input type="text" wire:model="create_first_name" maxlength="70"
+                                        class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Enter first name">
+                                    @error('create_first_name')
+                                        <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Middle Name <span
+                                            class="text-gray-400">(Optional)</span></label>
+                                    <input type="text" wire:model="create_middle_name" maxlength="70"
+                                        class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Enter middle name">
+                                    @error('create_middle_name')
+                                        <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Last Name <span
+                                            class="text-red-500">*</span></label>
+                                    <input type="text" wire:model="create_last_name" maxlength="70"
+                                        class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Enter last name">
+                                    @error('create_last_name')
                                         <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                                     @enderror
                                 </div>
@@ -530,13 +681,13 @@
 
                         <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
                             <button wire:click="closeModal"
-                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 hover:cursor-pointer cursor-pointer">
+                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                                 Cancel
                             </button>
-                            <button wire:click.prevent="createTruck" wire:loading.attr="disabled" wire:target="createTruck"
+                            <button wire:click.prevent="createGuard" wire:loading.attr="disabled" wire:target="createGuard"
                                 class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                                <span wire:loading.remove wire:target="createTruck">Create Plate Number</span>
-                                <span wire:loading wire:target="createTruck" class="inline-flex items-center gap-2">
+                                <span wire:loading.remove wire:target="createGuard">Create Guard</span>
+                                <span wire:loading wire:target="createGuard" class="inline-flex items-center gap-2">
                                     Creating...
                                 </span>
                             </button>
@@ -547,8 +698,8 @@
         @endif
 
         {{-- Delete Confirmation Modal --}}
-        <x-modals.delete-modal :show="$showDeleteModal" title="Delete Plate Number" :name="$selectedTruckName" onConfirm="deleteTruck"
-            confirmText="Delete Plate Number" />
+        <x-modals.delete-modal :show="$showDeleteModal" title="Delete Guard" :name="$selectedUserName" onConfirm="deleteUser"
+            confirmText="Delete Guard" />
 
         {{-- Restore Confirmation Modal --}}
         @if ($showRestoreModal)
@@ -571,28 +722,29 @@
                                         </path>
                                     </svg>
                                 </div>
-                                <h3 class="ml-4 text-lg font-semibold text-gray-900">Restore Plate Number</h3>
+                                <h3 class="ml-4 text-lg font-semibold text-gray-900">Restore Guard</h3>
                             </div>
                         </div>
 
                         <div class="px-6 py-4">
+                    @csrf
                             <p class="text-sm text-gray-600">
                                 Are you sure you want to restore <span
-                                    class="font-medium text-gray-900">{{ $selectedTruckName }}</span>?
-                                The plate number will be available for use again.
+                                    class="font-medium text-gray-900">{{ $selectedUserName }}</span>?
+                                The guard will be able to access the system again.
                             </p>
                         </div>
 
                         <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
-                            <button wire:click="closeModal" wire:loading.attr="disabled" wire:target="restorePlateNumber"
+                            <button wire:click="closeModal" wire:loading.attr="disabled" wire:target="restoreUser"
                                 class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 hover:cursor-pointer cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                                 Cancel
                             </button>
-                            <button wire:click.prevent="restorePlateNumber" wire:loading.attr="disabled" wire:target="restorePlateNumber"
-                                :disabled="$isRestoring"
-                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
-                                <span wire:loading.remove wire:target="restorePlateNumber">Restore Plate Number</span>
-                                <span wire:loading wire:target="restorePlateNumber" class="inline-flex items-center gap-2">
+                            <button wire:click.prevent="restoreUser" wire:loading.attr="disabled" wire:target="restoreUser"
+                                x-bind:disabled="$wire.isRestoring"
+                                class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 hover:cursor-pointer cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span wire:loading.remove wire:target="restoreUser">Restore Guard</span>
+                                <span wire:loading wire:target="restoreUser" class="inline-flex items-center gap-2">
                                     Restoring...
                                 </span>
                             </button>

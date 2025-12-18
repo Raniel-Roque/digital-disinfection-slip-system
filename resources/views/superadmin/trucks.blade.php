@@ -2,5 +2,5 @@
     <x-navigation.navbar module="Trucks">
     </x-navigation.navbar>
 
-    <livewire:superadmin.trucks />
+    <livewire:super-admin.trucks />
 </x-layout>

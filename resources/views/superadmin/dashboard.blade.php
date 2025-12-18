@@ -2,5 +2,5 @@
     <x-navigation.navbar module="Dashboard">
     </x-navigation.navbar>
 
-    <livewire:superadmin.superadmin-dashboard />
+    <livewire:super-admin.super-admin-dashboard />
 </x-layout>

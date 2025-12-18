@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Superadmin;
+namespace App\Livewire\SuperAdmin;
 
 use App\Models\Location;
 use App\Models\Attachment;
@@ -704,7 +704,7 @@ class Locations extends Component
             $currentLocation = Location::with('attachment')->find($this->selectedLocationId);
         }
 
-        return view('livewire.superadmin.locations', [
+        return view('livewire.super-admin.locations', [
             'locations' => $locations,
             'filtersActive' => $filtersActive,
             'availableStatuses' => $this->availableStatuses,

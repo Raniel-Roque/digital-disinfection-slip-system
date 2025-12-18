@@ -66,18 +66,19 @@
         /* Column width constraints */
         th:nth-child(1),
         td:nth-child(1) {
-            width: 12%;
+            width: 5%;
             white-space: nowrap;
         }
 
         th:nth-child(2),
         td:nth-child(2) {
-            width: 12%;
+            width: 11%;
+            white-space: nowrap;
         }
 
         th:nth-child(3),
         td:nth-child(3) {
-            width: 8%;
+            width: 11%;
         }
 
         th:nth-child(4),
@@ -87,19 +88,24 @@
 
         th:nth-child(5),
         td:nth-child(5) {
-            width: 12%;
+            width: 8%;
         }
 
         th:nth-child(6),
         td:nth-child(6) {
-            width: 35%;
+            width: 11%;
+        }
+
+        th:nth-child(7),
+        td:nth-child(7) {
+            width: 33%;
             word-wrap: break-word;
             word-break: break-word;
             white-space: normal;
         }
 
-        th:nth-child(7),
-        td:nth-child(7) {
+        th:nth-child(8),
+        td:nth-child(8) {
             width: 13%;
         }
 
@@ -201,6 +207,7 @@
     <table>
         <thead>
             <tr>
+                <th>ID</th>
                 <th>Date & Time</th>
                 <th>User</th>
                 <th>User Type</th>
@@ -213,6 +220,7 @@
         <tbody>
             @forelse($data as $log)
                 <tr>
+                    <td>{{ $log['id'] ?? 'N/A' }}</td>
                     <td>
                         @if (isset($log['created_at']))
                             {{ \Carbon\Carbon::parse($log['created_at'])->format('M d, Y h:i A') }}
@@ -249,7 +257,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" style="text-align: center;">No audit trail logs found</td>
+                    <td colspan="8" style="text-align: center;">No audit trail logs found</td>
                 </tr>
             @endforelse
         </tbody>

@@ -335,19 +335,20 @@
                 {{-- Modal Panel --}}
                 <div class="flex min-h-full items-center justify-center p-4">
                     <div
-                        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-lg">
+                        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-md">
                         <div class="px-6 py-4 bg-white border-b border-gray-200">
                             <h3 class="text-lg font-semibold text-gray-900">Edit Plate Number</h3>
                         </div>
 
                         <div class="px-6 py-4">
+                    @csrf
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Plate Number <span
                                             class="text-red-500">*</span></label>
-                                    <input type="text" wire:model.live="plate_number" maxlength="8"
+                                    <input type="text" wire:model="plate_number" maxlength="20"
                                         class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
-                                        placeholder="Enter plate number (max 7 non-space characters)">
+                                        placeholder="Enter plate number">
                                     @error('plate_number')
                                         <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                                     @enderror
@@ -362,7 +363,7 @@
                             </button>
                             <button wire:click.prevent="updateTruck" wire:loading.attr="disabled" wire:target="updateTruck"
                                 class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                :disabled="!$this->hasChanges">
+                                x-bind:disabled="!$wire.hasChanges">
                                 <span wire:loading.remove wire:target="updateTruck">Save Changes</span>
                                 <span wire:loading wire:target="updateTruck" class="inline-flex items-center gap-2">
                                     Saving...
@@ -384,7 +385,7 @@
                 {{-- Modal Panel --}}
                 <div class="flex min-h-full items-center justify-center p-4">
                     <div
-                        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-lg">
+                        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-md">
                         <div class="px-6 py-4 bg-white border-b border-gray-200">
                             <div class="flex items-center">
                                 @if ($selectedTruckDisabled)
@@ -412,6 +413,7 @@
                         </div>
 
                         <div class="px-6 py-4">
+                    @csrf
                             <p class="text-sm text-gray-600">
                                 @if ($selectedTruckDisabled)
                                     Are you sure you want to enable this plate number? The plate number will be
@@ -461,19 +463,20 @@
                 {{-- Modal Panel --}}
                 <div class="flex min-h-full items-center justify-center p-4">
                     <div
-                        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-lg">
+                        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-md">
                         <div class="px-6 py-4 bg-white border-b border-gray-200">
                             <h3 class="text-lg font-semibold text-gray-900">Create Plate Number</h3>
                         </div>
 
                         <div class="px-6 py-4">
+                    @csrf
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Plate Number <span
                                             class="text-red-500">*</span></label>
-                                    <input type="text" wire:model="create_plate_number" maxlength="8"
+                                    <input type="text" wire:model="create_plate_number" maxlength="20"
                                         class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
-                                        placeholder="Enter plate number (max 7 non-space characters)">
+                                        placeholder="Enter plate number">
                                     @error('create_plate_number')
                                         <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                                     @enderror
