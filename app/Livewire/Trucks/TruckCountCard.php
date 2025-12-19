@@ -35,45 +35,50 @@ class TruckCountCard extends Component
         // Apply filters based on type
         switch ($this->type) {
             case 'incoming':
-                // Incoming trucks today
+                // Incoming trucks today - Status 2 (Ongoing) only
                 $query->whereDate('created_at', today())
                       ->where('destination_id', $locationId)
-                      ->where(function($q) {
-                          // Status 0 (Ongoing) without a receiving guard
-                          $q->where(function($q2) {
-                              $q2->where('status', 0)
-                                 ->whereNull('received_guard_id');
+                      ->where('location_id', '!=', $locationId)
+                      ->where('status', 2);
+                break;
+
+            case 'outgoing':
+                // Outgoing trucks today - Status 0, 1, 2 (Pending, Disinfecting, Ongoing) - only show slips created by the current user
+                $query->whereDate('created_at', today())
+                      ->where('location_id', $locationId)
+                      ->where('hatchery_guard_id', Auth::id())
+                      ->whereIn('status', [0, 1, 2]);
+                break;
+
+            case 'total':
+                // Total slips today (all statuses) - only for current user
+                $query->whereDate('created_at', today())
+                      ->where(function($q) use ($locationId) {
+                          // Slips created by current user (outgoing)
+                          $q->where(function($q2) use ($locationId) {
+                              $q2->where('location_id', $locationId)
+                                 ->where('hatchery_guard_id', Auth::id());
                           })
-                          // OR Status 1 (Disinfecting) received by current user
-                          ->orWhere(function($q2) {
-                              $q2->where('status', 1)
+                          // OR slips received by current user (incoming)
+                          ->orWhere(function($q2) use ($locationId) {
+                              $q2->where('destination_id', $locationId)
                                  ->where('received_guard_id', Auth::id());
                           });
                       });
                 break;
 
-            case 'outgoing':
-                // Outgoing trucks today - only show slips created by the current user
-                $query->whereDate('created_at', today())
-                      ->where('location_id', $locationId)
-                      ->where('hatchery_guard_id', Auth::id())
-                      ->whereIn('status', [0, 1]);
-                break;
-
-            case 'total':
-                // Total slips today (all statuses)
-                $query->whereDate('created_at', today());
-                break;
-
             case 'inprogress':
-                // Currently in progress (status 1) - only for auth guard
+                // Currently disinfecting (status 1)
+                // For incoming: not applicable anymore (no status 1 on incoming)
+                // For outgoing: status 1 for slips created by current user
                 $query->where('status', 1)
-                      ->where('received_guard_id', Auth::id());
+                      ->where('location_id', $locationId)
+                      ->where('hatchery_guard_id', Auth::id());
                 break;
 
             case 'completed':
-                // Completed today - Only show slips received/completed by the current user
-                $query->where('status', 2)
+                // Completed today - Status 3 - Only show slips received/completed by the current user
+                $query->where('status', 3)
                       ->whereDate('completed_at', today())
                       ->where(function($q) use ($locationId) {
                           // Outgoing: show if created by current user

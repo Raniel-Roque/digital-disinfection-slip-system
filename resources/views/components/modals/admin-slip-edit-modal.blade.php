@@ -17,15 +17,17 @@
 @php
     // Use editStatus if available, otherwise fall back to slipStatus
     $status = $editStatus ?? $slipStatus ?? null;
-    // Status: 0 = Ongoing, 1 = Disinfecting, 2 = Completed
+    // Status: 0 = Pending, 1 = Disinfecting, 2 = Ongoing, 3 = Completed
     
     // Header class based on status
     $headerClass = '';
     if ($status == 0) {
-        $headerClass = 'border-t-4 border-t-red-500 bg-red-50';
+        $headerClass = 'border-t-4 border-t-gray-500 bg-gray-50';
     } elseif ($status == 1) {
-        $headerClass = 'border-t-4 border-t-orange-500 bg-orange-50';
+        $headerClass = 'border-t-4 border-t-blue-500 bg-blue-50';
     } elseif ($status == 2) {
+        $headerClass = 'border-t-4 border-t-red-500 bg-red-50';
+    } elseif ($status == 3) {
         $headerClass = 'border-t-4 border-t-green-500 bg-green-50';
     }
 @endphp
@@ -60,9 +62,10 @@
                 <div class="text-gray-900">
                     <select wire:model.live="editStatus"
                         class="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500 hover:cursor-pointer cursor-pointer">
-                        <option value="0">Ongoing</option>
+                        <option value="0">Pending</option>
                         <option value="1">Disinfecting</option>
-                        <option value="2">Completed</option>
+                        <option value="2">Ongoing</option>
+                        <option value="3">Completed</option>
                     </select>
                     @error('editStatus')
                         <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
@@ -310,7 +313,7 @@
             </div>
 
             {{-- Completion Date (only when completed) --}}
-            @if ($status == 2 && $selectedSlip->completed_at)
+            @if ($status == 3 && $selectedSlip->completed_at)
                 <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
                     <div class="font-semibold text-gray-500">End Date:</div>
                     <div class="text-gray-900">
@@ -320,7 +323,7 @@
             @endif
 
             {{-- Reason --}}
-            <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if ($status == 2 && $selectedSlip->completed_at) bg-white @else bg-gray-100 @endif">
+            <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if ($status == 3 && $selectedSlip->completed_at) bg-white @else bg-gray-100 @endif">
                 <div class="font-semibold text-gray-500">Reason:</div>
                 <div class="text-gray-900 wrap-break-words min-w-0" style="word-break: break-word; overflow-wrap: break-word;">
                     <textarea wire:model.live="editReasonForDisinfection" class="w-full border rounded px-2 py-2 text-sm" rows="6"></textarea>
@@ -348,10 +351,10 @@
                 <div>
                     <div class="font-semibold text-gray-500 mb-0.5">
                         Received By:
-                        @if ($status == 1 || $status == 2)
+                        @if ($status == 3)
                             <span class="text-red-500">*</span>
                         @endif
-                        @if ($status == 0)
+                        @if ($status == 0 || $status == 1 || $status == 2)
                             <span class="float-right" x-data="{ editReceivedGuardId: @entangle('editReceivedGuardId') }">
                                 <button type="button" x-show="editReceivedGuardId"
                                     wire:click="$set('editReceivedGuardId', null)"

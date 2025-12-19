@@ -89,9 +89,9 @@
                     </div>
                 @endif
 
-                {{-- Attachment --}}
+                {{-- Photos --}}
                 <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if ($status == 2 && $selectedSlip->completed_at) bg-gray-100 @else bg-white @endif">
-                    <div class="font-semibold text-gray-500">Attachment:</div>
+                    <div class="font-semibold text-gray-500">Photos:</div>
                     <div class="text-gray-900">
                         @php
                             $attachments = $selectedSlip->attachments();
@@ -100,7 +100,7 @@
                         @if ($attachmentCount > 0)
                             <button wire:click="openAttachmentModal(0)"
                                 class="text-orange-500 hover:text-orange-600 underline cursor-pointer">
-                                See Attachment{{ $attachmentCount > 1 ? 's (' . $attachmentCount . ')' : '' }}
+                                See Photo{{ $attachmentCount > 1 ? 's (' . $attachmentCount . ')' : '' }}
                             </button>
                         @else
                             N/A
@@ -158,7 +158,7 @@
 
     </x-modals.modal-template>
 
-    {{-- Attachment Carousel Modal --}}
+    {{-- Photos Carousel Modal --}}
     @if ($showAttachmentModal && $selectedSlip)
         @php
             $attachments = $selectedSlip?->attachments() ?? collect([]);
@@ -175,7 +175,7 @@
             $isAdminOrSuperAdmin = !$isOnUserRoute && $currentUser && in_array($currentUser->user_type, [1, 2]); // 1 = Admin, 2 = SuperAdmin
         @endphp
 
-        <x-modals.modal-template show="showAttachmentModal" title="Attachments" max-width="w-[96%] sm:max-w-4xl" backdrop-opacity="40">
+        <x-modals.modal-template show="showAttachmentModal" title="Photos" max-width="w-[96%] sm:max-w-4xl" backdrop-opacity="40">
             @if ($totalAttachments > 0)
                 <div class="relative" x-data="{ currentIndex: @entangle('currentAttachmentIndex').live }">
                     {{-- Carousel Container --}}
@@ -224,7 +224,7 @@
                                             </p>
                                             <a href="{{ $fileUrl }}" target="_blank" 
                                                class="text-orange-500 font-semibold underline hover:cursor-pointer cursor-pointer text-sm sm:text-base">
-                                                Download attachment
+                                                Download photo
                                             </a>
                                             {{-- Uploaded By Information for non-images --}}
                                             <div class="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600">
@@ -274,7 +274,7 @@
                 </div>
             @else
                 <div class="text-center p-8 text-gray-500">
-                    No attachments available.
+                    No photos available.
                 </div>
             @endif
 
@@ -341,7 +341,7 @@
         </x-modals.modal-template>
     @endif
 
-    {{-- Remove Attachment Confirmation Modal --}}
+    {{-- Remove Photo Confirmation Modal --}}
     <x-modals.delete-confirmation show="showRemoveAttachmentConfirmation" title="DELETE PHOTO?"
         message="Are you sure you want to delete this photo?" warning="This action cannot be undone."
         onConfirm="removeAttachment" confirmText="Yes, Delete Photo" cancelText="Cancel" />

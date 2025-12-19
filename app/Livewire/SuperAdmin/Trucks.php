@@ -30,20 +30,20 @@ class Trucks extends Component
     public $sortDirection = 'desc'; // Default descending
     
     // Filter fields
-    public $filterStatus = null; // null = All Statuses, 0 = Ongoing, 1 = Disinfecting, 2 = Completed
+    public $filterStatus = null; // null = All Statuses, 0 = Pending, 1 = Disinfecting, 2 = Ongoing, 3 = Completed
     
     // Ensure filterStatus is properly typed when updated
     public function updatedFilterStatus($value)
     {
-        // Handle null, empty string, or numeric values (0, 1, 2 matching backend)
-        // null/empty = All Statuses, 0 = Ongoing, 1 = Disinfecting, 2 = Completed
+        // Handle null, empty string, or numeric values (0, 1, 2, 3 matching backend)
+        // null/empty = All Statuses, 0 = Pending, 1 = Disinfecting, 2 = Ongoing, 3 = Completed
         // The select will send values as strings, so we convert to int
         if ($value === null || $value === '' || $value === false) {
             $this->filterStatus = null;
         } elseif (is_numeric($value)) {
             $intValue = (int)$value;
-            if ($intValue >= 0 && $intValue <= 2) {
-                // Store as integer (0, 1, or 2)
+            if ($intValue >= 0 && $intValue <= 3) {
+                // Store as integer (0, 1, 2, or 3)
                 $this->filterStatus = $intValue;
             } else {
                 $this->filterStatus = null;
@@ -84,9 +84,10 @@ class Trucks extends Component
     public $excludeDeletedItems = true; // Default: exclude slips with deleted related items
     
     public $availableStatuses = [
-        0 => 'Ongoing',
+        0 => 'Pending',
         1 => 'Disinfecting',
-        2 => 'Completed',
+        2 => 'Ongoing',
+        3 => 'Completed',
     ];
 
     // Details Modal
@@ -1094,14 +1095,13 @@ class Trucks extends Component
     
     public function updatedEditStatus($value)
     {
-        // If status is changed to 0 (Ongoing), clear receiving guard if it's set
-        // If status is changed to 1 or 2, ensure receiving guard is set (validation will handle this)
-        if ($value == 0) {
-            // Status 0: Receiving guard is optional, so we can clear it
-            // But only if it was previously set (don't clear if it was already null)
-            // Actually, let's keep it as is - user can manually clear it if needed
-        } elseif ($value == 1 || $value == 2) {
-            // Status 1 or 2: Receiving guard is required
+        // Status 0, 1, 2 (Pending, Disinfecting, Ongoing): Receiving guard is optional
+        // Status 3 (Completed): Receiving guard is required (validation will handle this)
+        if ($value == 0 || $value == 1 || $value == 2) {
+            // Status 0, 1, 2: Receiving guard is optional
+            // Keep it as is - user can manually clear it if needed
+        } elseif ($value == 3) {
+            // Status 3: Receiving guard is required
             // If it's null, we'll let validation handle the error
             // Don't auto-set it, let user choose
         }
@@ -1182,7 +1182,7 @@ class Trucks extends Component
         
         // Validate status
         $this->validate([
-            'editStatus' => 'required|in:0,1,2',
+            'editStatus' => 'required|in:0,1,2,3',
         ], [], [
             'editStatus' => 'Status',
         ]);
@@ -1203,8 +1203,8 @@ class Trucks extends Component
             'editReasonForDisinfection' => 'nullable|string|max:1000',
         ];
 
-        // Status 0 (Ongoing): Origin and Hatchery Guard are required, Receiving Guard is optional
-        if ($status == 0) {
+        // Status 0, 1, 2 (Pending, Disinfecting, Ongoing): Origin and Hatchery Guard are required, Receiving Guard is optional
+        if ($status == 0 || $status == 1 || $status == 2) {
             $rules['editLocationId'] = [
                 'required',
                 'exists:locations,id',
@@ -1258,8 +1258,8 @@ class Trucks extends Component
             ];
         }
         
-        // Status 1 (Disinfecting) or 2 (Completed): Origin, Hatchery Guard, and Receiving Guard are all required
-        if ($status == 1 || $status == 2) {
+        // Status 3 (Completed): Origin, Hatchery Guard, and Receiving Guard are all required
+        if ($status == 3) {
             $rules['editLocationId'] = [
                 'required',
                 'exists:locations,id',
@@ -1352,18 +1352,35 @@ class Trucks extends Component
             'status' => $this->editStatus,
         ];
 
-        // Status 0: Update origin and hatchery guard, receiving guard is optional
-        if ($status == 0) {
+        // Status 0, 1, 2: Update origin and hatchery guard, receiving guard is optional
+        if ($status == 0 || $status == 1 || $status == 2) {
             $updateData['location_id'] = $this->editLocationId;
             $updateData['hatchery_guard_id'] = $this->editHatcheryGuardId;
             $updateData['received_guard_id'] = $this->editReceivedGuardId; // Can be null
         }
         
-        // Status 1 or 2: Update origin, hatchery guard, and receiving guard (required)
-        if ($status == 1 || $status == 2) {
+        // Status 3: Update origin, hatchery guard, and receiving guard (required)
+        if ($status == 3) {
             $updateData['location_id'] = $this->editLocationId;
             $updateData['hatchery_guard_id'] = $this->editHatcheryGuardId;
-            $updateData['received_guard_id'] = $this->editReceivedGuardId;
+            $updateData['received_guard_id'] = $this->editReceivedGuardId; // Required, validated above
+        }
+
+        // Handle completed_at based on status changes
+        $oldStatus = $this->selectedSlip->status;
+        $newStatus = $status;
+        
+        // Only update completed_at if status actually changed
+        if ($oldStatus != $newStatus) {
+            // If changing TO status 3 (Completed), set completed_at to current time
+            if ($newStatus == 3) {
+                $updateData['completed_at'] = now();
+            }
+            
+            // If changing FROM status 3 (Completed) to any other status, clear completed_at
+            if ($oldStatus == 3 && $newStatus != 3) {
+                $updateData['completed_at'] = null;
+            }
         }
 
         $this->selectedSlip->update($updateData);
@@ -1695,7 +1712,7 @@ class Trucks extends Component
             'hatchery_guard_id' => $this->hatchery_guard_id,
             'received_guard_id' => $this->received_guard_id,
             'reason_for_disinfection' => $sanitizedReason,
-            'status' => 0, // Ongoing
+            'status' => 0, // Pending
         ]);
 
         $slipId = $slip->slip_id;
@@ -2258,7 +2275,7 @@ class Trucks extends Component
             fputcsv($file, ['Slip ID', 'Plate Number', 'Origin', 'Destination', 'Driver', 'Status', 'Hatchery Guard', 'Received Guard', 'Created Date', 'Completed Date']);
             
             foreach ($data as $slip) {
-                $statuses = ['Ongoing', 'Disinfecting', 'Completed'];
+                $statuses = ['Pending', 'Disinfecting', 'Ongoing', 'Completed'];
                 $status = $statuses[$slip->status] ?? 'Unknown';
                 $hatcheryGuard = $slip->hatcheryGuard ? trim(implode(' ', array_filter([$slip->hatcheryGuard->first_name, $slip->hatcheryGuard->middle_name, $slip->hatcheryGuard->last_name]))) : 'N/A';
                 $receivedGuard = $slip->receivedGuard ? trim(implode(' ', array_filter([$slip->receivedGuard->first_name, $slip->receivedGuard->middle_name, $slip->receivedGuard->last_name]))) : 'N/A';
