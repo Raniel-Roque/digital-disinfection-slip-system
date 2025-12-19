@@ -260,14 +260,14 @@
 
     {{-- Receiving Guard (Optional) --}}
     <div class="grid grid-cols-3 mb-4">
-        <div class="font-semibold text-gray-700">
+        <div class="font-semibold text-gray-700 row-span-2 self-center">
             Receiving Guard:
-            <span class="float-right" x-data="{ receivedGuardId: @entangle('received_guard_id') }">
-                <button type="button" x-show="receivedGuardId" wire:click="$set('received_guard_id', null)"
-                    class="text-xs text-blue-600 hover:text-blue-800 font-medium" style="display: none;">
-                    Clear
-                </button>
-            </span>
+        </div>
+        <div class="col-span-2 flex justify-end mb-1" x-data="{ receivedGuardId: @entangle('received_guard_id') }">
+            <button type="button" x-show="receivedGuardId" wire:click="$set('received_guard_id', null)"
+                class="text-xs text-blue-600 hover:text-blue-800 font-medium hover:cursor-pointer cursor-pointer" style="display: none;">
+                Clear
+            </button>
         </div>
         <div class="col-span-2">
             <x-forms.searchable-dropdown wire-model="received_guard_id" :options="$createReceivedGuardOptions"

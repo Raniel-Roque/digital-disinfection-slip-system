@@ -349,19 +349,21 @@
                     </div>
                 </div>
                 <div>
-                    <div class="font-semibold text-gray-500 mb-0.5">
-                        Received By:
-                        @if ($status == 3)
-                            <span class="text-red-500">*</span>
-                        @endif
+                    <div class="flex items-start justify-between mb-0.5">
+                        <div class="font-semibold text-gray-500">
+                            Received By:
+                            @if ($status == 3)
+                                <span class="text-red-500">*</span>
+                            @endif
+                        </div>
                         @if ($status == 0 || $status == 1 || $status == 2)
-                            <span class="float-right" x-data="{ editReceivedGuardId: @entangle('editReceivedGuardId') }">
+                            <div x-data="{ editReceivedGuardId: @entangle('editReceivedGuardId') }">
                                 <button type="button" x-show="editReceivedGuardId"
                                     wire:click="$set('editReceivedGuardId', null)"
-                                    class="text-xs text-blue-600 hover:text-blue-800 font-medium" style="display: none;">
+                                    class="text-xs text-blue-600 hover:text-blue-800 font-medium hover:cursor-pointer cursor-pointer" style="display: none;">
                                     Clear
                                 </button>
-                            </span>
+                            </div>
                         @endif
                     </div>
                     <div class="text-gray-900">

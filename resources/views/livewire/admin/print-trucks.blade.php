@@ -109,7 +109,7 @@
                 
                 @if (isset($filters['status']) && $filters['status'] !== null)
                     @php
-                        $statuses = ['Ongoing', 'Disinfecting', 'Completed'];
+                        $statuses = ['Pending', 'Disinfecting', 'Ongoing', 'Completed'];
                         $status = $statuses[$filters['status']] ?? 'Unknown';
                     @endphp
                     <p><strong>Status:</strong> {{ $status }}</p>
@@ -211,7 +211,7 @@
                     <td>{{ $slip->driver ?? ($slip['driver'] ?? '') }}</td>
                     <td>
                         @php
-                            $statuses = ['Ongoing', 'Disinfecting', 'Completed'];
+                            $statuses = ['Pending', 'Disinfecting', 'Ongoing', 'Completed'];
                             $statusIndex = $slip->status ?? ($slip['status'] ?? 0);
                             echo $statuses[$statusIndex] ?? 'Unknown';
                         @endphp
