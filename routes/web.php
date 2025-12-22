@@ -11,11 +11,11 @@ use Illuminate\Support\Facades\Route;
 Route::view("/", "landing");
 
 Route::get("/login", [SessionController::class,'create'])->name('login');
-Route::post('/login', [SessionController::class,'store'])->middleware('throttle:5,1')->name('login.store');
+Route::post('/login', [SessionController::class,'store'])->middleware('custom.throttle:5,15')->name('login.store');
 
 // Location-based login routes
 Route::get("/location/{location}/login", [SessionController::class,'create'])->name('location.login');
-Route::post('/location/{location}/login', [SessionController::class,'store'])->middleware('throttle:5,1')->name('location.login.store');
+Route::post('/location/{location}/login', [SessionController::class,'store'])->middleware('custom.throttle:5,15')->name('location.login.store');
 
 Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
 

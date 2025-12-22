@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->alias([
             'user.type' => \App\Http\Middleware\EnsureUserType::class,
+            'custom.throttle' => \App\Http\Middleware\CustomThrottleRequests::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
