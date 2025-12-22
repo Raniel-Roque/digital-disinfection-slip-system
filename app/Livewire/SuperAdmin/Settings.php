@@ -242,12 +242,10 @@ class Settings extends Component
             $exitCode = \Illuminate\Support\Facades\Artisan::call('clean:attachments');
 
             if ($exitCode === 0) {
-                Logger::create(
-                    \App\Models\Attachment::class,
+                Logger::delete(
+                    'Attachment',
                     null,
-                    "Manually ran attachment cleanup",
-                    null,
-                    ['user_id' => Auth::id()]
+                    "Manually ran attachment cleanup"
                 );
 
                 $this->dispatch('toast', message: 'Attachment cleanup completed successfully.', type: 'success');
@@ -270,15 +268,13 @@ class Settings extends Component
 
         try {
             // Use Artisan::call() instead of direct instantiation
-            $exitCode = \Illuminate\Support\Facades\Artisan::call('clean:reports');
+            $exitCode = \Illuminate\Support\Facades\Artisan::call('clean:resolved-reports');
 
             if ($exitCode === 0) {
-                Logger::create(
-                    \App\Models\Report::class,
+                Logger::delete(
+                    'Report',
                     null,
-                    "Manually ran resolved reports cleanup",
-                    null,
-                    ['user_id' => Auth::id()]
+                    "Manually ran resolved reports cleanup"
                 );
 
                 $this->dispatch('toast', message: 'Reports cleanup completed successfully.', type: 'success');
@@ -304,12 +300,10 @@ class Settings extends Component
             $exitCode = \Illuminate\Support\Facades\Artisan::call('clean:soft-deleted');
 
             if ($exitCode === 0) {
-                Logger::create(
-                    \App\Models\User::class,
+                Logger::delete(
+                    'Multiple Models',
                     null,
-                    "Manually ran soft-deleted records cleanup",
-                    null,
-                    ['user_id' => Auth::id()]
+                    "Manually ran soft-deleted records cleanup"
                 );
 
                 $this->dispatch('toast', message: 'Soft-deleted records cleanup completed successfully.', type: 'success');
@@ -335,12 +329,10 @@ class Settings extends Component
             $exitCode = \Illuminate\Support\Facades\Artisan::call('clean:logs');
 
             if ($exitCode === 0) {
-                Logger::create(
-                    \App\Models\Log::class,
+                Logger::delete(
+                    'Log',
                     null,
-                    "Manually ran audit logs cleanup",
-                    null,
-                    ['user_id' => Auth::id()]
+                    "Manually ran audit logs cleanup"
                 );
 
                 $this->dispatch('toast', message: 'Logs cleanup completed successfully.', type: 'success');
@@ -353,7 +345,6 @@ class Settings extends Component
 
         $this->showLogsCleanupModal = false;
     }
-
     public function render()
     {
         return view('livewire.super-admin.settings');
