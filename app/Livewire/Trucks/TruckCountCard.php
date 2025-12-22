@@ -35,11 +35,15 @@ class TruckCountCard extends Component
         // Apply filters based on type
         switch ($this->type) {
             case 'incoming':
-                // Incoming trucks today - Status 2 (In-Transit) only
+                // Incoming trucks today - Status 2 (In-Transit) only - unclaimed or claimed by current user
                 $query->whereDate('created_at', today())
                       ->where('destination_id', $locationId)
                       ->where('location_id', '!=', $locationId)
-                      ->where('status', 2);
+                      ->where('status', 2)
+                      ->where(function($q) {
+                          $q->whereNull('received_guard_id')
+                            ->orWhere('received_guard_id', Auth::id());
+                      });
                 break;
 
             case 'outgoing':
@@ -68,12 +72,21 @@ class TruckCountCard extends Component
                 break;
 
             case 'inprogress':
-                // Currently disinfecting (status 1)
-                // For incoming: not applicable anymore (no status 1 on incoming)
-                // For outgoing: status 1 for slips created by current user
-                $query->where('status', 1)
+                // Currently processing - includes:
+                // Outgoing: status 1 (disinfecting) created by current user
+                // Incoming: status 2 (in-transit) claimed by current user
+                $query->where(function($q) use ($locationId) {
+                    // Outgoing slips being disinfected
+                    $q->where('status', 1)
                       ->where('location_id', $locationId)
-                      ->where('hatchery_guard_id', Auth::id());
+                      ->where('hatchery_guard_id', Auth::id())
+                      // OR Incoming slips claimed by current user
+                      ->orWhere(function($q2) use ($locationId) {
+                          $q2->where('status', 2)
+                             ->where('destination_id', $locationId)
+                             ->where('received_guard_id', Auth::id());
+                      });
+                });
                 break;
 
             case 'completed':

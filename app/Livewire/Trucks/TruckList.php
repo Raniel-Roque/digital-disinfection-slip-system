@@ -698,9 +698,9 @@ class TruckList extends Component
             $query->where('destination_id', $location)
                   ->where('location_id', '!=', $location)
                   ->where('status', 2)
-                  ->where(function($q) use ($location) {
-                      $q->whereNull('hatchery_guard_id')
-                        ->orWhere('hatchery_guard_id', Auth::id());
+                  ->where(function($q) {
+                      $q->whereNull('received_guard_id')
+                        ->orWhere('received_guard_id', Auth::id());
                   });
         } else {
             // Outgoing: Status 0 (Pending), 1 (Disinfecting), 2 (In-Transit) - only show slips created by the current user

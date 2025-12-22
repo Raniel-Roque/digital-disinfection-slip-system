@@ -249,11 +249,12 @@ class DisinfectionSlip extends Component
                 && $this->selectedSlip->location_id === $currentLocation;
         }
 
-        // Can complete on INCOMING when status is In-Transit (2)
+        // Can complete on INCOMING when status is In-Transit (2) - only if claimed by current user or unclaimed
         return $this->type === 'incoming'
-            && $this->selectedSlip->status == 2 
+            && $this->selectedSlip->status == 2
             && $this->selectedSlip->destination_id === $currentLocation
-            && $this->selectedSlip->location_id !== $currentLocation;
+            && $this->selectedSlip->location_id !== $currentLocation
+            && (is_null($this->selectedSlip->received_guard_id) || $this->selectedSlip->received_guard_id === Auth::id());
     }
 
     public function canDelete()
