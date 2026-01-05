@@ -78,8 +78,9 @@ class Trucks extends Component
     public $appliedReceivedGuard = [];
     public $appliedCreatedFrom = null;
     public $appliedCreatedTo = null;
-    
+
     public $filtersActive = false;
+    public $excludeDeletedItems = true; // Default: exclude slips with deleted related items
     
     public $availableStatuses = [
         0 => 'Pending',
@@ -1980,6 +1981,33 @@ class Trucks extends Component
             })
             ->when($this->appliedCreatedTo, function($query) {
                 $query->whereDate('created_at', '<=', $this->appliedCreatedTo);
+            })
+            // Exclude slips with deleted items (default: on)
+            ->when($this->excludeDeletedItems, function($query) {
+                $query->whereHas('truck', function($q) {
+                    $q->whereNull('deleted_at');
+                })
+                ->whereHas('driver', function($q) {
+                    $q->whereNull('deleted_at');
+                })
+                ->whereHas('location', function($q) {
+                    $q->whereNull('deleted_at');
+                })
+                ->whereHas('destination', function($q) {
+                    $q->whereNull('deleted_at');
+                })
+                ->where(function($q) {
+                    $q->whereHas('hatcheryGuard', function($guardQ) {
+                        $guardQ->whereNull('deleted_at');
+                    })
+                    ->orWhereNull('hatchery_guard_id');
+                })
+                ->where(function($q) {
+                    $q->whereHas('receivedGuard', function($guardQ) {
+                        $guardQ->whereNull('deleted_at');
+                    })
+                    ->orWhereNull('received_guard_id');
+                });
             })
             // Apply sorting (works with all filters)
             ->when($this->sortBy === 'slip_id', function($query) {

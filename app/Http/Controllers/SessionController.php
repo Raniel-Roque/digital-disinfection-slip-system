@@ -59,29 +59,37 @@ class SessionController extends Controller
         // Trim @ symbol from the beginning of username if present
         $username = ltrim($attributes['username'], '@');
 
-        // Find user by username (case-insensitive) - SoftDeletes automatically excludes deleted users
-        $user = User::whereRaw('LOWER(username) = ?', [strtolower($username)])->first();
+        // 1. First check if user exists (including soft-deleted users)
+        $user = User::withTrashed()->whereRaw('LOWER(username) = ?', [strtolower($username)])->first();
 
-        // Verify user exists and password is correct
-        if (!$user || !Hash::check($attributes['password'], $user->password)) {
+        // 2. If user doesn't exist at all
+        if (!$user) {
             throw ValidationException::withMessages([
-                'username'=> 'Sorry, those credentials are incorrect',
-                'password'=> '',
-            ]);
-        }
-
-        // Check if user is deleted (explicit check, though SoftDeletes should handle this)
-        if ($user->trashed()) {
-            throw ValidationException::withMessages([
-                'username' => 'Your account has been deleted. Please contact an administrator.',
+                'username' => 'Sorry, that user does not exist.',
                 'password' => '',
             ]);
         }
 
-        // Check if user is disabled BEFORE logging in
+        // 3. If user exists but is soft deleted
+        if ($user->trashed()) {
+            throw ValidationException::withMessages([
+                'username' => 'Sorry, that user does not exist.',
+                'password' => '',
+            ]);
+        }
+
+        // 4. If user exists but is disabled
         if ($user->disabled) {
             throw ValidationException::withMessages([
                 'username' => 'Your account has been disabled. Please contact an administrator.',
+                'password' => '',
+            ]);
+        }
+
+        // 5. If user exists, is active, but password is incorrect
+        if (!Hash::check($attributes['password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'username' => 'Sorry, those credentials are incorrect.',
                 'password' => '',
             ]);
         }
