@@ -178,7 +178,15 @@
                 @endif
 
                 @if (!empty($filters['user_type']))
-                    <p><strong>User Type:</strong> {{ $filters['user_type'] }}</p>
+                    @php
+                        $userTypes = [
+                            0 => 'Guard',
+                            1 => 'Admin'
+                        ];
+                    @endphp
+                    <p><strong>User Types:</strong> {{ implode(', ', array_map(function($type) use ($userTypes) {
+                        return $userTypes[$type] ?? 'Unknown';
+                    }, $filters['user_type'])) }}</p>
                 @endif
 
                 @if (!empty($filters['created_from']))

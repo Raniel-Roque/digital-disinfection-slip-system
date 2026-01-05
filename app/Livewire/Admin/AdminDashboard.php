@@ -131,7 +131,7 @@ class AdminDashboard extends Component
     }
 
     /**
-     * Get count of in progress slips today (status 0, 1, 2 - Pending, Disinfecting, Ongoing)
+     * Get count of in progress slips today (status 0, 1, 2 - Pending, Disinfecting, In-Transit)
      */
     private function getInProgressSlipsTodayCount()
     {

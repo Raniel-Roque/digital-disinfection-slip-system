@@ -22,7 +22,7 @@ class AuditTrail extends Component
     // Filter properties
     public $filterAction = [];
     public $filterModelType = [];
-    public $filterUserType = null;
+    public $filterUserType = [];
     public $filterCreatedFrom = '';
     public $filterCreatedTo = '';
     
@@ -344,34 +344,46 @@ class AuditTrail extends Component
     private function getFilteredLogsQuery()
     {
         $query = Log::query();
-        
+
         // Exclude superadmin actions (user_type != 2)
         $query->where('user_type', '!=', 2);
-        
+
         // Search
         if (!empty($this->search)) {
             $searchTerm = trim($this->search);
-            $escapedSearchTerm = addcslashes($searchTerm, '%_\\');
-            
+            $searchTermLower = strtolower($searchTerm);
+            $searchTermNoAt = ltrim($searchTerm, '@'); // Remove @ from beginning for username searches
+            $searchTermNoAtLower = strtolower($searchTermNoAt);
+
             // Find model types that match the search term (by readable label)
             $matchingModelTypes = [];
             foreach ($this->availableModelTypes as $modelType => $label) {
-                if (stripos($label, $searchTerm) !== false) {
+                if (stripos(strtolower($label), $searchTermLower) !== false) {
                     $matchingModelTypes[] = $modelType;
                 }
             }
-            
-            $query->where(function ($q) use ($escapedSearchTerm, $matchingModelTypes) {
-                // Search username
-                $q->where('user_username', 'like', '%' . $escapedSearchTerm . '%')
-                  // Search full name (first, middle, last) - similar to guards
-                  ->orWhereRaw("CONCAT(COALESCE(user_first_name, ''), ' ', COALESCE(user_middle_name, ''), ' ', COALESCE(user_last_name, '')) LIKE ?", ['%' . $escapedSearchTerm . '%'])
+
+            $query->where(function ($q) use ($searchTerm, $searchTermLower, $searchTermNoAt, $searchTermNoAtLower, $matchingModelTypes) {
+                // Search by ID (exact match or starts with)
+                $q->where('id', $searchTerm)
+                  ->orWhere('id', 'like', $searchTerm . '%')
+                  // Search username (exact, starts with, or contains)
+                  ->orWhere('user_username', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('user_username', 'like', $searchTerm . '%')
+                  ->orWhereRaw('LOWER(user_username) = ?', [$searchTermLower])
+                  // Also search username without @ symbol
+                  ->orWhere('user_username', 'like', '%' . $searchTermNoAt . '%')
+                  ->orWhere('user_username', 'like', $searchTermNoAt . '%')
+                  ->orWhereRaw('LOWER(user_username) = ?', [$searchTermNoAtLower])
+                  // Search full name (concatenated with proper NULL handling)
+                  ->orWhereRaw("LOWER(CONCAT(COALESCE(user_first_name, ''), ' ', COALESCE(user_middle_name, ''), ' ', COALESCE(user_last_name, ''))) LIKE ?", ['%' . $searchTermLower . '%'])
                   // Search individual name fields
-                  ->orWhere('user_first_name', 'like', '%' . $escapedSearchTerm . '%')
-                  ->orWhere('user_middle_name', 'like', '%' . $escapedSearchTerm . '%')
-                  ->orWhere('user_last_name', 'like', '%' . $escapedSearchTerm . '%')
+                  ->orWhereRaw('LOWER(user_first_name) LIKE ?', ['%' . $searchTermLower . '%'])
+                  ->orWhereRaw('LOWER(user_middle_name) LIKE ?', ['%' . $searchTermLower . '%'])
+                  ->orWhereRaw('LOWER(user_last_name) LIKE ?', ['%' . $searchTermLower . '%'])
                   // Search model type (raw class name)
-                  ->orWhere('model_type', 'like', '%' . $escapedSearchTerm . '%')
+                  ->orWhere('model_type', 'like', '%' . $searchTerm . '%')
+                  ->orWhereRaw('LOWER(model_type) LIKE ?', ['%' . $searchTermLower . '%'])
                   // Search model type by readable label
                   ->orWhere(function($subQ) use ($matchingModelTypes) {
                       if (!empty($matchingModelTypes)) {
@@ -379,7 +391,14 @@ class AuditTrail extends Component
                       }
                   })
                   // Search IP address
-                  ->orWhere('ip_address', 'like', '%' . $escapedSearchTerm . '%');
+                  ->orWhere('ip_address', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('ip_address', 'like', $searchTerm . '%')
+                  // Search description
+                  ->orWhere('description', 'like', '%' . $searchTerm . '%')
+                  ->orWhereRaw('LOWER(description) LIKE ?', ['%' . $searchTermLower . '%'])
+                  // Search action
+                  ->orWhere('action', 'like', '%' . $searchTerm . '%')
+                  ->orWhereRaw('LOWER(action) = ?', [$searchTermLower]);
             });
         }
         
@@ -392,8 +411,8 @@ class AuditTrail extends Component
             $query->whereIn('model_type', $this->appliedModelType);
         }
         
-        if (!is_null($this->appliedUserType)) {
-            $query->where('user_type', $this->appliedUserType);
+        if (!empty($this->appliedUserType)) {
+            $query->whereIn('user_type', $this->appliedUserType);
         }
         
         if (!empty($this->appliedCreatedFrom)) {

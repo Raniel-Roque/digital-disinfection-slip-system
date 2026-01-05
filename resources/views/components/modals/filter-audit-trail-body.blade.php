@@ -115,7 +115,7 @@
             return filtered;
         },
         get displayText() {
-            if (!this.selected || this.selected.length === 0) return 'Select record type...';
+            if (!this.selected || this.selected.length === 0) return 'Select model type...';
             if (this.selected.length === 1) {
                 return this.options[this.selected[0]] || this.selected[0];
             }
@@ -141,7 +141,7 @@
         }
     }" x-ref="modelTypeDropdown" @click.outside="closeDropdown()">
         <div class="flex items-center justify-between mb-1">
-            <label class="block text-sm font-medium text-gray-700">Record Type</label>
+            <label class="block text-sm font-medium text-gray-700">Model Type</label>
             <button type="button" x-on:click="selected = []; $wire.set('filterModelType', [])"
                 x-show="selected && selected.length > 0"
                 class="text-xs text-blue-600 hover:text-blue-800 font-medium">

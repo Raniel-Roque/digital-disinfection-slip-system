@@ -52,7 +52,7 @@
                         <div class="flex flex-col">
                             <span class="text-xs sm:text-sm font-medium text-gray-600 mb-1">Incoming Trucks</span>
                             <span class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-red-600">
-                                {{ str_pad($location->ongoing_count, 2, '0', STR_PAD_LEFT) }}
+                                {{ str_pad($location->in_transit_count, 2, '0', STR_PAD_LEFT) }}
                             </span>
                         </div>
                         <div
@@ -92,7 +92,7 @@
                         <!-- Count and Arrow -->
                         <div class="flex items-center gap-2 shrink-0">
                             <span class="text-2xl font-extrabold text-red-600">
-                                {{ str_pad($location->ongoing_count, 2, '0', STR_PAD_LEFT) }}
+                                {{ str_pad($location->in_transit_count, 2, '0', STR_PAD_LEFT) }}
                             </span>
                             <div
                                 class="flex items-center justify-center w-8 h-8 bg-orange-500 rounded-full shadow-md group-hover:bg-orange-600 transition-colors">

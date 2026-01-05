@@ -194,7 +194,16 @@
 
         <div class="form-field">
             <div class="form-label">Destination:</div>
-            <div class="form-value">{{ $slip->destination->location_name ?? 'N/A' }}</div>
+            <div class="form-value">
+                @if ($slip->destination)
+                    {{ $slip->destination->location_name }}
+                    @if ($slip->destination->trashed())
+                        <span style="color: #dc2626; font-weight: bold;">(Deleted)</span>
+                    @endif
+                @else
+                    <span style="color: #dc2626; font-weight: bold;">[Location] (Deleted)</span>
+                @endif
+            </div>
         </div>
 
         <div class="form-field">
@@ -202,8 +211,11 @@
             <div class="form-value">
                 @if ($slip->driver)
                     {{ trim($slip->driver->first_name . ' ' . ($slip->driver->middle_name ?? '') . ' ' . $slip->driver->last_name) }}
+                    @if ($slip->driver->trashed())
+                        <span style="color: #dc2626; font-weight: bold;">(Deleted)</span>
+                    @endif
                 @else
-                    N/A
+                    <span style="color: #dc2626; font-weight: bold;">[Driver] (Deleted)</span>
                 @endif
             </div>
         </div>
@@ -220,7 +232,12 @@
                     @if ($slip->hatcheryGuard)
                         <span class="signature-name">
                             {{ trim($slip->hatcheryGuard->first_name . ' ' . ($slip->hatcheryGuard->middle_name ?? '') . ' ' . $slip->hatcheryGuard->last_name) }}
+                            @if ($slip->hatcheryGuard->trashed())
+                                <span style="color: #dc2626; font-weight: bold;">(Deleted)</span>
+                            @endif
                         </span>
+                    @else
+                        <span class="signature-name" style="color: #dc2626; font-weight: bold;">[Guard] (Deleted)</span>
                     @endif
                 </div>
             </div>
@@ -231,7 +248,12 @@
                     @if ($slip->receivedGuard)
                         <span class="signature-name">
                             {{ trim($slip->receivedGuard->first_name . ' ' . ($slip->receivedGuard->middle_name ?? '') . ' ' . $slip->receivedGuard->last_name) }}
+                            @if ($slip->receivedGuard->trashed())
+                                <span style="color: #dc2626; font-weight: bold;">(Deleted)</span>
+                            @endif
                         </span>
+                    @else
+                        <span class="signature-name" style="color: #dc2626; font-weight: bold;">[Guard] (Deleted)</span>
                     @endif
                     <span class="signature-subtext">Guard CG/AG</span>
                 </div>

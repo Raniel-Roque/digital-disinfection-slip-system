@@ -432,13 +432,13 @@ class DisinfectionSlip extends Component
             Logger::update(
                 DisinfectionSlipModel::class,
                 $this->selectedSlip->id,
-                "Completed disinfection for slip {$slipId}, now Ongoing",
+                "Completed disinfection for slip {$slipId}, now In-Transit",
                 ['status' => 1],
                 ['status' => 2]
             );
 
             $this->showCompleteConfirmation = false;
-            $this->dispatch('toast', message: "{$slipId} is now ongoing.", type: 'success');
+            $this->dispatch('toast', message: "{$slipId} is now In-Transit.", type: 'success');
         }
         // For INCOMING: Status 2 (In-Transit) -> 3 (Completed) and set completed_at timestamp and received_guard_id
         else {
@@ -756,6 +756,48 @@ class DisinfectionSlip extends Component
         $this->showRemoveAttachmentConfirmation = true;
     }
 
+    public function getCurrentAttachmentId()
+    {
+        $attachments = $this->selectedSlip->attachments();
+        if ($this->currentAttachmentIndex >= 0 && $this->currentAttachmentIndex < $attachments->count()) {
+            return $attachments[$this->currentAttachmentIndex]->id;
+        }
+        return null;
+    }
+
+    public function getCanDeleteCurrentAttachmentProperty()
+    {
+        if (!$this->selectedSlip) {
+            return false;
+        }
+
+        $attachments = $this->selectedSlip->attachments();
+        if ($this->currentAttachmentIndex < 0 || $this->currentAttachmentIndex >= $attachments->count()) {
+            return false;
+        }
+
+        $currentAttachment = $attachments[$this->currentAttachmentIndex];
+        $user = Auth::user();
+
+        // Check if user is admin or superadmin
+        // On /user routes (guards), even superadmins should only have guard privileges
+        $currentRoute = request()->path();
+        $isOnUserRoute = str_starts_with($currentRoute, 'user');
+        $isAdminOrSuperAdmin = !$isOnUserRoute && $user && in_array($user->user_type, [1, 2]);
+
+        // Check if user can manage attachments
+        $currentLocationId = Session::get('location_id');
+        $isReceivingGuard = Auth::id() === $this->selectedSlip->received_guard_id;
+        $isHatcheryGuard = Auth::id() === $this->selectedSlip->hatchery_guard_id;
+        $status = $this->selectedSlip->status;
+
+        $canManage = ($status == 2 && $this->selectedSlip->destination_id === $currentLocationId && $this->selectedSlip->location_id !== $currentLocationId) ||
+                    ($isHatcheryGuard && $this->selectedSlip->location_id === $currentLocationId && $status != 3);
+
+        // Admin/SuperAdmin can delete any photo, or user can delete their own photo if they have manage permission
+        return $isAdminOrSuperAdmin || ($canManage && $currentAttachment->user_id === Auth::id());
+    }
+
     public function removeAttachment()
     {
         try {
@@ -828,11 +870,17 @@ class DisinfectionSlip extends Component
                     // No more attachments, close modal
                     $this->showAttachmentModal = false;
                     $this->currentAttachmentIndex = 0;
+                } else {
+                    // After deletion, reset to first attachment to avoid index confusion
+                    $this->currentAttachmentIndex = 0;
                 }
 
                 // Close confirmation modal
                 $this->showRemoveAttachmentConfirmation = false;
                 $this->attachmentToDelete = null;
+
+                // Dispatch event to refresh attachment modal data
+                $this->dispatch('attachment-removed');
 
                 $slipId = $this->selectedSlip->slip_id;
                 $this->dispatch('toast', message: "Attachment has been removed from {$slipId}.", type: 'success');

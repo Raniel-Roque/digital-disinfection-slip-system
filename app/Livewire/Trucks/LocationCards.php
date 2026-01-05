@@ -24,22 +24,22 @@ class LocationCards extends Component
             })
             ->get();
     
-        // Get all ongoing slip counts in a single query for better performance
+        // Get all in-transit slip counts in a single query for better performance
         // Only query if there are locations to avoid empty whereIn
         // Status 2 (In-Transit) - incoming slips ready for completion
-        $ongoingCounts = collect();
+        $inTransitCounts = collect();
         if ($locations->isNotEmpty()) {
-            $ongoingCounts = DisinfectionSlip::whereIn('destination_id', $locations->pluck('id'))
+            $inTransitCounts = DisinfectionSlip::whereIn('destination_id', $locations->pluck('id'))
                 ->whereDate('created_at', today())
                 ->where('status', 2) // In-Transit - incoming slips
                 ->selectRaw('destination_id, COUNT(*) as count')
                 ->groupBy('destination_id')
                 ->pluck('count', 'destination_id');
         }
-    
+
         // Map counts to locations
-        $locationsWithCounts = $locations->map(function ($location) use ($ongoingCounts) {
-            $location->ongoing_count = $ongoingCounts->get($location->id, 0);
+        $locationsWithCounts = $locations->map(function ($location) use ($inTransitCounts) {
+            $location->in_transit_count = $inTransitCounts->get($location->id, 0);
             return $location;
         });
 

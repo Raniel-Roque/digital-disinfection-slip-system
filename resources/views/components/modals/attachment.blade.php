@@ -5,16 +5,7 @@
     @php
         $attachments = $selectedSlip?->attachments() ?? collect([]);
         $totalAttachments = $attachments->count();
-        $isReceivingGuard = \Illuminate\Support\Facades\Auth::id() === $selectedSlip?->received_guard_id;
         $status = $selectedSlip?->status ?? null;
-        $currentUserId = \Illuminate\Support\Facades\Auth::id();
-        $currentUser = \Illuminate\Support\Facades\Auth::user();
-        $currentRoute = \Illuminate\Support\Facades\Request::path();
-        
-        // Check if user has admin/superadmin privileges in current context
-        // On /user routes (guards), even superadmins should only have guard privileges
-        $isOnUserRoute = str_starts_with($currentRoute, 'user');
-        $isAdminOrSuperAdmin = !$isOnUserRoute && $currentUser && in_array($currentUser->user_type, [1, 2]); // 1 = Admin, 2 = SuperAdmin
     @endphp
 
     @if ($totalAttachments > 0)
@@ -119,56 +110,19 @@
         </div>
     @endif
 
-    @php
-        // Check if user can manage photos (for outgoing editing or incoming with ongoing status)
-        $canManage = false;
-        if ($selectedSlip) {
-            $isReceivingGuard = \Illuminate\Support\Facades\Auth::id() === $selectedSlip->received_guard_id;
-            $isHatcheryGuard = \Illuminate\Support\Facades\Auth::id() === $selectedSlip->hatchery_guard_id;
-            $currentLocationId = \Illuminate\Support\Facades\Session::get('location_id');
-            
-            // Can manage if on incoming (status 2) OR hatchery guard on outgoing (status != 3)
-            $canManage = ($status == 2 && $selectedSlip->destination_id === $currentLocationId && $selectedSlip->location_id !== $currentLocationId) ||
-                        ($isHatcheryGuard && $selectedSlip->location_id === $currentLocationId && $status != 3);
-        }
-    @endphp
 
     <x-slot name="footer">
         <div class="flex justify-between items-center w-full flex-wrap gap-2">
-            {{-- Delete Current Photo Button (only if user can manage photos AND (uploaded the current photo OR is admin/superadmin)) --}}
-            @if (($canManage || $isAdminOrSuperAdmin) && $totalAttachments > 0)
-                @php
-                    $attachmentsData = $attachments->map(fn($a) => ['id' => $a->id, 'user_id' => $a->user_id])->values()->all();
-                @endphp
-                <div x-data="{
-                    attachments: @js($attachmentsData),
-                    currentUserId: @js($currentUserId),
-                    isAdminOrSuperAdmin: @js($isAdminOrSuperAdmin),
-                    canManage: @js($canManage),
-                    getCurrentAttachment() {
-                        const index = $wire.get('currentAttachmentIndex');
-                        return this.attachments[index] || null;
-                    },
-                    canShowDelete() {
-                        const attachment = this.getCurrentAttachment();
-                        // Admin/SuperAdmin can delete any photo, or user can delete their own photo if they have manage permission
-                        return attachment && (this.isAdminOrSuperAdmin || (this.canManage && attachment.user_id === this.currentUserId));
-                    },
-                    deleteCurrentPhoto() {
-                        const attachment = this.getCurrentAttachment();
-                        if (attachment) {
-                            $wire.call('confirmRemoveAttachment', attachment.id);
-                        }
-                    }
-                }" x-init="$watch(() => $wire.currentAttachmentIndex, () => {})">
-                    <x-buttons.submit-button 
-                        @click="deleteCurrentPhoto()"
-                        color="red"
-                        x-show="canShowDelete()"
-                        class="transition-all">
-                        Delete
-                    </x-buttons.submit-button>
-                </div>
+            {{-- Delete Current Photo Button (only if user can delete the current attachment) --}}
+            @if ($totalAttachments > 0 && $this->canDeleteCurrentAttachment)
+                <x-buttons.submit-button
+                    wire:click="confirmRemoveAttachment($wire.getCurrentAttachmentId())"
+                    color="red"
+                    class="transition-all"
+                    wire:loading.attr="disabled"
+                    wire:target="confirmRemoveAttachment">
+                    Delete
+                </x-buttons.submit-button>
             @else
                 <div></div>
             @endif

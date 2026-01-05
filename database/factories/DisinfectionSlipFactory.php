@@ -16,11 +16,11 @@ class DisinfectionSlipFactory extends Factory
 
     public function definition()
     {
-        // Generate status: 0=Ongoing, 1=Disinfecting, 2=Completed
-        $status = $this->faker->randomElement([0, 1, 2]);
+        // Generate status: 0=Pending, 1=Disinfecting, 2=In-Transit, 3=Completed
+        $status = $this->faker->randomElement([0, 1, 2, 3]);
         
-        // Set completed_at only when status is 2 (Completed)
-        $completedAt = ($status === 2) 
+        // Set completed_at only when status is 3 (Completed)
+        $completedAt = ($status === 3)
             ? $this->faker->dateTimeBetween('-1 month', 'now')
             : null;
 
@@ -43,7 +43,7 @@ class DisinfectionSlipFactory extends Factory
     }
 
     /**
-     * Indicate that the slip is Ongoing (status 0).
+     * Indicate that the slip is Pending (status 0).
      */
     public function pending()
     {
@@ -70,13 +70,26 @@ class DisinfectionSlipFactory extends Factory
     }
 
     /**
-     * Indicate that the slip is completed (status 2).
+     * Indicate that the slip is in-transit (status 2).
+     */
+    public function inTransit()
+    {
+        return $this->state(function (array $attributes) {
+            return [
+                'status' => 2,
+                'completed_at' => null,
+            ];
+        });
+    }
+
+    /**
+     * Indicate that the slip is completed (status 3).
      */
     public function completed()
     {
         return $this->state(function (array $attributes) {
             return [
-                'status' => 2,
+                'status' => 3,
                 'completed_at' => $this->faker->dateTimeBetween('-1 month', 'now'),
             ];
         });

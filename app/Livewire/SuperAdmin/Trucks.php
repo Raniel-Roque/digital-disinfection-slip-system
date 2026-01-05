@@ -30,13 +30,13 @@ class Trucks extends Component
     public $sortDirection = 'desc'; // Default descending
     
     // Filter fields
-    public $filterStatus = null; // null = All Statuses, 0 = Pending, 1 = Disinfecting, 2 = Ongoing, 3 = Completed
+    public $filterStatus = null; // null = All Statuses, 0 = Pending, 1 = Disinfecting, 2 = In-Transit, 3 = Completed
     
     // Ensure filterStatus is properly typed when updated
     public function updatedFilterStatus($value)
     {
         // Handle null, empty string, or numeric values (0, 1, 2, 3 matching backend)
-        // null/empty = All Statuses, 0 = Pending, 1 = Disinfecting, 2 = Ongoing, 3 = Completed
+        // null/empty = All Statuses, 0 = Pending, 1 = Disinfecting, 2 = In-Transit, 3 = Completed
         // The select will send values as strings, so we convert to int
         if ($value === null || $value === '' || $value === false) {
             $this->filterStatus = null;
@@ -70,7 +70,7 @@ class Trucks extends Component
     public $searchFilterReceivedGuard = '';
     
     // Applied filters (stored separately)
-    public $appliedStatus = null; // null = All Statuses, 0 = Ongoing, 1 = Disinfecting, 2 = Completed
+    public $appliedStatus = null; // null = All Statuses, 0 = Pending, 1 = Disinfecting, 2 = In-Transit, 3 = Completed
     public $appliedOrigin = [];
     public $appliedDestination = [];
     public $appliedDriver = [];
@@ -864,7 +864,7 @@ class Trucks extends Component
     public function applyFilters()
     {
         // Use filterStatus directly - it's already an integer (0, 1, 2) or null
-        // null = All Statuses (no filter), 0 = Ongoing, 1 = Disinfecting, 2 = Completed
+        // null = All Statuses (no filter), 0 = Pending, 1 = Disinfecting, 2 = In-Transit, 3 = Completed
         $this->appliedStatus = $this->filterStatus; // Already an int or null
         // Create new array instances to ensure Livewire detects the change
         // Convert string IDs to integers for proper filtering
@@ -987,7 +987,7 @@ class Trucks extends Component
     public function updateFiltersActive()
     {
         // Check if any filters are actually applied
-        // Important: 0 is a valid status (Ongoing), so check for null explicitly
+        // Important: 0 is a valid status (Pending), so check for null explicitly
         $this->filtersActive = 
             ($this->appliedStatus !== null) ||
             !empty($this->appliedOrigin) ||
@@ -1124,7 +1124,7 @@ class Trucks extends Component
     
     public function updatedEditStatus($value)
     {
-        // Status 0, 1, 2 (Pending, Disinfecting, Ongoing): Receiving guard is optional
+        // Status 0, 1, 2 (Pending, Disinfecting, In-Transit): Receiving guard is optional
         // Status 3 (Completed): Receiving guard is required (validation will handle this)
         if ($value == 0 || $value == 1 || $value == 2) {
             // Status 0, 1, 2: Receiving guard is optional
@@ -1232,7 +1232,7 @@ class Trucks extends Component
             'editReasonForDisinfection' => 'nullable|string|max:1000',
         ];
 
-        // Status 0, 1, 2 (Pending, Disinfecting, Ongoing): Origin and Hatchery Guard are required, Receiving Guard is optional
+        // Status 0, 1, 2 (Pending, Disinfecting, In-Transit): Origin and Hatchery Guard are required, Receiving Guard is optional
         if ($status == 0 || $status == 1 || $status == 2) {
             $rules['editLocationId'] = [
                 'required',
@@ -2064,7 +2064,7 @@ class Trucks extends Component
                 });
             })
             // Status filter
-            // Important: Check for null explicitly, as 0 is a valid status (Ongoing)
+            // Important: Check for null explicitly, as 0 is a valid status (Pending)
             ->when($this->filtersActive && $this->appliedStatus !== null, function($query) {
                 // appliedStatus is already an integer (0, 1, or 2)
                 $query->where('status', $this->appliedStatus);
@@ -2347,24 +2347,24 @@ class Trucks extends Component
         
         $data = $this->getExportData();
         $exportData = $data->map(function($slip) {
-            // Format plate number with (Deleted) tag if truck is soft-deleted
-            $plateNumber = 'N/A';
-            if ($slip->truck) {
-                $plateNumber = $slip->truck->plate_number;
-                if ($slip->truck->trashed()) {
-                    $plateNumber .= ' (Deleted)';
-                }
-            }
-            
+            // Helper function to format names
+            $formatName = function($user) {
+                if (!$user) return '[User] (Deleted)';
+                $name = trim(implode(' ', array_filter([$user->first_name, $user->middle_name, $user->last_name])));
+                return $user->trashed() ? $name . ' (Deleted)' : $name;
+            };
+
             return [
                 'slip_id' => $slip->slip_id,
-                'plate_number' => $plateNumber,
-                'origin' => $slip->location->location_name ?? 'N/A',
-                'destination' => $slip->destination->location_name ?? 'N/A',
-                'driver' => $slip->driver ? trim(implode(' ', array_filter([$slip->driver->first_name, $slip->driver->middle_name, $slip->driver->last_name]))) : 'N/A',
+                'plate_number' => $slip->truck ? ($slip->truck->trashed() ? $slip->truck->plate_number . ' (Deleted)' : $slip->truck->plate_number) : '[Truck] (Deleted)',
+                'origin' => $slip->location ? ($slip->location->trashed() ? $slip->location->location_name . ' (Deleted)' : $slip->location->location_name) : '[Location] (Deleted)',
+                'destination' => $slip->destination ? ($slip->destination->trashed() ? $slip->destination->location_name . ' (Deleted)' : $slip->destination->location_name) : '[Location] (Deleted)',
+                'driver' => $slip->driver ? ($slip->driver->trashed() ?
+                    trim(implode(' ', array_filter([$slip->driver->first_name, $slip->driver->middle_name, $slip->driver->last_name]))) . ' (Deleted)' :
+                    trim(implode(' ', array_filter([$slip->driver->first_name, $slip->driver->middle_name, $slip->driver->last_name])))) : '[Driver] (Deleted)',
                 'status' => $slip->status,
-                'hatchery_guard' => $slip->hatcheryGuard ? trim(implode(' ', array_filter([$slip->hatcheryGuard->first_name, $slip->hatcheryGuard->middle_name, $slip->hatcheryGuard->last_name]))) : 'N/A',
-                'received_guard' => $slip->receivedGuard ? trim(implode(' ', array_filter([$slip->receivedGuard->first_name, $slip->receivedGuard->middle_name, $slip->receivedGuard->last_name]))) : 'N/A',
+                'hatchery_guard' => $formatName($slip->hatcheryGuard),
+                'received_guard' => $formatName($slip->receivedGuard),
                 'created_at' => $slip->created_at->toIso8601String(),
                 'completed_at' => $slip->completed_at ? \Carbon\Carbon::parse($slip->completed_at)->toIso8601String() : null,
             ];
