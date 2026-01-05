@@ -193,10 +193,8 @@ class Trucks extends Component
     // Helper methods to get cached collections
     private function getCachedLocations()
     {
-        if ($this->cachedLocations === null) {
-            $this->cachedLocations = Location::withTrashed()->orderBy('location_name')->get();
-        }
-        return $this->cachedLocations;
+        // Always get fresh data to ensure disabled status is current
+        return Location::withTrashed()->orderBy('location_name')->get();
     }
     
     private function getCachedDrivers()
@@ -455,7 +453,7 @@ class Trucks extends Component
     // Computed properties for create modal filtered options
     public function getCreateTruckOptionsProperty()
     {
-        $trucks = $this->getCachedTrucks()->whereNull('deleted_at');
+        $trucks = $this->getCachedTrucks()->whereNull('deleted_at')->where('disabled', false);
         $allOptions = $trucks->pluck('plate_number', 'id');
         $options = $allOptions;
         
@@ -473,7 +471,7 @@ class Trucks extends Component
     
     public function getCreateDriverOptionsProperty()
     {
-        $drivers = $this->getCachedDrivers()->whereNull('deleted_at');
+        $drivers = $this->getCachedDrivers()->whereNull('deleted_at')->where('disabled', false);
         $allOptions = $drivers->pluck('full_name', 'id');
         $options = $allOptions;
         
@@ -599,14 +597,18 @@ class Trucks extends Component
     // Computed properties for edit modal filtered options
     public function getEditTruckOptionsProperty()
     {
-        $trucks = $this->getCachedTrucks()->whereNull('deleted_at');
+        $trucks = $this->getCachedTrucks()->whereNull('deleted_at')->where('disabled', false);
         $allOptions = $trucks->pluck('plate_number', 'id');
         
-        // If selected truck is soft-deleted, include it in options
+        // If selected truck is soft-deleted or disabled, include it in options
         if ($this->editTruckId) {
             $selectedTruck = Truck::withTrashed()->find($this->editTruckId);
-            if ($selectedTruck && $selectedTruck->trashed() && !isset($allOptions[$this->editTruckId])) {
-                $allOptions[$this->editTruckId] = $selectedTruck->plate_number . ' (Deleted)';
+            if ($selectedTruck) {
+                if ($selectedTruck->trashed() && !isset($allOptions[$this->editTruckId])) {
+                    $allOptions[$this->editTruckId] = $selectedTruck->plate_number . ' (Deleted)';
+                } elseif ($selectedTruck->disabled && !isset($allOptions[$this->editTruckId])) {
+                    $allOptions[$this->editTruckId] = $selectedTruck->plate_number . ' (Disabled)';
+                }
             }
         }
         
@@ -636,8 +638,17 @@ class Trucks extends Component
     
     public function getEditDriverOptionsProperty()
     {
-        $drivers = $this->getCachedDrivers()->whereNull('deleted_at');
+        $drivers = $this->getCachedDrivers()->whereNull('deleted_at')->where('disabled', false);
         $allOptions = $drivers->pluck('full_name', 'id');
+
+        // If selected driver is disabled, include it in options
+        if ($this->editDriverId) {
+            $selectedDriver = Driver::withTrashed()->find($this->editDriverId);
+            if ($selectedDriver && $selectedDriver->disabled && !isset($allOptions[$this->editDriverId])) {
+                $allOptions[$this->editDriverId] = $selectedDriver->full_name . ' (Disabled)';
+            }
+        }
+
         $options = $allOptions;
         
         if (!empty($this->searchEditDriver)) {
@@ -706,8 +717,17 @@ class Trucks extends Component
     
     public function getEditAvailableOriginsOptionsProperty()
     {
-        $locations = $this->getCachedLocations()->whereNull('deleted_at');
-        
+        $locations = $this->getCachedLocations()->whereNull('deleted_at')->where('disabled', false);
+        $allLocations = $this->getCachedLocations()->whereNull('deleted_at');
+
+        // If selected origin is disabled, include it in options
+        if ($this->editLocationId) {
+            $selectedLocation = Location::withTrashed()->find($this->editLocationId);
+            if ($selectedLocation && $selectedLocation->disabled && !isset($locations[$this->editLocationId])) {
+                $locations[$this->editLocationId] = $selectedLocation->location_name . ' (Disabled)';
+            }
+        }
+
         // Exclude selected destination from origins
         $originOptions = $locations;
         if ($this->editDestinationId) {
@@ -733,8 +753,17 @@ class Trucks extends Component
     
     public function getEditAvailableDestinationsOptionsProperty()
     {
-        $locations = $this->getCachedLocations()->whereNull('deleted_at');
-        
+        $locations = $this->getCachedLocations()->whereNull('deleted_at')->where('disabled', false);
+        $allLocations = $this->getCachedLocations()->whereNull('deleted_at');
+
+        // If selected destination is disabled, include it in options
+        if ($this->editDestinationId) {
+            $selectedLocation = Location::withTrashed()->find($this->editDestinationId);
+            if ($selectedLocation && $selectedLocation->disabled && !isset($locations[$this->editDestinationId])) {
+                $locations[$this->editDestinationId] = $selectedLocation->location_name . ' (Disabled)';
+            }
+        }
+
         // Exclude selected origin from destinations
         $destinationOptions = $locations;
         if ($this->editLocationId) {
@@ -761,15 +790,15 @@ class Trucks extends Component
     // Computed properties for available origins and destinations (reactive)
     public function getAvailableOriginsOptionsProperty()
     {
-        $locations = $this->getCachedLocations()->whereNull('deleted_at');
-        
+        $locations = $this->getCachedLocations()->whereNull('deleted_at')->where('disabled', false);
+
         // Exclude selected destination from origins
         $originOptions = $locations;
         if ($this->destination_id) {
             $originOptions = $originOptions->where('id', '!=', $this->destination_id);
         }
         $originOptions = $originOptions->pluck('location_name', 'id');
-        
+
         // Apply search filter
         if (!empty($this->searchOrigin)) {
             $searchTerm = strtolower($this->searchOrigin);
@@ -782,21 +811,21 @@ class Trucks extends Component
                 $originOptions = $this->ensureSelectedInOptions($originOptions, $this->location_id, $allOptions);
             }
         }
-        
+
         return $originOptions->toArray();
     }
     
     public function getAvailableDestinationsOptionsProperty()
     {
-        $locations = $this->getCachedLocations()->whereNull('deleted_at');
-        
+        $locations = $this->getCachedLocations()->whereNull('deleted_at')->where('disabled', false);
+
         // Exclude selected origin from destinations
         $destinationOptions = $locations;
         if ($this->location_id) {
             $destinationOptions = $destinationOptions->where('id', '!=', $this->location_id);
         }
         $destinationOptions = $destinationOptions->pluck('location_name', 'id');
-        
+
         // Apply search filter
         if (!empty($this->searchDestination)) {
             $searchTerm = strtolower($this->searchDestination);
@@ -809,7 +838,7 @@ class Trucks extends Component
                 $destinationOptions = $this->ensureSelectedInOptions($destinationOptions, $this->destination_id, $allOptions);
             }
         }
-        
+
         return $destinationOptions->toArray();
     }
 

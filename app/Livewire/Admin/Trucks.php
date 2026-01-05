@@ -754,15 +754,15 @@ class Trucks extends Component
     // Computed properties for available origins and destinations (reactive)
     public function getAvailableOriginsOptionsProperty()
     {
-        $locations = $this->getCachedLocations();
-        
+        $locations = $this->getCachedLocations()->whereNull('deleted_at')->where('disabled', false);
+
         // Exclude selected destination from origins
         $originOptions = $locations;
         if ($this->destination_id) {
             $originOptions = $originOptions->where('id', '!=', $this->destination_id);
         }
         $originOptions = $originOptions->pluck('location_name', 'id');
-        
+
         // Apply search filter
         if (!empty($this->searchOrigin)) {
             $searchTerm = strtolower($this->searchOrigin);
@@ -775,21 +775,21 @@ class Trucks extends Component
                 $originOptions = $this->ensureSelectedInOptions($originOptions, $this->location_id, $allOptions);
             }
         }
-        
+
         return $originOptions->toArray();
     }
     
     public function getAvailableDestinationsOptionsProperty()
     {
-        $locations = $this->getCachedLocations();
-        
+        $locations = $this->getCachedLocations()->whereNull('deleted_at')->where('disabled', false);
+
         // Exclude selected origin from destinations
         $destinationOptions = $locations;
         if ($this->location_id) {
             $destinationOptions = $destinationOptions->where('id', '!=', $this->location_id);
         }
         $destinationOptions = $destinationOptions->pluck('location_name', 'id');
-        
+
         // Apply search filter
         if (!empty($this->searchDestination)) {
             $searchTerm = strtolower($this->searchDestination);
@@ -802,7 +802,7 @@ class Trucks extends Component
                 $destinationOptions = $this->ensureSelectedInOptions($destinationOptions, $this->destination_id, $allOptions);
             }
         }
-        
+
         return $destinationOptions->toArray();
     }
 

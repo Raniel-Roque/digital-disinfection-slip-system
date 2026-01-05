@@ -106,7 +106,7 @@ class TruckListCompleted extends Component
     
     public function getFilterDestinationOptionsProperty()
     {
-        $locations = $this->locations;
+        $locations = $this->locations->whereNull('deleted_at')->where('disabled', false);
         $allOptions = $locations->pluck('location_name', 'id');
         $options = $allOptions;
         

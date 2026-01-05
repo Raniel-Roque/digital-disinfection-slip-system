@@ -269,7 +269,7 @@ class Reports extends Component
     
     public function getEditAvailableDestinationsOptionsProperty()
     {
-        $locations = $this->getCachedLocations();
+        $locations = $this->getCachedLocations()->whereNull('deleted_at')->where('disabled', false);
         
         $destinationOptions = $locations;
         if ($this->editLocationId) {

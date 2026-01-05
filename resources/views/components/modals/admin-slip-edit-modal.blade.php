@@ -22,13 +22,13 @@
     // Header class based on status
     $headerClass = '';
     if ($status == 0) {
-        $headerClass = 'border-t-4 border-t-gray-500 bg-gray-50';
+        $headerClass = 'border-t-4 border-t-gray-500 bg-gray-50';      // Pending - Neutral
     } elseif ($status == 1) {
-        $headerClass = 'border-t-4 border-t-blue-500 bg-blue-50';
+        $headerClass = 'border-t-4 border-t-blue-500 bg-blue-50';     // Disinfecting - In Progress
     } elseif ($status == 2) {
-        $headerClass = 'border-t-4 border-t-red-500 bg-red-50';
+        $headerClass = 'border-t-4 border-t-orange-500 bg-orange-50';  // In-Transit - Transit State
     } elseif ($status == 3) {
-        $headerClass = 'border-t-4 border-t-green-500 bg-green-50';
+        $headerClass = 'border-t-4 border-t-green-500 bg-green-50';    // Completed - Success
     }
 @endphp
 

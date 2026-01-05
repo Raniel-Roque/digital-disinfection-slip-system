@@ -180,7 +180,11 @@ class TruckList extends Component
     public function getLocationOptionsProperty()
     {
         $currentLocationId = Session::get('location_id');
-        $locations = Location::where('id', '!=', $currentLocationId)->orderBy('location_name')->get();
+        $locations = Location::where('id', '!=', $currentLocationId)
+            ->whereNull('deleted_at')
+            ->where('disabled', false)
+            ->orderBy('location_name')
+            ->get();
         $allOptions = $locations->pluck('location_name', 'id');
         $options = $allOptions;
         
