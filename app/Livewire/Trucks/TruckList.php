@@ -161,7 +161,7 @@ class TruckList extends Component
     // Computed properties for filtered options with search
     public function getTruckOptionsProperty()
     {
-        $trucks = Truck::orderBy('plate_number')->get();
+        $trucks = Truck::withTrashed()->whereNull('deleted_at')->where('disabled', false)->orderBy('plate_number')->get();
         $allOptions = $trucks->pluck('plate_number', 'id');
         $options = $allOptions;
         
@@ -202,7 +202,7 @@ class TruckList extends Component
     
     public function getDriverOptionsProperty()
     {
-        $drivers = Driver::orderBy('first_name')->get();
+        $drivers = Driver::withTrashed()->whereNull('deleted_at')->where('disabled', false)->orderBy('first_name')->get();
         $allOptions = $drivers->pluck('full_name', 'id');
         $options = $allOptions;
         

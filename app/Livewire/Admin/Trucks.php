@@ -150,7 +150,6 @@ class Trucks extends Component
     // Note: availableOriginsOptions and availableDestinationsOptions are now computed properties
     
     // Cached collections to avoid duplicate queries
-    private $cachedLocations = null;
     private $cachedDrivers = null;
     private $cachedTrucks = null;
     private $cachedGuards = null;
@@ -187,16 +186,14 @@ class Trucks extends Component
     // Helper methods to get cached collections
     private function getCachedLocations()
     {
-        if ($this->cachedLocations === null) {
-            $this->cachedLocations = Location::orderBy('location_name')->get();
-        }
-        return $this->cachedLocations;
+        // Always get fresh data to ensure disabled status is current
+        return Location::withTrashed()->orderBy('location_name')->get();
     }
     
     private function getCachedDrivers()
     {
         if ($this->cachedDrivers === null) {
-            $this->cachedDrivers = Driver::orderBy('first_name')->get();
+            $this->cachedDrivers = Driver::withTrashed()->orderBy('first_name')->get();
         }
         return $this->cachedDrivers;
     }
@@ -449,7 +446,7 @@ class Trucks extends Component
     // Computed properties for create modal filtered options
     public function getCreateTruckOptionsProperty()
     {
-        $trucks = $this->getCachedTrucks();
+        $trucks = $this->getCachedTrucks()->whereNull('deleted_at')->where('disabled', false);
         $allOptions = $trucks->pluck('plate_number', 'id');
         $options = $allOptions;
         
@@ -467,7 +464,7 @@ class Trucks extends Component
     
     public function getCreateDriverOptionsProperty()
     {
-        $drivers = $this->getCachedDrivers();
+        $drivers = $this->getCachedDrivers()->whereNull('deleted_at')->where('disabled', false);
         $allOptions = $drivers->pluck('full_name', 'id');
         $options = $allOptions;
         
