@@ -9,45 +9,16 @@
     @endphp
 
     @if ($totalAttachments > 0)
-        <div class="relative" x-data="{
-            currentIndex: @entangle('currentAttachmentIndex').live,
-            init() {
-                // Preload adjacent images for better performance
-                this.$nextTick(() => {
-                    this.preloadAdjacentImages();
-                });
-            },
-            preloadAdjacentImages() {
-                const images = @js($attachments->map(fn($a) => Storage::url($a->file_path))->toArray());
-                const current = this.currentIndex;
-                const preloadIndices = [current - 1, current, current + 1, current + 2].filter(i => i >= 0 && i < images.length);
-
-                preloadIndices.forEach(index => {
-                    const img = new Image();
-                    img.src = images[index];
-                    img.onload = () => {
-                        // Image is now cached - update the UI
-                        const imgElement = document.querySelector(`[data-attachment-index="${index}"]`);
-                        if (imgElement) {
-                            imgElement.style.opacity = '1';
-                            const loadingOverlay = imgElement.parentElement.querySelector('.loading-overlay');
-                            if (loadingOverlay) {
-                                loadingOverlay.style.display = 'none';
-                            }
-                        }
-                    };
-                });
-            }
-        }" x-init="init(); $watch('currentIndex', () => preloadAdjacentImages())" @attachment-removed.window="preloadAdjacentImages()">
+        <div class="relative"
             {{-- Carousel Container --}}
             <div class="relative overflow-hidden rounded-lg bg-gray-100 min-h-[300px] sm:min-h-[400px] flex items-center justify-center">
                 {{-- Previous Button --}}
                 @if ($totalAttachments > 1)
-                    <button 
+                    <button
                         @click="$wire.previousAttachment()"
-                        x-show="currentIndex > 0"
+                        x-show="$wire.currentAttachmentIndex > 0"
                         class="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white rounded-full p-1.5 sm:p-2 shadow-lg transition-all mouse-pointer"
-                        :class="{ 'opacity-50 cursor-not-allowed': currentIndex === 0 }">
+                        :class="{ 'opacity-50 cursor-not-allowed': $wire.currentAttachmentIndex === 0 }">
                         <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                         </svg>
@@ -55,8 +26,8 @@
                 @endif
 
                 {{-- Images Container --}}
-                <div class="flex transition-transform duration-300 ease-in-out w-full" 
-                     :style="`transform: translateX(-${currentIndex * 100}%)`">
+                <div class="flex transition-transform duration-300 ease-in-out w-full"
+                     :style="`transform: translateX(-${$wire.currentAttachmentIndex * 100}%)`">
                     @foreach ($attachments as $index => $attachment)
                         @php
                             $fileUrl = Storage::url($attachment->file_path);
@@ -69,19 +40,10 @@
                         @endphp
                         <div class="w-full shrink-0 px-2 sm:px-4 py-2 sm:py-4 flex flex-col" style="min-width: 100%">
                             @if ($isImage)
-                                <div class="relative">
-                                    <img src="{{ $fileUrl }}"
-                                         data-attachment-index="{{ $index }}"
-                                         class="border shadow-md max-h-[45vh] sm:max-h-[55vh] max-w-full w-auto object-contain mx-auto rounded-lg transition-opacity duration-200"
-                                         alt="Photo {{ $index + 1 }}"
-                                         loading="lazy"
-                                         @if($index <= 2) onload="this.style.opacity='1'" style="opacity: {{ $index <= 2 ? '1' : '0.3' }}" @endif>
-                                    @if($index > 2)
-                                        <div class="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg loading-overlay">
-                                            <div class="text-gray-500 text-sm">Loading...</div>
-                                        </div>
-                                    @endif
-                                </div>
+                                <img src="{{ $fileUrl }}"
+                                     class="border shadow-md max-h-[45vh] sm:max-h-[55vh] max-w-full w-auto object-contain mx-auto rounded-lg"
+                                     alt="Photo {{ $index + 1 }}"
+                                     loading="lazy">
                                 {{-- Uploaded By Information --}}
                                 <div class="text-center mt-2 sm:mt-3 text-xs sm:text-sm text-gray-600">
                                     <span class="font-semibold">Uploaded by:</span>
@@ -111,11 +73,11 @@
 
                 {{-- Next Button --}}
                 @if ($totalAttachments > 1)
-                    <button 
+                    <button
                         @click="$wire.nextAttachment()"
-                        x-show="currentIndex < {{ $totalAttachments - 1 }}"
+                        x-show="$wire.currentAttachmentIndex < {{ $totalAttachments - 1 }}"
                         class="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white rounded-full p-1.5 sm:p-2 shadow-lg transition-all mouse-pointer"
-                        :class="{ 'opacity-50 cursor-not-allowed': currentIndex >= {{ $totalAttachments - 1 }} }">
+                        :class="{ 'opacity-50 cursor-not-allowed': $wire.currentAttachmentIndex >= {{ $totalAttachments - 1 }} }">
                         <svg class="w-5 h-5 sm:w-6 sm:h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
@@ -130,7 +92,7 @@
                         <button
                             @click="$wire.openAttachmentModal({{ $index }})"
                             class="w-2 h-2 rounded-full transition-all shrink-0 mouse-pointer"
-                            :class="currentIndex === {{ $index }} ? 'bg-orange-500 w-4 sm:w-6' : 'bg-gray-300'">
+                            :class="$wire.currentAttachmentIndex === {{ $index }} ? 'bg-orange-500 w-4 sm:w-6' : 'bg-gray-300'">
                         </button>
                     @endforeach
                 </div>
@@ -139,7 +101,7 @@
             {{-- Photo Counter --}}
             @if ($totalAttachments > 1)
                 <div class="text-center mt-2 text-xs sm:text-sm text-gray-600">
-                    Photo <span x-text="currentIndex + 1"></span> of {{ $totalAttachments }}
+                    Photo <span x-text="$wire.currentAttachmentIndex + 1"></span> of {{ $totalAttachments }}
                 </div>
             @endif
         </div>
