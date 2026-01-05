@@ -811,24 +811,34 @@ class DisinfectionSlip extends Component
 
         $currentAttachment = $attachments[$this->currentAttachmentIndex];
         $user = Auth::user();
+        $userType = $user->user_type ?? 0;
+        $status = $this->selectedSlip->status;
 
-        // Check if user is admin or superadmin
-        // On /user routes (guards), even superadmins should only have guard privileges
-        $currentRoute = request()->path();
-        $isOnUserRoute = str_starts_with($currentRoute, 'user');
-        $isAdminOrSuperAdmin = !$isOnUserRoute && $user && in_array($user->user_type, [1, 2]);
+        // Check if user is superadmin - can delete anything, anytime
+        if ($userType === 2) {
+            return true;
+        }
 
-        // Check if user can manage attachments
+        // Check if user is admin - can delete any photo but NOT from completed slips
+        if ($userType === 1 && $status !== 3) {
+            return true;
+        }
+
+        // SPECIAL RESTRICTION: Users/Guards (type 0) cannot delete photos from completed slips
+        if ($userType === 0 && $status === 3) {
+            return false;
+        }
+
+        // Check if user can manage attachments (for guards/users)
         $currentLocationId = Session::get('location_id');
         $isReceivingGuard = Auth::id() === $this->selectedSlip->received_guard_id;
         $isHatcheryGuard = Auth::id() === $this->selectedSlip->hatchery_guard_id;
-        $status = $this->selectedSlip->status;
 
         $canManage = ($status == 2 && $this->selectedSlip->destination_id === $currentLocationId && $this->selectedSlip->location_id !== $currentLocationId) ||
                     ($isHatcheryGuard && $this->selectedSlip->location_id === $currentLocationId && $status != 3);
 
-        // Admin/SuperAdmin can delete any photo, or user can delete their own photo if they have manage permission
-        return $isAdminOrSuperAdmin || ($canManage && $currentAttachment->user_id === Auth::id());
+        // Users/Guards can only delete their own photos if they have manage permission
+        return $canManage && $currentAttachment->user_id === Auth::id();
     }
 
     public function removeAttachment()

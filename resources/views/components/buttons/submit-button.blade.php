@@ -8,9 +8,9 @@
 
     // Size presets
     $sizes = [
-        'default' => 'px-3 py-2 text-sm font-semibold',
-        'sm' => 'px-3 py-1.5 text-xs font-medium',
-        'lg' => 'px-4 py-2.5 text-sm font-medium',
+        'default' => 'px-3 py-2 text-sm font-semibold min-w-[120px] min-h-[44px]',
+        'sm' => 'px-3 py-1.5 text-xs font-medium min-w-[100px] min-h-[36px]',
+        'lg' => 'px-4 py-2.5 text-sm font-medium min-w-[140px] min-h-[48px]',
     ];
 
     // Color presets - full width mode (lighter colors for modals)
@@ -45,7 +45,7 @@
     $widthClass = $fullWidth ? 'w-full' : '';
     $baseClasses = $fullWidth
         ? 'flex items-center justify-center gap-2 rounded-lg focus:ring-2 transition-all duration-200 hover:cursor-pointer cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
-        : 'inline-flex items-center gap-1.5 rounded-lg focus:ring-2 focus:ring-offset-2 transition-colors duration-150 hover:cursor-pointer cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed';
+        : 'inline-flex items-center gap-1.5 rounded-lg focus:ring-2 focus:ring-offset-2 transition-colors duration-150 hover:cursor-pointer cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed min-w-[100px]';
     $disabledClasses = $disabled ? 'opacity-50 cursor-not-allowed' : '';
 @endphp
 
