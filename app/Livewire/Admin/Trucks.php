@@ -1067,7 +1067,7 @@ class Trucks extends Component
 
         // Admin cannot remove attachment from completed slips (status == 3 or completed_at is set)
         // Only SuperAdmins can remove attachments from completed slips
-        if ($this->selectedSlip->status == 3 || $this->selectedSlip->completed_at !== null) {
+        if ($this->selectedSlip->status == 3 || $this->selectedSlip->status == 4) {
             return false;
         }
 
