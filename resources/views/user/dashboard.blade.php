@@ -125,7 +125,7 @@
 
             <!-- Quick Stats Bar -->
             <div class="bg-white rounded-2xl shadow-md border border-gray-200 p-6 mb-8" wire:poll>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-6">
                     <div class="flex items-center gap-4">
                         <div class="p-3 bg-blue-100 rounded-xl">
                             <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -138,6 +138,20 @@
                                 <livewire:trucks.truck-count-card type="total" :key="'total-count'" />
                             </p>
                             <p class="text-xs text-gray-500">Total Slips Today</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-yellow-100 rounded-xl">
+                            <svg class="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-bold text-gray-800">
+                                <livewire:trucks.truck-count-card type="pending" :key="'pending-count'" />
+                            </p>
+                            <p class="text-xs text-gray-500">Pending</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-4">
@@ -173,36 +187,6 @@
                 </div>
             </div>
 
-            <!-- Recent Activity Section (Optional) -->
-            <div class="bg-white rounded-2xl shadow-md border border-gray-200 p-6">
-                <h2 class="text-lg font-bold text-gray-800 mb-4">Quick Links</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <a href="{{ route('user.incoming-trucks') }}"
-                        class="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-green-300 hover:bg-green-50 hover:cursor-pointer transition-all group">
-                        <div class="p-2 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
-                            <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                            </svg>
-                        </div>
-                        <span class="font-medium text-gray-700 group-hover:text-green-700">View All Incoming
-                            Trucks</span>
-                    </a>
-                    <a href="{{ route('user.outgoing-trucks') }}"
-                        class="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-red-300 hover:bg-red-50 hover:cursor-pointer transition-all group">
-                        <div class="p-2 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
-                            <svg class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                            </svg>
-                        </div>
-                        <span class="font-medium text-gray-700 group-hover:text-red-700">View All Outgoing
-                            Trucks</span>
-                    </a>
-                </div>
-            </div>
 
         </div>
     </div>

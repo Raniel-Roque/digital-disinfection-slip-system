@@ -49,7 +49,20 @@
                     <p class="mt-1 text-xs text-gray-500">Minimum 10 characters required. Maximum 1000 characters.</p>
                 </div>
 
-                <div class="flex justify-end gap-3">
+                {{-- Mobile Layout --}}
+                <div class="flex flex-col gap-3 md:hidden">
+                    <button type="submit"
+                        class="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Submit Report
+                    </button>
+                    <a href="{{ route('user.dashboard') }}"
+                        class="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 text-center">
+                        Cancel
+                    </a>
+                </div>
+
+                {{-- Desktop Layout --}}
+                <div class="hidden md:flex justify-end gap-3">
                     <a href="{{ route('user.dashboard') }}"
                         class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                         Cancel

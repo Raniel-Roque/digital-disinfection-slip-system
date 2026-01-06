@@ -409,17 +409,9 @@
                         </x-buttons.submit-button>
                     @endif
 
-                    {{-- Close and Edit buttons side by side, 50% each --}}
-                    <div class="grid grid-cols-2 gap-2 w-full">
-                        <x-buttons.submit-button
-                            wire:click="closeDetailsModal"
-                            color="white"
-                            class="w-full"
-                        >
-                            Close
-                        </x-buttons.submit-button>
-
-                        @if ($this->canEdit())
+                    {{-- Edit and Close buttons side by side, 50% each (Outgoing only) --}}
+                    @if ($this->canEdit())
+                        <div class="grid grid-cols-2 gap-2 w-full">
                             <x-buttons.submit-button
                                 wire:click="editDetailsModal"
                                 color="blue"
@@ -427,8 +419,25 @@
                             >
                                 Edit
                             </x-buttons.submit-button>
-                        @endif
-                    </div>
+
+                            <x-buttons.submit-button
+                                wire:click="closeDetailsModal"
+                                color="white"
+                                class="w-full"
+                            >
+                                Close
+                            </x-buttons.submit-button>
+                        </div>
+                    @else
+                        {{-- Close Button (full width, for Incoming trucks) --}}
+                        <x-buttons.submit-button
+                            wire:click="closeDetailsModal"
+                            color="white"
+                            class="w-full"
+                        >
+                            Close
+                        </x-buttons.submit-button>
+                    @endif
                 </div>
 
                 {{-- Desktop Layout --}}

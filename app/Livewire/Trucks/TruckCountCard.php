@@ -89,6 +89,14 @@ class TruckCountCard extends Component
                 });
                 break;
 
+            case 'pending':
+                // Pending outgoing trucks - Status 0 - created by current user
+                $query->whereDate('created_at', today())
+                      ->where('location_id', $locationId)
+                      ->where('hatchery_guard_id', Auth::id())
+                      ->where('status', 0);
+                break;
+
             case 'completed':
                 // Completed today - Status 3 - Only show slips received/completed by the current user
                 $query->where('status', 3)

@@ -54,8 +54,9 @@
         {{-- Photos --}}
         <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
             <div class="font-semibold text-gray-500">Photos:</div>
-            <div class="text-gray-900" x-data="{ 
+            <div class="text-gray-900" x-data="{
                 showCameraModal: false,
+                showCancelConfirmation: false,
                 stream: null,
                 photos: [],
                 cameraActive: false,
@@ -102,6 +103,25 @@
                     this.$refs.video.srcObject = null;
                     this.cameraActive = false;
                 },
+                tryCancel() {
+                    // If there are captured photos or camera is active, show confirmation
+                    if (this.photos.length > 0 || this.cameraActive) {
+                        this.showCancelConfirmation = true;
+                    } else {
+                        this.confirmCancel();
+                    }
+                },
+                confirmCancel() {
+                    console.log('Cancelling and resetting...');
+                    // Stop camera if active
+                    this.stopCamera();
+                    // Clear all photos
+                    this.photos = [];
+                    // Reset states
+                    this.showCancelConfirmation = false;
+                    this.showCameraModal = false;
+                    this.uploading = false;
+                },
                 deletePhoto(id) {
                     console.log('Deleting photo:', id);
                     this.photos = this.photos.filter(p => p.id !== id);
@@ -138,6 +158,39 @@
                 @php
                     $pendingCount = count($pendingAttachmentIds ?? []);
                 @endphp
+
+                {{-- Cancel Confirmation Modal --}}
+                <div x-show="showCancelConfirmation"
+                     x-cloak
+                     class="fixed inset-0 z-60 overflow-y-auto"
+                     style="display: none;">
+                    <div class="fixed inset-0 bg-black/50"></div>
+                    <div class="relative min-h-screen flex items-center justify-center p-4">
+                        <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                            <div class="text-center">
+                                <div class="mx-auto mb-4 text-yellow-500 w-16 h-16">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2">Cancel Photo Capture?</h3>
+                                <p class="text-gray-700 mb-4">Any captured photos that haven't been uploaded will be lost.</p>
+                                <div class="flex gap-3 justify-center">
+                                    <button @click="showCancelConfirmation = false"
+                                            class="px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                                        Continue Capturing
+                                    </button>
+                                    <button @click="confirmCancel()"
+                                            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                                        Yes, Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 @if ($pendingCount > 0)
                     <div class="flex items-center gap-2">
                         <button wire:click="openPendingAttachmentModal(0)"
@@ -171,14 +224,14 @@
                     class="fixed inset-0 z-50 overflow-y-auto"
                     style="display: none;">
                     
-                    <div class="fixed inset-0 bg-black/80" @click="showCameraModal = false; stopCamera()"></div>
+                    <div class="fixed inset-0 bg-black/80" @click="tryCancel()"></div>
                     
                     <div class="relative min-h-screen flex items-center justify-center p-4">
                         <div class="relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
                             
                             <div class="flex items-center justify-between mb-4">
                                 <h3 class="text-lg font-semibold text-gray-900">Add Photos</h3>
-                                <button @click="showCameraModal = false; stopCamera()" class="text-gray-400 hover:text-gray-600">
+                                <button @click="tryCancel()" class="text-gray-400 hover:text-gray-600">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                     </svg>
@@ -217,32 +270,73 @@
                             </div>
 
                             {{-- Footer Buttons --}}
-                            <div class="flex justify-end gap-2 mt-6">
-                                <button @click="showCameraModal = false; stopCamera()" 
+                            {{-- Mobile Layout --}}
+                            <div class="flex flex-col gap-2 mt-6 w-full md:hidden">
+                                {{-- Start Camera Button --}}
+                                <button @click="startCamera()"
+                                        x-show="!cameraActive && !uploading"
+                                        class="w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                                    Start Camera
+                                </button>
+
+                                {{-- Capture Photo Button --}}
+                                <button @click="capturePhoto()"
+                                        x-show="cameraActive && !uploading"
+                                        class="w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
+                                    Capture Photo
+                                </button>
+
+                                {{-- Stop Camera Button --}}
+                                <button @click="stopCamera()"
+                                        x-show="cameraActive && !uploading"
+                                        class="w-full px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">
+                                    Stop Camera
+                                </button>
+
+                                {{-- Upload Photos Button --}}
+                                <button @click="uploadPhotos()"
+                                        x-show="photos.length > 0 && !uploading"
+                                        :disabled="uploading"
+                                        class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span x-show="!uploading">Upload <span x-text="photos.length"></span> Photo<span x-show="photos.length > 1">s</span></span>
+                                    <span x-show="uploading">Uploading...</span>
+                                </button>
+
+                                {{-- Cancel Button --}}
+                                <button @click="tryCancel()"
+                                        :disabled="uploading"
+                                        class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    Cancel
+                                </button>
+                            </div>
+
+                            {{-- Desktop Layout --}}
+                            <div class="hidden md:flex justify-end gap-2 mt-6">
+                                <button @click="tryCancel()"
                                         :disabled="uploading"
                                         class="px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                                     Cancel
                                 </button>
-                                
-                                <button @click="startCamera()" 
+
+                                <button @click="startCamera()"
                                         x-show="!cameraActive && !uploading"
                                         class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
                                     Start Camera
                                 </button>
-                                
-                                <button @click="capturePhoto()" 
+
+                                <button @click="capturePhoto()"
                                         x-show="cameraActive && !uploading"
                                         class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
                                     Capture Photo
                                 </button>
-                                
-                                <button @click="stopCamera()" 
+
+                                <button @click="stopCamera()"
                                         x-show="cameraActive && !uploading"
                                         class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">
                                     Stop Camera
                                 </button>
-                                
-                                <button @click="uploadPhotos()" 
+
+                                <button @click="uploadPhotos()"
                                         x-show="photos.length > 0 && !uploading"
                                         :disabled="uploading"
                                         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
