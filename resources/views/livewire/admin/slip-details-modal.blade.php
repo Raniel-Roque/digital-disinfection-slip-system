@@ -222,8 +222,16 @@
                                     $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
                                     $isImage = in_array($extension, $imageExtensions);
                                     $uploader = $attachment->user;
-                                    $uploaderName = $uploader ? ($uploader->first_name . ' ' . $uploader->last_name) : 'Unknown';
-                                    $uploaderUsername = $uploader ? $uploader->username : 'N/A';
+                                    if ($uploader) {
+                                        $uploaderName = trim($uploader->first_name . ' ' . ($uploader->middle_name ?? '') . ' ' . $uploader->last_name);
+                                        if ($uploader->trashed()) {
+                                            $uploaderName .= ' (Deleted)';
+                                        }
+                                        $uploaderUsername = $uploader->username;
+                                    } else {
+                                        $uploaderName = 'Deleted User';
+                                        $uploaderUsername = 'user-deleted';
+                                    }
                                 @endphp
                                 <div class="w-full shrink-0 px-2 sm:px-4 py-2 sm:py-4 flex flex-col" style="min-width: 100%">
                                     @if ($isImage)
@@ -234,7 +242,7 @@
                                         <div class="text-center mt-2 sm:mt-3 text-xs sm:text-sm text-gray-600">
                                             <span class="font-semibold">Uploaded by:</span> 
                                             <span class="text-gray-800">{{ $uploaderName }}</span>
-                                            <span class="text-gray-500">({{ $uploaderUsername }})</span>
+                                            <span class="text-gray-500">(&#64;{{ $uploaderUsername }})</span>
                                         </div>
                                     @else
                                         <div class="text-center p-4 sm:p-8">
@@ -249,7 +257,7 @@
                                             <div class="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600">
                                                 <span class="font-semibold">Uploaded by:</span> 
                                                 <span class="text-gray-800">{{ $uploaderName }}</span>
-                                                <span class="text-gray-500">(<span>@</span>{{ $uploaderUsername }})</span>
+                                                <span class="text-gray-500">(&#64;{{ $uploaderUsername }})</span>
                                             </div>
                                         </div>
                                     @endif
