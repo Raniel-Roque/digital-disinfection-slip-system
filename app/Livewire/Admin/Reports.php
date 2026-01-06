@@ -378,10 +378,20 @@ class Reports extends Component
     
     public function openDetailsModal($reportId)
     {
-        $this->selectedReport = Report::with(['user', 'slip', 'resolvedBy'])->findOrFail($reportId);
+        $this->selectedReport = Report::with([
+            'user' => function($q) {
+                $q->withTrashed();
+            },
+            'slip' => function($q) {
+                $q->withTrashed();
+            },
+            'resolvedBy' => function($q) {
+                $q->withTrashed();
+            }
+        ])->find($reportId);
         $this->showDetailsModal = true;
     }
-    
+        
     public function closeDetailsModal()
     {
         $this->showDetailsModal = false;
@@ -399,11 +409,12 @@ class Reports extends Component
         
         $this->selectedSlip = DisinfectionSlipModel::with([
             'truck' => function($q) { $q->withTrashed(); },
-            'location',
-            'destination',
-            'driver',
-            'hatcheryGuard',
-            'receivedGuard'
+            'location' => function($q) { $q->withTrashed(); },
+            'destination' => function($q) { $q->withTrashed(); },
+            'driver' => function($q) { $q->withTrashed(); },
+            'hatcheryGuard' => function($q) { $q->withTrashed(); },
+            'receivedGuard' => function($q) { $q->withTrashed(); },
+            'attachments.user' => function($q) { $q->withTrashed(); }
         ])->find($slipId);
         
         $this->showDetailsModal = true;

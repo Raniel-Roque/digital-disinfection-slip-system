@@ -15,7 +15,7 @@ use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
-
+use Livewire\Attributes\Locked;
 class Reports extends Component
 {
     use WithPagination;
@@ -75,10 +75,12 @@ class Reports extends Component
     
     // View Details Modal
     public $showDetailsModal = false;
+
+    #[Locked]
     public $selectedReport = null;
-    
-    // Slip Details Modal (reusing showDetailsModal for slip, will be set when slip is selected)
+    #[Locked]
     public $selectedSlip = null;
+     
     public $showAttachmentModal = false;
     public $attachmentFile = null;
     public $currentAttachmentIndex = 0;
@@ -825,14 +827,15 @@ class Reports extends Component
 
         // Refresh the slip with relationships
         $this->selectedSlip->refresh();
-        $this->selectedSlip->load([
+        $this->selectedSlip = DisinfectionSlipModel::with([
             'truck' => function($q) { $q->withTrashed(); },
-            'location',
-            'destination',
-            'driver',
-            'hatcheryGuard',
-            'receivedGuard'
-        ]);
+            'location' => function($q) { $q->withTrashed(); },
+            'destination' => function($q) { $q->withTrashed(); },
+            'driver' => function($q) { $q->withTrashed(); },
+            'hatcheryGuard' => function($q) { $q->withTrashed(); },
+            'receivedGuard' => function($q) { $q->withTrashed(); },
+            'attachments.user' => function($q) { $q->withTrashed(); }
+        ])->find($this->selectedSlip->id);
 
         $slipId = $this->selectedSlip->slip_id;
         
