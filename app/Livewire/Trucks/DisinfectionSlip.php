@@ -214,7 +214,7 @@ class DisinfectionSlip extends Component
 
         // Can edit ONLY on OUTGOING, except when Completed (3)
         return $this->type === 'outgoing'
-            && Auth::id() === $this->selectedSlip->hatchery_guard_id
+            && Auth::id() === $this->selectedSlip->hatchery_guard_id 
             && $this->selectedSlip->location_id === Session::get('location_id')
             && $this->selectedSlip->status != 3;
     }
@@ -269,7 +269,7 @@ class DisinfectionSlip extends Component
 
         // Can delete ONLY on OUTGOING, except when Completed (3)
         return $this->type === 'outgoing'
-            && Auth::id() === $this->selectedSlip->hatchery_guard_id
+            && Auth::id() === $this->selectedSlip->hatchery_guard_id 
             && $this->selectedSlip->location_id === Session::get('location_id')
             && $this->selectedSlip->status != 3;
     }
@@ -279,12 +279,12 @@ class DisinfectionSlip extends Component
         if (!$this->isEditing || !$this->selectedSlip) {
             return false;
         }
-        
-        // Compare directly with selectedSlip (like Admin does)
-        return $this->truck_id != $this->selectedSlip->truck_id ||
-               $this->destination_id != $this->selectedSlip->destination_id ||
-               $this->driver_id != $this->selectedSlip->driver_id ||
-               ($this->reason_for_disinfection ?? '') != ($this->selectedSlip->reason_for_disinfection ?? '');
+
+        // Compare with original values stored when entering edit mode
+        return $this->truck_id != ($this->originalValues['truck_id'] ?? $this->selectedSlip->truck_id) ||
+               $this->destination_id != ($this->originalValues['destination_id'] ?? $this->selectedSlip->destination_id) ||
+               $this->driver_id != ($this->originalValues['driver_id'] ?? $this->selectedSlip->driver_id) ||
+               ($this->reason_for_disinfection ?? '') != ($this->originalValues['reason_for_disinfection'] ?? $this->selectedSlip->reason_for_disinfection ?? '');
     }
 
     public function canManageAttachment()
@@ -527,6 +527,12 @@ class DisinfectionSlip extends Component
 
     public function save()
     {
+        // Check if there are any changes to save
+        if (!$this->hasChanges) {
+            $this->dispatch('toast', message: 'No changes to save.', type: 'info');
+            return;
+        }
+
         // Authorization check before saving
         if (!$this->canEdit()) {
             $this->dispatch('toast', message: 'You are not authorized to save changes to this slip.', type: 'error');

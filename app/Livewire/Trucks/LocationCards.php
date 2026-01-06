@@ -36,7 +36,7 @@ class LocationCards extends Component
                 ->groupBy('destination_id')
                 ->pluck('count', 'destination_id');
         }
-
+    
         // Map counts to locations
         $locationsWithCounts = $locations->map(function ($location) use ($inTransitCounts) {
             $location->in_transit_count = $inTransitCounts->get($location->id, 0);

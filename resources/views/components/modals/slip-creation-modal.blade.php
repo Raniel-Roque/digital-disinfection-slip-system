@@ -272,11 +272,7 @@
 
     {{-- Footer --}}
     <x-slot name="footer">
-        <div x-data="{ isCreating: @js($isCreating) }" class="flex justify-end gap-2">
-        <x-buttons.submit-button wire:click="closeCreateModal" color="white" wire:loading.attr="disabled" wire:target="createSlip">
-            Cancel
-        </x-buttons.submit-button>
-
+        <div x-data="{ isCreating: @js($isCreating) }" class="flex flex-col sm:flex-row justify-end gap-2 w-full sm:w-auto -mt-8">
         <x-buttons.submit-button wire:click.prevent="createSlip" color="blue" wire:loading.attr="disabled" wire:target="createSlip"
                 x-bind:disabled="isCreating">
             <span wire:loading.remove wire:target="createSlip">Create Slip</span>
@@ -287,6 +283,10 @@
                 </svg>
                 Creating...
             </span>
+        </x-buttons.submit-button>
+
+        <x-buttons.submit-button wire:click="closeCreateModal" color="white" wire:loading.attr="disabled" wire:target="createSlip">
+            Cancel
         </x-buttons.submit-button>
         </div>
     </x-slot>

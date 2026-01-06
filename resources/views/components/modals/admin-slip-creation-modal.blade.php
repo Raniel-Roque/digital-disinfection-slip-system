@@ -17,19 +17,19 @@
 
     {{-- Body Fields --}}
     <div class="space-y-0 -mx-6">
-        {{-- Plate Number --}}
+    {{-- Plate Number --}}
         <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
             <div class="font-semibold text-gray-500">Plate No:<span class="text-red-500">*</span></div>
             <div class="text-gray-900">
-                <x-forms.searchable-dropdown wire-model="truck_id" :options="$createTruckOptions" search-property="searchTruck"
-                    placeholder="Select plate number..." search-placeholder="Search plates..." />
-                @error('truck_id')
+            <x-forms.searchable-dropdown wire-model="truck_id" :options="$createTruckOptions" search-property="searchTruck"
+                placeholder="Select plate number..." search-placeholder="Search plates..." />
+            @error('truck_id')
                     <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                @enderror
-            </div>
+            @enderror
         </div>
+    </div>
 
-        {{-- Origin --}}
+    {{-- Origin --}}
         <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
             <div class="font-semibold text-gray-500">Origin:<span class="text-red-500">*</span></div>
             <div class="text-gray-900">
@@ -37,11 +37,11 @@
                     placeholder="Select origin..." search-placeholder="Search locations..." />
                 @error('location_id')
                     <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                @enderror
-            </div>
+            @enderror
         </div>
+    </div>
 
-        {{-- Destination --}}
+    {{-- Destination --}}
         <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
             <div class="font-semibold text-gray-500">Destination:<span class="text-red-500">*</span></div>
             <div class="text-gray-900">
@@ -49,58 +49,58 @@
                     placeholder="Select destination..." search-placeholder="Search locations..." />
                 @error('destination_id')
                     <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                @enderror
-            </div>
+            @enderror
         </div>
+    </div>
 
-        {{-- Driver Name --}}
+    {{-- Driver Name --}}
         <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
             <div class="font-semibold text-gray-500">Driver Name:<span class="text-red-500">*</span></div>
             <div class="text-gray-900">
-                <x-forms.searchable-dropdown wire-model="driver_id" :options="$createDriverOptions" search-property="searchDriver"
-                    placeholder="Select driver..." search-placeholder="Search drivers..." />
-                @error('driver_id')
+            <x-forms.searchable-dropdown wire-model="driver_id" :options="$createDriverOptions" search-property="searchDriver"
+                placeholder="Select driver..." search-placeholder="Search drivers..." />
+            @error('driver_id')
                     <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                @enderror
-            </div>
+            @enderror
         </div>
+    </div>
 
-        {{-- Hatchery Guard --}}
+    {{-- Hatchery Guard --}}
         <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
             <div class="font-semibold text-gray-500">Hatchery Guard:<span class="text-red-500">*</span></div>
             <div class="text-gray-900">
-                <x-forms.searchable-dropdown wire-model="hatchery_guard_id" :options="$createGuardOptions"
-                    search-property="searchHatcheryGuard" placeholder="Select hatchery guard..."
-                    search-placeholder="Search guards..." />
-                @error('hatchery_guard_id')
+            <x-forms.searchable-dropdown wire-model="hatchery_guard_id" :options="$createGuardOptions"
+                search-property="searchHatcheryGuard" placeholder="Select hatchery guard..."
+                search-placeholder="Search guards..." />
+            @error('hatchery_guard_id')
                     <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                @enderror
-            </div>
+            @enderror
         </div>
+    </div>
 
-        {{-- Receiving Guard (Optional) --}}
+    {{-- Receiving Guard (Optional) --}}
         <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
             <div class="font-semibold text-gray-500">Receiving Guard:</div>
             <div class="text-gray-900">
-                <x-forms.searchable-dropdown wire-model="received_guard_id" :options="$createReceivedGuardOptions"
-                    search-property="searchReceivedGuard" placeholder="Select receiving guard..."
-                    search-placeholder="Search guards..." />
-                @error('received_guard_id')
+            <x-forms.searchable-dropdown wire-model="received_guard_id" :options="$createReceivedGuardOptions"
+                search-property="searchReceivedGuard" placeholder="Select receiving guard..."
+                search-placeholder="Search guards..." />
+            @error('received_guard_id')
                     <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                @enderror
-            </div>
+            @enderror
         </div>
+    </div>
 
-        {{-- Reason for Disinfection --}}
+    {{-- Reason for Disinfection --}}
         <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
             <div class="font-semibold text-gray-500">Reason:</div>
             <div class="text-gray-900">
-                <textarea wire:model="reason_for_disinfection"
-                    class="w-full border rounded px-2 py-1 text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    rows="6" placeholder="Enter reason for disinfection..."></textarea>
-                @error('reason_for_disinfection')
+            <textarea wire:model="reason_for_disinfection"
+                class="w-full border rounded px-2 py-1 text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                rows="6" placeholder="Enter reason for disinfection..."></textarea>
+            @error('reason_for_disinfection')
                     <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                @enderror
+            @enderror
             </div>
         </div>
     </div>

@@ -791,14 +791,14 @@ class Trucks extends Component
     public function getAvailableOriginsOptionsProperty()
     {
         $locations = $this->getCachedLocations()->whereNull('deleted_at')->where('disabled', false);
-
+        
         // Exclude selected destination from origins
         $originOptions = $locations;
         if ($this->destination_id) {
             $originOptions = $originOptions->where('id', '!=', $this->destination_id);
         }
         $originOptions = $originOptions->pluck('location_name', 'id');
-
+        
         // Apply search filter
         if (!empty($this->searchOrigin)) {
             $searchTerm = strtolower($this->searchOrigin);
@@ -811,21 +811,21 @@ class Trucks extends Component
                 $originOptions = $this->ensureSelectedInOptions($originOptions, $this->location_id, $allOptions);
             }
         }
-
+        
         return $originOptions->toArray();
     }
     
     public function getAvailableDestinationsOptionsProperty()
     {
         $locations = $this->getCachedLocations()->whereNull('deleted_at')->where('disabled', false);
-
+        
         // Exclude selected origin from destinations
         $destinationOptions = $locations;
         if ($this->location_id) {
             $destinationOptions = $destinationOptions->where('id', '!=', $this->location_id);
         }
         $destinationOptions = $destinationOptions->pluck('location_name', 'id');
-
+        
         // Apply search filter
         if (!empty($this->searchDestination)) {
             $searchTerm = strtolower($this->searchDestination);
@@ -838,7 +838,7 @@ class Trucks extends Component
                 $destinationOptions = $this->ensureSelectedInOptions($destinationOptions, $this->destination_id, $allOptions);
             }
         }
-
+        
         return $destinationOptions->toArray();
     }
 
@@ -2353,7 +2353,7 @@ class Trucks extends Component
                 $name = trim(implode(' ', array_filter([$user->first_name, $user->middle_name, $user->last_name])));
                 return $user->trashed() ? $name . ' (Deleted)' : $name;
             };
-
+            
             return [
                 'slip_id' => $slip->slip_id,
                 'plate_number' => $slip->truck ? ($slip->truck->trashed() ? $slip->truck->plate_number . ' (Deleted)' : $slip->truck->plate_number) : '[Truck] (Deleted)',

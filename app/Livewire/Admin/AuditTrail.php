@@ -344,17 +344,17 @@ class AuditTrail extends Component
     private function getFilteredLogsQuery()
     {
         $query = Log::query();
-
+        
         // Exclude superadmin actions (user_type != 2)
         $query->where('user_type', '!=', 2);
-
+        
         // Search
         if (!empty($this->search)) {
             $searchTerm = trim($this->search);
             $searchTermLower = strtolower($searchTerm);
             $searchTermNoAt = ltrim($searchTerm, '@'); // Remove @ from beginning for username searches
             $searchTermNoAtLower = strtolower($searchTermNoAt);
-
+            
             // Find model types that match the search term (by readable label)
             $matchingModelTypes = [];
             foreach ($this->availableModelTypes as $modelType => $label) {
@@ -362,7 +362,7 @@ class AuditTrail extends Component
                     $matchingModelTypes[] = $modelType;
                 }
             }
-
+            
             $query->where(function ($q) use ($searchTerm, $searchTermLower, $searchTermNoAt, $searchTermNoAtLower, $matchingModelTypes) {
                 // Search by ID (exact match or starts with)
                 $q->where('id', $searchTerm)

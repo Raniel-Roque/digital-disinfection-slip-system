@@ -42,7 +42,7 @@
             </div>
                     <div class="flex items-center">
                         <button wire:click="openReportModal" type="button"
-                            class="p-1.5 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                            class="p-1.5 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 cursor-pointer"
                             title="Report">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -389,7 +389,50 @@
         {{-- Footer --}}
         <x-slot name="footer">
             @if (!$isEditing)
-                <div class="flex justify-end w-full gap-2">
+                {{-- Mobile Layout --}}
+                <div class="flex flex-col gap-2 w-full md:hidden">
+                    {{-- Start Disinfecting Button (Outgoing Only: Status 0 -> 1) --}}
+                    @if ($this->canStartDisinfecting())
+                        <x-buttons.submit-button wire:click="$set('showDisinfectingConfirmation', true)" color="orange" class="w-full">
+                            Start Disinfecting
+                        </x-buttons.submit-button>
+                    @endif
+
+                    {{-- Complete Button (Outgoing: Status 1 -> 2 | Incoming: Status 2 -> 3) --}}
+                    @if ($this->canComplete())
+                        <x-buttons.submit-button wire:click="$set('showCompleteConfirmation', true)" color="green" class="w-full">
+                            @if ($type === 'outgoing')
+                            Complete Disinfection
+                            @else
+                                Complete Slip
+                            @endif
+                        </x-buttons.submit-button>
+                    @endif
+
+                    {{-- Close and Edit buttons side by side, 50% each --}}
+                    <div class="grid grid-cols-2 gap-2 w-full">
+                        <x-buttons.submit-button
+                            wire:click="closeDetailsModal"
+                            color="white"
+                            class="w-full"
+                        >
+                            Close
+                        </x-buttons.submit-button>
+
+                        @if ($this->canEdit())
+                            <x-buttons.submit-button
+                                wire:click="editDetailsModal"
+                                color="blue"
+                                class="w-full"
+                            >
+                                Edit
+                            </x-buttons.submit-button>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Desktop Layout --}}
+                <div class="hidden md:flex justify-end w-full gap-2">
                         <x-buttons.submit-button wire:click="closeDetailsModal" color="white">
                             Close
                         </x-buttons.submit-button>
@@ -420,23 +463,59 @@
                         @endif
                 </div>
             @else
-                <div class="flex justify-between w-full">
-                    <div>
-                        <x-buttons.submit-button wire:click="$set('showDeleteConfirmation', true)" color="red">
-                            Delete
+                {{-- Mobile Layout for Editing --}}
+                <div class="flex flex-col gap-2 w-full md:hidden -mt-8">
+                    {{-- Save Button (full width) --}}
+                    <x-buttons.submit-button
+                        wire:click="save"
+                        color="green"
+                        wire:loading.attr="disabled"
+                        wire:target="save"
+                        class="w-full">
+                        <span wire:loading.remove wire:target="save">Save</span>
+                        <span wire:loading wire:target="save" class="inline-flex items-center gap-2">
+                            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Saving...
+                        </span>
+                    </x-buttons.submit-button>
+
+                    {{-- Cancel and Delete buttons side by side, 50% each --}}
+                    <div class="grid grid-cols-2 gap-2 w-full">
+                        <x-buttons.submit-button wire:click="$set('showCancelConfirmation', true)" color="white" class="w-full">
+                            Cancel
                         </x-buttons.submit-button>
+
+                        @if ($this->canDelete())
+                            <x-buttons.submit-button wire:click="$set('showDeleteConfirmation', true)" color="red" class="w-full">
+                                Delete
+                            </x-buttons.submit-button>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Desktop Layout for Editing --}}
+                <div class="hidden md:flex justify-between w-full -mt-4">
+                    <div>
+                        @if ($this->canDelete())
+                            <x-buttons.submit-button wire:click="$set('showDeleteConfirmation', true)" color="red">
+                                Delete
+                            </x-buttons.submit-button>
+                        @endif
                     </div>
                     <div class="flex gap-2">
                         <x-buttons.submit-button wire:click="$set('showCancelConfirmation', true)" color="white">
                             Cancel
                         </x-buttons.submit-button>
 
-                        <x-buttons.submit-button 
-                            wire:click="save" 
-                            color="green" 
-                            wire:loading.attr="disabled" 
+                        <x-buttons.submit-button
+                            wire:click="save"
+                            color="green"
+                            wire:loading.attr="disabled"
                             wire:target="save"
-                            x-bind:disabled="!$wire.hasChanges">
+>
                             <span wire:loading.remove wire:target="save">Save</span>
                             <span wire:loading wire:target="save" class="inline-flex items-center gap-2">
                                 <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
@@ -475,14 +554,30 @@
         </div>
 
         <x-slot name="footer">
-            <x-buttons.submit-button wire:click="$set('showDisinfectingConfirmation', false)" color="white" wire:loading.attr="disabled" wire:target="startDisinfecting">
-                Cancel
-            </x-buttons.submit-button>
-            <x-buttons.submit-button wire:click="startDisinfecting" color="orange" wire:loading.attr="disabled" wire:target="startDisinfecting">
-                <span wire:loading.remove wire:target="startDisinfecting">Yes, Start Disinfecting</span>
-                <span wire:loading wire:target="startDisinfecting" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Starting...
-                </span>
-            </x-buttons.submit-button>
+            {{-- Mobile Layout --}}
+            <div class="flex flex-col gap-2 w-full -mt-4 md:hidden">
+                <x-buttons.submit-button wire:click="startDisinfecting" color="orange" wire:loading.attr="disabled" wire:target="startDisinfecting">
+                    <span wire:loading.remove wire:target="startDisinfecting">Yes, Start Disinfecting</span>
+                    <span wire:loading wire:target="startDisinfecting" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Starting...
+                    </span>
+                </x-buttons.submit-button>
+
+                <x-buttons.submit-button wire:click="$set('showDisinfectingConfirmation', false)" color="white" wire:loading.attr="disabled" wire:target="startDisinfecting">
+                    Cancel
+                </x-buttons.submit-button>
+            </div>
+
+            {{-- Desktop Layout --}}
+            <div class="hidden md:flex justify-end gap-3">
+                <x-buttons.submit-button wire:click="$set('showDisinfectingConfirmation', false)" color="white" wire:loading.attr="disabled" wire:target="startDisinfecting">
+                    Cancel
+                </x-buttons.submit-button>
+                <x-buttons.submit-button wire:click="startDisinfecting" color="orange" wire:loading.attr="disabled" wire:target="startDisinfecting">
+                    <span wire:loading.remove wire:target="startDisinfecting">Yes, Start Disinfecting</span>
+                    <span wire:loading wire:target="startDisinfecting" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Starting...
+                    </span>
+                </x-buttons.submit-button>
+            </div>
         </x-slot>
     </x-modals.modal-template>
 
@@ -499,14 +594,30 @@
         </div>
 
         <x-slot name="footer">
-            <x-buttons.submit-button wire:click="$set('showCompleteConfirmation', false)" color="white" wire:loading.attr="disabled" wire:target="completeDisinfection">
-                Cancel
-            </x-buttons.submit-button>
-            <x-buttons.submit-button wire:click="completeDisinfection" color="green" wire:loading.attr="disabled" wire:target="completeDisinfection">
-                <span wire:loading.remove wire:target="completeDisinfection">Yes, Complete</span>
-                <span wire:loading wire:target="completeDisinfection" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Completing...
-                </span>
-            </x-buttons.submit-button>
+            {{-- Mobile Layout --}}
+            <div class="flex flex-col gap-2 w-full -mt-4 md:hidden">
+                <x-buttons.submit-button wire:click="completeDisinfection" color="green" wire:loading.attr="disabled" wire:target="completeDisinfection">
+                    <span wire:loading.remove wire:target="completeDisinfection">Yes, Complete</span>
+                    <span wire:loading wire:target="completeDisinfection" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Completing...
+                    </span>
+                </x-buttons.submit-button>
+
+                <x-buttons.submit-button wire:click="$set('showCompleteConfirmation', false)" color="white" wire:loading.attr="disabled" wire:target="completeDisinfection">
+                    Cancel
+                </x-buttons.submit-button>
+            </div>
+
+            {{-- Desktop Layout --}}
+            <div class="hidden md:flex justify-end gap-3">
+                <x-buttons.submit-button wire:click="$set('showCompleteConfirmation', false)" color="white" wire:loading.attr="disabled" wire:target="completeDisinfection">
+                    Cancel
+                </x-buttons.submit-button>
+                <x-buttons.submit-button wire:click="completeDisinfection" color="green" wire:loading.attr="disabled" wire:target="completeDisinfection">
+                    <span wire:loading.remove wire:target="completeDisinfection">Yes, Complete</span>
+                    <span wire:loading wire:target="completeDisinfection" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Completing...
+                    </span>
+                </x-buttons.submit-button>
+            </div>
         </x-slot>
     </x-modals.modal-template>
 
@@ -519,12 +630,26 @@
         </div>
 
         <x-slot name="footer">
-            <x-buttons.submit-button wire:click="$set('showRemoveAttachmentConfirmation', false)" color="white">
-                Cancel
-            </x-buttons.submit-button>
-            <x-buttons.submit-button wire:click="removeAttachment" color="red">
-                Yes, Remove Photo
-            </x-buttons.submit-button>
+            {{-- Mobile Layout --}}
+            <div class="flex flex-col gap-2 w-full -mt-4 md:hidden">
+                <x-buttons.submit-button wire:click="removeAttachment" color="red">
+                    Yes, Remove Photo
+                </x-buttons.submit-button>
+
+                <x-buttons.submit-button wire:click="$set('showRemoveAttachmentConfirmation', false)" color="white">
+                    Cancel
+                </x-buttons.submit-button>
+            </div>
+
+            {{-- Desktop Layout --}}
+            <div class="hidden md:flex justify-end gap-3">
+                <x-buttons.submit-button wire:click="$set('showRemoveAttachmentConfirmation', false)" color="white">
+                    Cancel
+                </x-buttons.submit-button>
+                <x-buttons.submit-button wire:click="removeAttachment" color="red">
+                    Yes, Remove Photo
+                </x-buttons.submit-button>
+            </div>
         </x-slot>
     </x-modals.modal-template>
 
@@ -569,20 +694,23 @@
         @endif
 
         <x-slot name="footer">
-            <x-buttons.submit-button wire:click="closeReportModal" color="white" wire:loading.attr="disabled" wire:target="submitReport">
-                Cancel
-            </x-buttons.submit-button>
-            <x-buttons.submit-button wire:click.prevent="submitReport" color="red" wire:loading.attr="disabled" wire:target="submitReport"
-                x-bind:disabled="$wire.isSubmitting">
-                <span wire:loading.remove wire:target="submitReport">Submit Report</span>
-                <span wire:loading wire:target="submitReport" class="inline-flex items-center gap-2">
-                    <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Submitting...
-                </span>
-            </x-buttons.submit-button>
+            <div class="flex flex-col gap-2 w-full -mt-8">
+                <x-buttons.submit-button wire:click.prevent="submitReport" color="red" wire:loading.attr="disabled" wire:target="submitReport"
+                    x-bind:disabled="$wire.isSubmitting">
+                    <span wire:loading.remove wire:target="submitReport">Submit Report</span>
+                    <span wire:loading wire:target="submitReport" class="inline-flex items-center gap-2">
+                        <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Submitting...
+                    </span>
+                </x-buttons.submit-button>
+
+                <x-buttons.submit-button wire:click="closeReportModal" color="white" wire:loading.attr="disabled" wire:target="submitReport">
+                    Cancel
+                </x-buttons.submit-button>
+            </div>
         </x-slot>
     </x-modals.modal-template>
 

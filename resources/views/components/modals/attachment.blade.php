@@ -14,7 +14,7 @@
             <div class="relative overflow-hidden rounded-lg bg-gray-100 min-h-[300px] sm:min-h-[400px] flex items-center justify-center">
                 {{-- Previous Button --}}
                 @if ($totalAttachments > 1)
-                    <button
+                    <button 
                         @click="$wire.previousAttachment()"
                         x-show="currentIndex > 0"
                         class="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white rounded-full p-1.5 sm:p-2 shadow-lg transition-all mouse-pointer"
@@ -26,7 +26,7 @@
                 @endif
 
                 {{-- Images Container --}}
-                <div class="flex transition-transform duration-300 ease-in-out w-full"
+                <div class="flex transition-transform duration-300 ease-in-out w-full" 
                      :style="`transform: translateX(-${currentIndex * 100}%)`">
                     @foreach ($attachments as $index => $attachment)
                         @php
@@ -40,12 +40,12 @@
                         @endphp
                         <div class="w-full shrink-0 px-2 sm:px-4 py-2 sm:py-4 flex flex-col" style="min-width: 100%">
                             @if ($isImage)
-                                <img src="{{ $fileUrl }}"
+                                <img src="{{ $fileUrl }}" 
                                      class="border shadow-md max-h-[45vh] sm:max-h-[55vh] max-w-full w-auto object-contain mx-auto rounded-lg"
                                      alt="Photo {{ $index + 1 }}">
                                 {{-- Uploaded By Information --}}
                                 <div class="text-center mt-2 sm:mt-3 text-xs sm:text-sm text-gray-600">
-                                    <span class="font-semibold">Uploaded by:</span>
+                                    <span class="font-semibold">Uploaded by:</span> 
                                     <span class="text-gray-800">{{ $uploaderName }}</span>
                                     <span class="text-gray-500">({{ $uploaderUsername }})</span>
                                 </div>
@@ -54,13 +54,13 @@
                                     <p class="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-4">
                                         This file type cannot be previewed.
                                     </p>
-                                    <a href="{{ $fileUrl }}" target="_blank"
+                                    <a href="{{ $fileUrl }}" target="_blank" 
                                        class="text-orange-500 font-semibold underline hover:cursor-pointer cursor-pointer text-sm sm:text-base">
                                         Download photo
                                     </a>
                                     {{-- Uploaded By Information for non-images --}}
                                     <div class="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600">
-                                        <span class="font-semibold">Uploaded by:</span>
+                                        <span class="font-semibold">Uploaded by:</span> 
                                         <span class="text-gray-800">{{ $uploaderName }}</span>
                                         <span class="text-gray-500">(<span>@</span>{{ $uploaderUsername }})</span>
                                     </div>
@@ -72,7 +72,7 @@
 
                 {{-- Next Button --}}
                 @if ($totalAttachments > 1)
-                    <button
+                    <button 
                         @click="$wire.nextAttachment()"
                         x-show="currentIndex < {{ $totalAttachments - 1 }}"
                         class="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white rounded-full p-1.5 sm:p-2 shadow-lg transition-all mouse-pointer"
@@ -88,7 +88,7 @@
             @if ($totalAttachments > 1)
                 <div class="flex justify-center mt-3 sm:mt-4 space-x-1.5 sm:space-x-2 overflow-x-auto max-w-full px-2">
                     @foreach ($attachments as $index => $attachment)
-                        <button
+                        <button 
                             @click="$wire.openAttachmentModal({{ $index }})"
                             class="w-2 h-2 rounded-full transition-all shrink-0 mouse-pointer"
                             :class="currentIndex === {{ $index }} ? 'bg-orange-500 w-4 sm:w-6' : 'bg-gray-300'">
@@ -115,14 +115,14 @@
         <div class="flex justify-between items-center w-full flex-wrap gap-2">
             {{-- Delete Current Photo Button --}}
             @if ($totalAttachments > 0 && $this->canDeleteCurrentAttachment)
-                <x-buttons.submit-button
+                    <x-buttons.submit-button 
                     wire:click="confirmRemoveCurrentAttachment"
-                    color="red"
+                        color="red"
                     class="transition-all mouse-pointer"
                     wire:loading.attr="disabled"
                     wire:target="confirmRemoveCurrentAttachment">
-                    Delete
-                </x-buttons.submit-button>
+                        Delete
+                    </x-buttons.submit-button>
             @else
                 <div></div>
             @endif
