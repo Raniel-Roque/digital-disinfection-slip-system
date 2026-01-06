@@ -164,7 +164,7 @@
                             <span
                                 class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                 <div class="flex flex-col">
-                                    <span>Hatchery Guard: {{ trim("{$guard->first_name} {$guard->middle_name} {$guard->last_name}") }}</span>
+                                    <span>Hatchery Guard: <span class="text-gray-900">{{ trim("{$guard->first_name} {$guard->middle_name} {$guard->last_name}") }}</span>@if ($guard->trashed()) <span class="text-red-600 font-semibold">(Deleted)</span>@endif</span>
                                     <span class="text-[10px] text-blue-600">@{{ $guard->username }}</span>
                                 </div>
                                 <button wire:click="removeSpecificFilter('hatcheryGuard', {{ $guardId }})"
@@ -187,7 +187,7 @@
                             <span
                                 class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                 <div class="flex flex-col">
-                                    <span>Received Guard: {{ trim("{$guard->first_name} {$guard->middle_name} {$guard->last_name}") }}</span>
+                                    <span>Received Guard: <span class="text-gray-900">{{ trim("{$guard->first_name} {$guard->middle_name} {$guard->last_name}") }}</span>@if ($guard->trashed()) <span class="text-red-600 font-semibold">(Deleted)</span>@endif</span>
                                     <span class="text-[10px] text-blue-600">@{{ $guard->username }}</span>
                                 </div>
                                 <button wire:click="removeSpecificFilter('receivedGuard', {{ $guardId }})"

@@ -381,9 +381,9 @@
                                     {{ trim($selectedReport->user->first_name . ' ' . ($selectedReport->user->middle_name ?? '') . ' ' . $selectedReport->user->last_name) }}
                                     <div class="text-xs text-gray-500 mt-0.5">&#64;{{ $selectedReport->user->username }}</div>
                                 @elseif ($selectedReport->user)
-                                    {{ trim($selectedReport->user->first_name . ' ' . ($selectedReport->user->middle_name ?? '') . ' ' . $selectedReport->user->last_name) }}
+                                    <span class="text-gray-900">{{ trim($selectedReport->user->first_name . ' ' . ($selectedReport->user->middle_name ?? '') . ' ' . $selectedReport->user->last_name) }}</span>
                                     <span class="text-red-600 font-semibold"> (Deleted)</span>
-                                    <div class="text-xs text-gray-500 mt-0.5">&#64;{{ $selectedReport->user->username }} <span class="text-red-600 font-semibold">(Deleted)</span></div>
+                                    <div class="text-xs text-gray-500 mt-0.5">&#64;{{ $selectedReport->user->username }}</div>
                                 @else
                                     <span class="text-gray-500 italic">User Deleted</span>
                                     <div class="text-xs text-gray-500 mt-0.5"><span class="text-gray-500 italic">@user-deleted</span></div>
@@ -426,8 +426,15 @@
                             <div class="grid grid-cols-2 gap-4 text-xs">
                                 <div>
                                     <div class="font-bold text-gray-500 mb-0.5">Resolved by:</div>
-                                    <div class="text-gray-900">
-                                        {{ $selectedReport->resolvedBy ? trim($selectedReport->resolvedBy->first_name . ' ' . ($selectedReport->resolvedBy->middle_name ?? '') . ' ' . $selectedReport->resolvedBy->last_name) : 'N/A' }}
+                                    <div>
+                                        @if ($selectedReport->resolvedBy)
+                                            <span class="text-gray-900">{{ trim($selectedReport->resolvedBy->first_name . ' ' . ($selectedReport->resolvedBy->middle_name ?? '') . ' ' . $selectedReport->resolvedBy->last_name) }}</span>
+                                            @if ($selectedReport->resolvedBy->trashed())
+                                                <span class="text-red-600 font-semibold">(Deleted)</span>
+                                            @endif
+                                        @else
+                                            <span class="text-gray-900">N/A</span>
+                                        @endif
                                     </div>
                                 </div>
                                 <div>

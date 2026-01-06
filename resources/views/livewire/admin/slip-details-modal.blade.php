@@ -129,16 +129,28 @@
                 <div class="grid grid-cols-2 gap-4 text-xs">
                     <div>
                         <div class="font-semibold text-gray-500 mb-0.5">Hatchery Guard:</div>
-                        <div class="text-gray-900">
-                            {{ $selectedSlip->hatcheryGuard?->first_name . ' ' . $selectedSlip->hatcheryGuard?->last_name ?? 'N/A' }}
+                        <div>
+                            @if ($selectedSlip->hatcheryGuard)
+                                <span class="text-gray-900">{{ $selectedSlip->hatcheryGuard->first_name . ' ' . $selectedSlip->hatcheryGuard->last_name }}</span>
+                                @if ($selectedSlip->hatcheryGuard->trashed())
+                                    <span class="text-red-600 font-semibold">(Deleted)</span>
+                                @endif
+                            @else
+                                <span class="text-gray-900">N/A</span>
+                            @endif
                         </div>
                     </div>
                     <div>
                         <div class="font-semibold text-gray-500 mb-0.5">Received By:</div>
-                        <div class="text-gray-900">
-                            {{ $selectedSlip->receivedGuard?->first_name && $selectedSlip->receivedGuard?->last_name
-                                ? $selectedSlip->receivedGuard->first_name . ' ' . $selectedSlip->receivedGuard->last_name
-                                : 'N/A' }}
+                        <div>
+                            @if ($selectedSlip->receivedGuard)
+                                <span class="text-gray-900">{{ $selectedSlip->receivedGuard->first_name . ' ' . $selectedSlip->receivedGuard->last_name }}</span>
+                                @if ($selectedSlip->receivedGuard->trashed())
+                                    <span class="text-red-600 font-semibold">(Deleted)</span>
+                                @endif
+                            @else
+                                <span class="text-gray-900">N/A</span>
+                            @endif
                         </div>
                     </div>
                 </div>
