@@ -4,6 +4,7 @@ namespace App\Livewire\SuperAdmin;
 
 use Livewire\Component;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use App\Models\DisinfectionSlip as DisinfectionSlipModel;
 use App\Models\Attachment;
 use App\Models\Truck;
@@ -193,6 +194,24 @@ class Trucks extends Component
         $this->filtersActive = true;
         
         // Options are now computed properties, no initialization needed
+    }
+    
+    /**
+     * Prevent polling from running when any modal is open
+     * This prevents the selected slip data from being overwritten
+     */
+    #[On('polling')]
+    public function polling()
+    {
+        // If any modal is open, skip polling
+        if ($this->showFilters || $this->showCreateModal || $this->showDetailsModal || 
+            $this->showDeleteConfirmation || $this->showRemoveAttachmentConfirmation || 
+            $this->showEditModal || $this->showCancelCreateConfirmation || 
+            $this->showCancelEditConfirmation || $this->showAttachmentModal || $this->showRestoreModal) {
+            return;
+        }
+        
+        // Allow normal component update - Livewire will re-render
     }
     
     // Helper methods to get cached collections

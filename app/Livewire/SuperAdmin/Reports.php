@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 class Reports extends Component
 {
     use WithPagination;
@@ -46,6 +47,7 @@ class Reports extends Component
     public $appliedCreatedTo = '';
     
     public $filtersActive = true; // Default to true since we filter by unresolved
+    public $excludeDeletedItems = true; // Default: exclude deleted items (automatically enabled)
     
     public $availableStatuses = [
         '0' => 'Unresolved',
@@ -56,6 +58,23 @@ class Reports extends Component
     {
         // Apply default filter on mount
         $this->applyFilters();
+    }
+    
+    /**
+     * Prevent polling from running when any modal is open
+     * This prevents the selected report/slip data from being overwritten
+     */
+    #[On('polling')]
+    public function polling()
+    {
+        // If any modal is open, skip polling
+        if ($this->showFilters || $this->showDetailsModal || $this->showRestoreModal || 
+            $this->showEditModal || $this->showAttachmentModal || $this->showDeleteConfirmation || 
+            $this->showSlipDeleteConfirmation) {
+            return;
+        }
+        
+        // Allow normal component update - Livewire will re-render
     }
     
     // Delete confirmation
@@ -145,7 +164,8 @@ class Reports extends Component
         $this->filtersActive = !is_null($this->appliedResolved) || 
                                !is_null($this->appliedReportType) ||
                                !empty($this->appliedCreatedFrom) || 
-                               !empty($this->appliedCreatedTo);
+                               !empty($this->appliedCreatedTo) ||
+                               $this->excludeDeletedItems;
         
         $this->showFilters = false;
         $this->resetPage();
@@ -192,6 +212,7 @@ class Reports extends Component
         $this->appliedCreatedFrom = '';
         $this->appliedCreatedTo = '';
         
+        $this->excludeDeletedItems = false;
         $this->filtersActive = false;
         $this->resetPage();
     }
@@ -1319,6 +1340,25 @@ class Reports extends Component
         
         if (!empty($this->appliedCreatedTo)) {
             $query->whereDate('created_at', '<=', $this->appliedCreatedTo);
+        }
+        
+        // Exclude deleted items filter
+        if ($this->excludeDeletedItems && !$this->showDeleted) {
+            // Exclude reports where related user or slip has been deleted
+            $query->whereHas('user', function ($q) {
+                $q->whereNull('deleted_at');
+            })
+            ->whereHas('slip', function ($q) {
+                $q->whereNull('deleted_at');
+            }, '>', 0);  // Reports can be slip-less (miscellaneous), but if they have a slip, it must not be deleted
+            
+            // Or if slip_id is null, that's fine (miscellaneous reports)
+            $query->where(function ($q) {
+                $q->whereNull('slip_id')
+                  ->orWhereHas('slip', function ($subQ) {
+                      $subQ->whereNull('deleted_at');
+                  });
+            });
         }
         
         // Sorting

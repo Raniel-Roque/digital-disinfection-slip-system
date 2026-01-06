@@ -75,6 +75,20 @@
                 <div class="mt-4 flex flex-wrap gap-2">
                     <span class="text-sm text-gray-600">Active filters:</span>
 
+                    @if ($excludeDeletedItems)
+                        <span
+                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Excluding reports with deleted items
+                            <button wire:click="$set('excludeDeletedItems', false)" class="ml-1.5 inline-flex items-center hover:cursor-pointer cursor-pointer">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </span>
+                    @endif
+
                     @if (!is_null($appliedResolved) && $appliedResolved !== '')
                         <span
                             class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -285,7 +299,7 @@
                                         @if ($report->user && !(method_exists($report->user, 'trashed') && $report->user->trashed()))
                                             &#64;{{ $report->user->username }}
                                         @elseif ($report->user)
-                                            &#64;{{ $report->user->username }} <span class="text-red-600 font-semibold">(Deleted)</span>
+                                            &#64;{{ $report->user->username }}
                                         @else
                                             <span class="text-gray-500 italic">@user-deleted</span>
                                         @endif
@@ -300,11 +314,9 @@
                                                     Slip: {{ $report->slip->slip_id ?? 'N/A' }}
                                                 </button>
                                             @elseif ($report->slip)
-                                                <span class="text-gray-900 font-semibold">Slip: {{ $report->slip->slip_id ?? $report->slip_id }}</span>
-                                                <span class="text-red-600 font-semibold"> (Deleted)</span>
+                                                <span class="text-gray-900 font-semibold">Slip: {{ $report->slip->slip_id ?? $report->slip_id }} <span class="text-gray-500 italic">(deleted)</span></span>
                                             @else
-                                                <span class="text-gray-900 font-semibold">Slip: {{ $report->slip_id }}</span>
-                                                <span class="text-red-600 font-semibold"> (Deleted)</span>
+                                                <span class="text-gray-900 font-semibold">Slip: {{ $report->slip_id }} <span class="text-gray-500 italic">(deleted)</span></span>
                                             @endif
                                         @else
                                             <span class="text-gray-500 italic">Miscellaneous</span>
@@ -505,15 +517,12 @@
                             <div class="font-semibold text-gray-500">Name:</div>
                             <div class="text-gray-900">
                                 @if ($selectedReport->user)
-                                {{ trim($selectedReport->user->first_name . ' ' . ($selectedReport->user->middle_name ?? '') . ' ' . $selectedReport->user->last_name) }}
-                                @if ($selectedReport->user->trashed())
-                                    <span class="text-red-600 font-semibold"> (Deleted)</span>
-                                @endif
+                                    {{ trim($selectedReport->user->first_name . ' ' . ($selectedReport->user->middle_name ?? '') . ' ' . $selectedReport->user->last_name) }}
+                                    @if ($selectedReport->user->trashed())
+                                        <span class="text-red-600 font-semibold"> (Deleted)</span>
+                                    @endif
                                     <div class="text-xs text-gray-500 mt-0.5">
                                         &#64;{{ $selectedReport->user->username }}
-                                        @if ($selectedReport->user->trashed())
-                                            <span class="text-red-600 font-semibold"> (Deleted)</span>
-                                        @endif
                                     </div>
                                 @else
                                     <span class="text-gray-500 italic">User Deleted</span>
@@ -530,11 +539,9 @@
                                     @if ($selectedReport->slip && !(method_exists($selectedReport->slip, 'trashed') && $selectedReport->slip->trashed()))
                                         <span class="text-blue-600 font-semibold">Slip: {{ $selectedReport->slip->slip_id ?? 'N/A' }}</span>
                                     @elseif ($selectedReport->slip)
-                                        <span class="text-gray-900 font-semibold">Slip: {{ $selectedReport->slip->slip_id ?? $selectedReport->slip_id }}</span>
-                                        <span class="text-red-600 font-semibold"> (Deleted)</span>
+                                        <span class="text-gray-900 font-semibold">Slip: {{ $selectedReport->slip->slip_id ?? $selectedReport->slip_id }} <span class="text-gray-500 italic">(deleted)</span></span>
                                     @else
-                                        <span class="text-gray-900 font-semibold">Slip: {{ $selectedReport->slip_id }}</span>
-                                        <span class="text-red-600 font-semibold"> (Deleted)</span>
+                                        <span class="text-gray-900 font-semibold">Slip: {{ $selectedReport->slip_id }} <span class="text-gray-500 italic">(deleted)</span></span>
                                     @endif
                                 @else
                                     <span class="text-gray-500 italic">Miscellaneous</span>
