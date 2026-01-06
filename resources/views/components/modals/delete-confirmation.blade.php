@@ -63,7 +63,7 @@
                 <div class="flex flex-col gap-2 w-full -mt-4 md:hidden">
                     <x-buttons.submit-button wire:click.prevent="{{ $onConfirm }}" color="red" wire:loading.attr="disabled" wire:target="{{ $onConfirm }}">
                         <span wire:loading.remove wire:target="{{ $onConfirm }}">{{ $confirmText }}</span>
-                        <span wire:loading wire:target="{{ $onConfirm }}">
+                        <span wire:loading.inline-flex wire:target="{{ $onConfirm }}">
                             <span class="inline-flex items-center gap-2">
                                 <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -86,7 +86,7 @@
                     </x-buttons.submit-button>
                     <x-buttons.submit-button wire:click.prevent="{{ $onConfirm }}" color="red" wire:loading.attr="disabled" wire:target="{{ $onConfirm }}">
                         <span wire:loading.remove wire:target="{{ $onConfirm }}">{{ $confirmText }}</span>
-                        <span wire:loading wire:target="{{ $onConfirm }}">
+                        <span wire:loading.inline-flex wire:target="{{ $onConfirm }}">
                             <span class="inline-flex items-center gap-2">
                                 <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
