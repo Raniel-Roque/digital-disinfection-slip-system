@@ -73,6 +73,21 @@
                         </span>
                     @endif
 
+                    @if (!is_null($appliedReportType))
+                        <span
+                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Type: {{ $appliedReportType === 'slip' ? 'Slip Reports' : 'Miscellaneous Reports' }}
+                            <button wire:click="removeFilter('report_type')"
+                                class="ml-1.5 inline-flex items-center hover:cursor-pointer">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </span>
+                    @endif
+
                     @if (!empty($appliedCreatedFrom))
                         <span
                             class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -204,6 +219,9 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">
                                         {{ trim($report->user->first_name . ' ' . ($report->user->middle_name ?? '') . ' ' . $report->user->last_name) }}
+                                    </div>
+                                    <div class="text-xs text-gray-500 mt-0.5">
+                                        @{{ $report->user->username }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -347,6 +365,7 @@
                             <div class="font-semibold text-gray-500">Name:</div>
                             <div class="text-gray-900">
                                 {{ trim($selectedReport->user->first_name . ' ' . ($selectedReport->user->middle_name ?? '') . ' ' . $selectedReport->user->last_name) }}
+                                <div class="text-xs text-gray-500 mt-0.5">@{{ $selectedReport->user->username }}</div>
                             </div>
                         </div>
 

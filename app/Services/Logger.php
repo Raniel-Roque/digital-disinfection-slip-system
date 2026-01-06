@@ -71,7 +71,7 @@ class Logger
         if ($locationId) {
             $changes['location_context'] = ['location_id' => $locationId];
         }
-
+        
         // Add any additional information
         if ($additionalInfo !== null) {
             $changes = array_merge($changes, $additionalInfo);

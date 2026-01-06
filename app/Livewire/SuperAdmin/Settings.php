@@ -157,10 +157,10 @@ class Settings extends Component
 
         // Only update password if a new one was provided
         if (!empty($this->default_guard_password)) {
-            Setting::updateOrCreate(
-                ['setting_name' => 'default_guard_password'],
-                ['value' => $this->default_guard_password]
-            );
+        Setting::updateOrCreate(
+            ['setting_name' => 'default_guard_password'],
+            ['value' => $this->default_guard_password]
+        );
         }
 
         Setting::updateOrCreate(
@@ -221,7 +221,7 @@ class Settings extends Component
         $this->original_attachment_retention_days = (string)$this->attachment_retention_days;
         // Keep the stored password value for comparison, but reset field to blank
         if ($passwordChanged) {
-            $this->original_default_guard_password = $this->default_guard_password;
+        $this->original_default_guard_password = $this->default_guard_password;
         }
         $this->default_guard_password = ''; // Reset field to blank for security
         $this->original_log_retention_months = (string)$this->log_retention_months;

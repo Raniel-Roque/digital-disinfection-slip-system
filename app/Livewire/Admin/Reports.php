@@ -598,20 +598,32 @@ class Reports extends Component
         // Search
         if (!empty($this->search)) {
             $searchTerm = trim($this->search);
-            $query->where(function ($q) use ($searchTerm) {
-                $q->whereHas('user', function ($userQuery) use ($searchTerm) {
-                      $userQuery->where('first_name', 'like', '%' . $searchTerm . '%')
-                                ->orWhere('last_name', 'like', '%' . $searchTerm . '%');
-                  })
-                  ->orWhereHas('slip', function ($slipQuery) use ($searchTerm) {
-                      $slipQuery->where('slip_id', 'like', '%' . $searchTerm . '%');
-                  })
-                  ->orWhere('id', 'like', '%' . $searchTerm . '%') // Search by report ID
-                  ->orWhere(function ($miscQuery) use ($searchTerm) {
-                      if (stripos($searchTerm, 'miscellaneous') !== false || stripos($searchTerm, 'misc') !== false) {
-                          $miscQuery->whereNull('slip_id');
-                      }
-                  });
+            $isUsernameSearch = str_starts_with($searchTerm, '@');
+            $actualSearchTerm = $isUsernameSearch ? substr($searchTerm, 1) : $searchTerm;
+
+            $query->where(function ($q) use ($searchTerm, $isUsernameSearch, $actualSearchTerm) {
+                if ($isUsernameSearch && !empty($actualSearchTerm)) {
+                    // If search starts with @, only search by username
+                    $q->whereHas('user', function ($userQuery) use ($actualSearchTerm) {
+                          $userQuery->where('username', 'like', '%' . $actualSearchTerm . '%');
+                      });
+                } else {
+                    // Regular search by name, slip, report ID, or misc
+                    $q->whereHas('user', function ($userQuery) use ($searchTerm) {
+                          $userQuery->where('first_name', 'like', '%' . $searchTerm . '%')
+                                    ->orWhere('last_name', 'like', '%' . $searchTerm . '%')
+                                    ->orWhere('username', 'like', '%' . $searchTerm . '%');
+                      })
+                      ->orWhereHas('slip', function ($slipQuery) use ($searchTerm) {
+                          $slipQuery->where('slip_id', 'like', '%' . $searchTerm . '%');
+                      })
+                      ->orWhere('id', 'like', '%' . $searchTerm . '%') // Search by report ID
+                      ->orWhere(function ($miscQuery) use ($searchTerm) {
+                          if (stripos($searchTerm, 'miscellaneous') !== false || stripos($searchTerm, 'misc') !== false) {
+                              $miscQuery->whereNull('slip_id');
+                          }
+                      });
+                }
             });
         }
         
@@ -1163,10 +1175,24 @@ class Reports extends Component
                         if (Storage::disk('public')->exists($attachment->file_path)) {
                             Storage::disk('public')->delete($attachment->file_path);
                         }
-                    }
 
-                    // Hard delete the attachment record (except BGC.png logo)
-                    if ($attachment->file_path !== 'images/logo/BGC.png') {
+                        // Log the attachment deletion
+                        $oldValues = [
+                            'file_path' => $attachment->file_path,
+                            'user_id' => $attachment->user_id,
+                            'disinfection_slip_id' => $this->selectedSlip->id,
+                            'slip_number' => $this->selectedSlip->slip_id,
+                        ];
+
+                        Logger::delete(
+                            Attachment::class,
+                            $attachment->id,
+                            "Deleted attachment/photo from disinfection slip {$this->selectedSlip->slip_id}",
+                            $oldValues,
+                            ['related_slip' => $this->selectedSlip->id]
+                        );
+
+                        // Hard delete the attachment record
                         $attachment->forceDelete();
                     }
                 }

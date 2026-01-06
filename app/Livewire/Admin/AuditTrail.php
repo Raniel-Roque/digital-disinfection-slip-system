@@ -94,8 +94,9 @@ class AuditTrail extends Component
         if (empty($this->sortColumns)) {
             $this->sortColumns = ['created_at' => 'desc'];
         }
-        
-        $this->resetPage();
+
+        // Don't reset page on sorting, only on filtering
+        // $this->resetPage();
     }
     
     public function getSortDirection($column)

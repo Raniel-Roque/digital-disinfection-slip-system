@@ -163,8 +163,10 @@
                             @endphp
                             <span
                                 class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                Hatchery Guard:
-                                {{ trim("{$guard->first_name} {$guard->middle_name} {$guard->last_name}") }}
+                                <div class="flex flex-col">
+                                    <span>Hatchery Guard: {{ trim("{$guard->first_name} {$guard->middle_name} {$guard->last_name}") }}</span>
+                                    <span class="text-[10px] text-blue-600">@{{ $guard->username }}</span>
+                                </div>
                                 <button wire:click="removeSpecificFilter('hatcheryGuard', {{ $guardId }})"
                                     class="ml-1.5 inline-flex items-center hover:cursor-pointer cursor-pointer">
                                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -184,8 +186,10 @@
                             @endphp
                             <span
                                 class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                Received Guard:
-                                {{ trim("{$guard->first_name} {$guard->middle_name} {$guard->last_name}") }}
+                                <div class="flex flex-col">
+                                    <span>Received Guard: {{ trim("{$guard->first_name} {$guard->middle_name} {$guard->last_name}") }}</span>
+                                    <span class="text-[10px] text-blue-600">@{{ $guard->username }}</span>
+                                </div>
                                 <button wire:click="removeSpecificFilter('receivedGuard', {{ $guardId }})"
                                     class="ml-1.5 inline-flex items-center hover:cursor-pointer cursor-pointer">
                                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -418,7 +422,7 @@
                                         </span>
                                     @elseif($slip->status == 2)
                                         <span
-                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                             In-Transit
                                         </span>
                                     @elseif($slip->status == 3)
@@ -426,6 +430,18 @@
                                             <span
                                                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                 Completed
+                                            </span>
+                                            @if ($slip->completed_at)
+                                                <div class="text-xs text-gray-500 mt-0.5">
+                                                    {{ \Carbon\Carbon::parse($slip->completed_at)->format('M d, Y h:i A') }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @elseif($slip->status == 4)
+                                        <div>
+                                            <span
+                                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                Incomplete
                                             </span>
                                             @if ($slip->completed_at)
                                                 <div class="text-xs text-gray-500 mt-0.5">

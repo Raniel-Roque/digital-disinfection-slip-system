@@ -3,7 +3,7 @@
     $isHatcheryAssigned = Auth::id() === $selectedSlip?->hatchery_guard_id;
     $isReceivingGuard = Auth::id() === $selectedSlip?->received_guard_id;
     $status = $selectedSlip?->status ?? null;
-    // Status: 0 = Pending, 1 = Disinfecting, 2 = In-Transit, 3 = Completed
+    // Status: 0 = Pending, 1 = Disinfecting, 2 = In-Transit, 3 = Completed, 4 = Incomplete
     
     // Header class based on status
     $headerClass = '';
@@ -12,9 +12,11 @@
     } elseif ($status == 1) {
         $headerClass = 'border-t-4 border-t-orange-500 bg-orange-50';
     } elseif ($status == 2) {
-        $headerClass = 'border-t-4 border-t-red-500 bg-red-50';
+        $headerClass = 'border-t-4 border-t-yellow-500 bg-yellow-50';
     } elseif ($status == 3) {
         $headerClass = 'border-t-4 border-t-green-500 bg-green-50';
+    } elseif ($status == 4) {
+        $headerClass = 'border-t-4 border-t-red-500 bg-red-50';
     }
 @endphp
 
@@ -117,7 +119,7 @@
                 </div>
 
                 {{-- Completion Date (only when completed) --}}
-                @if ($status == 3 && $selectedSlip->completed_at)
+                @if (($status == 3 || $status == 4) && $selectedSlip->completed_at)
                     <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
                         <div class="font-semibold text-gray-500">End Date:</div>
                         <div class="text-gray-900">
@@ -129,7 +131,7 @@
 
                 {{-- CAMERA WITH UPLOAD FUNCTIONALITY --}}
                 @if (!$isEditing)
-                    <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if ($status == 3 && $selectedSlip->completed_at) bg-gray-100 @else bg-white @endif">
+                    <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if (($status == 3 || $status == 4) && $selectedSlip->completed_at) bg-gray-100 @else bg-white @endif">
                         <div class="font-semibold text-gray-500">Photos:</div>
                         <div class="text-gray-900" x-data="{ 
                             showCameraModal: false,
@@ -346,7 +348,7 @@
                 @endif
 
                 {{-- Reason --}}
-                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if ($status == 3 && $selectedSlip->completed_at && !$isEditing) bg-white @elseif ($status == 3 && $selectedSlip->completed_at && $isEditing) bg-gray-100 @elseif ($isEditing) bg-white @else bg-gray-100 @endif">
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if (($status == 3 || $status == 4) && $selectedSlip->completed_at && !$isEditing) bg-white @elseif (($status == 3 || $status == 4) && $selectedSlip->completed_at && $isEditing) bg-gray-100 @elseif ($isEditing) bg-white @else bg-gray-100 @endif">
                     <div class="font-semibold text-gray-500">Reason:</div>
                     <div class="text-gray-900 wrap-break-words min-w-0" style="word-break: break-word; overflow-wrap: break-word;">
                         @if ($isEditing)
@@ -393,7 +395,7 @@
                 <div class="flex flex-col gap-2 w-full md:hidden">
                     {{-- Start Disinfecting Button (Outgoing Only: Status 0 -> 1) --}}
                     @if ($this->canStartDisinfecting())
-                        <x-buttons.submit-button wire:click="$set('showDisinfectingConfirmation', true)" color="orange" class="w-full">
+                        <x-buttons.submit-button wire:click="$set('showDisinfectingConfirmation', true)" color="red" class="w-full">
                             Start Disinfecting
                         </x-buttons.submit-button>
                     @endif
@@ -406,6 +408,13 @@
                             @else
                                 Complete Slip
                             @endif
+                        </x-buttons.submit-button>
+                    @endif
+
+                    {{-- Mark as Incomplete Button (Incoming only: Status 2 -> 1) --}}
+                    @if ($type === 'incoming' && $this->canComplete())
+                        <x-buttons.submit-button wire:click="$set('showIncompleteConfirmation', true)" color="red" class="w-full">
+                            Mark as Incomplete
                         </x-buttons.submit-button>
                     @endif
 
@@ -455,7 +464,7 @@
 
                         {{-- Start Disinfecting Button (Outgoing Only: Status 0 -> 1) --}}
                         @if ($this->canStartDisinfecting())
-                            <x-buttons.submit-button wire:click="$set('showDisinfectingConfirmation', true)" color="orange">
+                            <x-buttons.submit-button wire:click="$set('showDisinfectingConfirmation', true)" color="red">
                                 Start Disinfecting
                             </x-buttons.submit-button>
                         @endif
@@ -468,6 +477,13 @@
                                 @else
                                     Complete Slip
                                 @endif
+                            </x-buttons.submit-button>
+                        @endif
+
+                        {{-- Mark as Incomplete Button (Incoming only: Status 2 -> 1) --}}
+                        @if ($type === 'incoming' && $this->canComplete())
+                            <x-buttons.submit-button wire:click="$set('showIncompleteConfirmation', true)" color="red">
+                                Mark as Incomplete
                             </x-buttons.submit-button>
                         @endif
                 </div>
@@ -565,7 +581,7 @@
         <x-slot name="footer">
             {{-- Mobile Layout --}}
             <div class="flex flex-col gap-2 w-full -mt-4 md:hidden">
-                <x-buttons.submit-button wire:click="startDisinfecting" color="orange" wire:loading.attr="disabled" wire:target="startDisinfecting">
+                <x-buttons.submit-button wire:click="startDisinfecting" color="red" wire:loading.attr="disabled" wire:target="startDisinfecting">
                     <span wire:loading.remove wire:target="startDisinfecting">Yes, Start Disinfecting</span>
                     <span wire:loading.inline-flex wire:target="startDisinfecting" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Starting...
                     </span>
@@ -581,7 +597,7 @@
                 <x-buttons.submit-button wire:click="$set('showDisinfectingConfirmation', false)" color="white" wire:loading.attr="disabled" wire:target="startDisinfecting">
                     Cancel
                 </x-buttons.submit-button>
-                <x-buttons.submit-button wire:click="startDisinfecting" color="orange" wire:loading.attr="disabled" wire:target="startDisinfecting">
+                <x-buttons.submit-button wire:click="startDisinfecting" color="red" wire:loading.attr="disabled" wire:target="startDisinfecting">
                     <span wire:loading.remove wire:target="startDisinfecting">Yes, Start Disinfecting</span>
                     <span wire:loading.inline-flex wire:target="startDisinfecting" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Starting...
                     </span>
@@ -624,6 +640,41 @@
                 <x-buttons.submit-button wire:click="completeDisinfection" color="green" wire:loading.attr="disabled" wire:target="completeDisinfection">
                     <span wire:loading.remove wire:target="completeDisinfection">Yes, Complete</span>
                     <span wire:loading.inline-flex wire:target="completeDisinfection" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Completing...
+                    </span>
+                </x-buttons.submit-button>
+            </div>
+        </x-slot>
+    </x-modals.modal-template>
+
+    {{-- Mark as Incomplete Confirmation Modal (Incoming only) --}}
+    <x-modals.modal-template show="showIncompleteConfirmation" title="MARK AS INCOMPLETE?" max-width="max-w-md">
+        <div class="text-center py-4">
+            <p class="text-gray-700 mb-2">Mark this disinfection slip as incomplete?</p>
+            <p class="text-sm text-gray-600">This will reset the status to disinfecting and allow the process to be restarted.</p>
+        </div>
+
+        <x-slot name="footer">
+            {{-- Mobile Layout --}}
+            <div class="flex flex-col gap-2 w-full -mt-4 md:hidden">
+                <x-buttons.submit-button wire:click="markAsIncomplete" color="red" wire:loading.attr="disabled" wire:target="markAsIncomplete">
+                    <span wire:loading.remove wire:target="markAsIncomplete">Yes, Mark as Incomplete</span>
+                    <span wire:loading.inline-flex wire:target="markAsIncomplete" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Marking as Incomplete...
+                    </span>
+                </x-buttons.submit-button>
+
+                <x-buttons.submit-button wire:click="$set('showIncompleteConfirmation', false)" color="white" wire:loading.attr="disabled" wire:target="markAsIncomplete">
+                    Cancel
+                </x-buttons.submit-button>
+            </div>
+
+            {{-- Desktop Layout --}}
+            <div class="hidden md:flex justify-end gap-3">
+                <x-buttons.submit-button wire:click="$set('showIncompleteConfirmation', false)" color="white" wire:loading.attr="disabled" wire:target="markAsIncomplete">
+                    Cancel
+                </x-buttons.submit-button>
+                <x-buttons.submit-button wire:click="markAsIncomplete" color="red" wire:loading.attr="disabled" wire:target="markAsIncomplete">
+                    <span wire:loading.remove wire:target="markAsIncomplete">Yes, Mark as Incomplete</span>
+                    <span wire:loading.inline-flex wire:target="markAsIncomplete" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Marking as Incomplete...
                     </span>
                 </x-buttons.submit-button>
             </div>

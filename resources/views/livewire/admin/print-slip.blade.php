@@ -201,7 +201,7 @@
                         <span style="color: #dc2626; font-weight: bold;">(Deleted)</span>
                     @endif
                 @else
-                    <span style="color: #dc2626; font-weight: bold;">[Location] (Deleted)</span>
+                    <span style="color: #dc2626; font-weight: bold;">(Deleted)</span>
                 @endif
             </div>
         </div>
@@ -215,7 +215,7 @@
                         <span style="color: #dc2626; font-weight: bold;">(Deleted)</span>
                     @endif
                 @else
-                    <span style="color: #dc2626; font-weight: bold;">[Driver] (Deleted)</span>
+                    <span style="color: #dc2626; font-weight: bold;">(Deleted)</span>
                 @endif
             </div>
         </div>
@@ -237,7 +237,7 @@
                             @endif
                         </span>
                     @else
-                        <span class="signature-name" style="color: #dc2626; font-weight: bold;">[Guard] (Deleted)</span>
+                        <span class="signature-name">N/A</span>
                     @endif
                 </div>
             </div>

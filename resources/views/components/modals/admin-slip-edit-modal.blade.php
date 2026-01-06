@@ -17,7 +17,7 @@
 @php
     // Use editStatus if available, otherwise fall back to slipStatus
     $status = $editStatus ?? $slipStatus ?? null;
-    // Status: 0 = Pending, 1 = Disinfecting, 2 = In-Transit, 3 = Completed
+    // Status: 0 = Pending, 1 = Disinfecting, 2 = In-Transit, 3 = Completed, 4 = Incomplete
     
     // Header class based on status
     $headerClass = '';
@@ -26,9 +26,11 @@
     } elseif ($status == 1) {
         $headerClass = 'border-t-4 border-t-blue-500 bg-blue-50';     // Disinfecting - In Progress
     } elseif ($status == 2) {
-        $headerClass = 'border-t-4 border-t-orange-500 bg-orange-50';  // In-Transit - Transit State
+        $headerClass = 'border-t-4 border-t-yellow-500 bg-yellow-50';  // In-Transit - Transit State
     } elseif ($status == 3) {
         $headerClass = 'border-t-4 border-t-green-500 bg-green-50';    // Completed - Success
+    } elseif ($status == 4) {
+        $headerClass = 'border-t-4 border-t-red-500 bg-red-50';        // Incomplete - Issue State
     }
 @endphp
 
@@ -66,6 +68,7 @@
                         <option value="1">Disinfecting</option>
                         <option value="2">In-Transit</option>
                         <option value="3">Completed</option>
+                        <option value="4">Incomplete</option>
                     </select>
                     @error('editStatus')
                         <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>

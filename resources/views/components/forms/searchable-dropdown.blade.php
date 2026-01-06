@@ -198,7 +198,10 @@ $maxHeight = $maxShown * 40 . 'px';
                             :class="@if ($multiple) localSelection.includes(Number(value)) @else $wire.get('{{ $wireModel }}') == Number(value) @endif
                                 ? 'bg-blue-50 text-blue-700' : ''">
                             <div class="flex items-center justify-between">
-                                <span x-text="label"></span>
+                                <div>
+                                    <div x-text="label.split(' @')[0]"></div>
+                                    <div x-show="label.includes(' @')" class="text-xs text-gray-500" x-text="'@' + label.split(' @')[1]"></div>
+                                </div>
                                 @if ($multiple)
                                     <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20"
                                         x-show="localSelection.includes(Number(value))" style="display: none;">

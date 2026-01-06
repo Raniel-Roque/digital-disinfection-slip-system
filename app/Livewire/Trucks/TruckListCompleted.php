@@ -26,14 +26,16 @@ class TruckListCompleted extends Component
     public $filterPlateNumber = [];
     public $filterCompletedFrom = '';
     public $filterCompletedTo = '';
-    
+    public $filterStatus = 'all';
+
     // Applied filters
     public $appliedDestination = [];
     public $appliedDriver = [];
     public $appliedPlateNumber = [];
     public $appliedCompletedFrom = null;
     public $appliedCompletedTo = null;
-    
+    public $appliedStatus = 'all';
+
     public $filtersActive = false;
     public $sortDirection = null; // null, 'asc', 'desc' (applied)
     public $filterSortDirection = null; // null, 'asc', 'desc' (temporary, in filter modal)
@@ -46,6 +48,7 @@ class TruckListCompleted extends Component
     public function mount()
     {
         $this->filterSortDirection = $this->sortDirection; // Initialize filter sort with current sort
+        $this->appliedStatus = $this->appliedStatus ?: 'all'; // Ensure appliedStatus defaults to 'all'
         $this->checkFiltersActive();
     }
 
@@ -128,6 +131,7 @@ class TruckListCompleted extends Component
         $this->appliedPlateNumber = $this->filterPlateNumber;
         $this->appliedCompletedFrom = $this->filterCompletedFrom;
         $this->appliedCompletedTo = $this->filterCompletedTo;
+        $this->appliedStatus = $this->filterStatus ?: 'all';
         $this->sortDirection = $this->filterSortDirection;
         
         $this->checkFiltersActive();
@@ -142,6 +146,7 @@ class TruckListCompleted extends Component
         $this->filterPlateNumber = [];
         $this->filterCompletedFrom = '';
         $this->filterCompletedTo = '';
+        $this->filterStatus = 'all';
         $this->filterSortDirection = null;
         
         $this->appliedDestination = [];
@@ -149,6 +154,7 @@ class TruckListCompleted extends Component
         $this->appliedPlateNumber = [];
         $this->appliedCompletedFrom = null;
         $this->appliedCompletedTo = null;
+        $this->appliedStatus = 'all';
         $this->sortDirection = null;
         
         $this->checkFiltersActive();
@@ -179,7 +185,7 @@ class TruckListCompleted extends Component
                 $this->appliedCompletedTo = null;
                 break;
         }
-        
+
         $this->checkFiltersActive();
         $this->resetPage();
     }
@@ -212,11 +218,17 @@ class TruckListCompleted extends Component
                               !empty($this->appliedPlateNumber) ||
                               !empty($this->appliedCompletedFrom) ||
                               !empty($this->appliedCompletedTo) ||
+                              ($this->appliedStatus !== 'all' && $this->appliedStatus !== null) ||
                               ($this->sortDirection !== null && $this->sortDirection !== 'desc');
     }
     
     public function render()
     {
+        // Ensure appliedStatus is properly initialized
+        if (!$this->appliedStatus || $this->appliedStatus === []) {
+            $this->appliedStatus = 'all';
+        }
+
         $location = Session::get('location_id');
 
         $query = DisinfectionSlip::with([
@@ -239,15 +251,15 @@ class TruckListCompleted extends Component
                 $q->withTrashed();
             }
         ])
-            // COMPLETED ONLY - Only show slips received/completed by the current user
-            ->where('status', 3)
+            // COMPLETED & INCOMPLETE - Show slips based on user permissions
+            ->whereIn('status', [3, 4])
             ->where(function($query) use ($location) {
                 // Outgoing: show if created by current user
                 $query->where(function($q) use ($location) {
                     $q->where('location_id', $location)
                       ->where('hatchery_guard_id', Auth::id());
                 })
-                // Incoming: show if received/completed by current user
+                // Incoming: show if received by current user (for both completed and incomplete slips)
                 ->orWhere(function($q) use ($location) {
                     $q->where('destination_id', $location)
                       ->where('received_guard_id', Auth::id());
@@ -280,7 +292,11 @@ class TruckListCompleted extends Component
             ->when($this->appliedCompletedTo, function($q) {
                 $q->whereDate('completed_at', '<=', $this->appliedCompletedTo);
             })
-            
+            ->when(in_array($this->appliedStatus, ['completed', 'incomplete']), function($q) {
+                $statusValue = $this->appliedStatus === 'completed' ? 3 : 4;
+                $q->where('status', $statusValue);
+            })
+
             // SORT
             ->when($this->sortDirection === 'asc', function($q) {
                 $q->orderBy('completed_at', 'asc');

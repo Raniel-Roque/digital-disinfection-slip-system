@@ -1,6 +1,6 @@
 @php
     $status = $selectedSlip?->status ?? null;
-    // Status: 0 = Pending, 1 = Disinfecting, 2 = In-Transit, 3 = Completed
+    // Status: 0 = Pending, 1 = Disinfecting, 2 = In-Transit, 3 = Completed, 4 = Incomplete
     
     // Header class based on status
     $headerClass = '';
@@ -9,9 +9,11 @@
     } elseif ($status == 1) {
         $headerClass = 'border-t-4 border-t-blue-500 bg-blue-50';     // Disinfecting - In Progress
     } elseif ($status == 2) {
-        $headerClass = 'border-t-4 border-t-orange-500 bg-orange-50';  // In-Transit - Transit State
+        $headerClass = 'border-t-4 border-t-yellow-500 bg-yellow-50';  // In-Transit - Transit State
     } elseif ($status == 3) {
         $headerClass = 'border-t-4 border-t-green-500 bg-green-50';    // Completed - Success
+    } elseif ($status == 4) {
+        $headerClass = 'border-t-4 border-t-red-500 bg-red-50';        // Incomplete - Issue State
     }
 @endphp
 

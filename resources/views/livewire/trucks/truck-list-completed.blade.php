@@ -3,8 +3,8 @@
     {{-- Simple Header --}}
     <div class="mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Completed Trucks</h1>
-            <p class="text-gray-600 text-sm mt-1">View all completed disinfection slips</p>
+            <h1 class="text-2xl font-bold text-gray-900">Completed & Incomplete Trucks</h1>
+            <p class="text-gray-600 text-sm mt-1">View all completed and incomplete disinfection slips</p>
         </div>
     </div>
 
@@ -50,6 +50,83 @@
     <x-modals.filter-modal>
         <x-slot name="filters">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {{-- Status Filter --}}
+                <div x-data="{
+                    open: false,
+                    options: {'all': 'All', 'completed': 'Completed', 'incomplete': 'Incomplete'},
+                    selected: @entangle('filterStatus').live,
+                    placeholder: 'Select status',
+                    get displayText() {
+                        if (this.selected === null || this.selected === undefined || this.selected === '') {
+                            return this.placeholder;
+                        }
+                        return this.options[this.selected] || this.placeholder;
+                    },
+                    closeDropdown() {
+                        this.open = false;
+                    },
+                    handleFocusIn(event) {
+                        const target = event.target;
+                        const container = $refs.statusDropdownContainer;
+                        if (this.open && !container.contains(target)) {
+                            if (target.tagName === 'INPUT' ||
+                                target.tagName === 'SELECT' ||
+                                target.tagName === 'TEXTAREA' ||
+                                (target.tagName === 'BUTTON' && target.closest('[x-data]') && !container.contains(target.closest('[x-data]')))) {
+                                this.closeDropdown();
+                            }
+                        }
+                    }
+                }" x-ref="statusDropdownContainer" @click.outside="closeDropdown()"
+                    @focusin.window="handleFocusIn($event)">
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-sm font-medium text-gray-700">Status</label>
+                        <button type="button" wire:click="$set('filterStatus', 'all')"
+                            x-show="selected !== 'all' && selected !== null && selected !== ''"
+                            class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                            Clear
+                        </button>
+                    </div>
+
+                    <div class="relative">
+                        <button type="button" x-on:click="open = !open"
+                            class="inline-flex justify-between w-full px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500"
+                            :class="{ 'ring-2 ring-blue-500': open }">
+                            <span :class="{ 'text-gray-400': selected === null || selected === undefined || selected === '' }">
+                                <span x-text="displayText"></span>
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 ml-2 -mr-1 transition-transform"
+                                :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd"
+                                    d="M6.293 9.293a1 1 0 011.414 0L10 11.586l2.293-2.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <div x-show="open" x-transition:enter="transition ease-out duration-100"
+                            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-75" x-transition:leave-start="opacity-100 scale-100"
+                            x-transition:leave-end="opacity-0 scale-95"
+                            class="absolute right-0 mt-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 p-1 space-y-1 z-50"
+                            style="display: none;" x-cloak @click.stop>
+                            <template x-for="[value, label] in Object.entries(options)" :key="value">
+                                <a href="#"
+                                    @click.prevent="
+                                        selected = value;
+                                        closeDropdown();
+                                    "
+                                    class="block px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 active:bg-blue-100 cursor-pointer rounded-md transition-colors"
+                                    :class="{
+                                        'bg-blue-50 text-blue-700': selected === value
+                                    }">
+                                    <span x-text="label"></span>
+                                </a>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Plate Number Filter --}}
                 <div x-data="{ filterValue: @entangle('filterPlateNumber') }">
                     <div class="flex items-center justify-between mb-1">
@@ -97,25 +174,65 @@
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <label class="block text-sm font-medium text-gray-700">From Date</label>
-                        <button type="button" wire:click="$set('filterCompletedFrom', null)" wire:target="filterCompletedFrom"
+                        <button type="button" wire:click="$set('filterCompletedFrom', '')"
+                            x-show="$wire.filterCompletedFrom"
                             class="text-xs text-blue-600 hover:text-blue-800 font-medium">
                             Clear
                         </button>
                     </div>
                     <input type="date" wire:model.live="filterCompletedFrom"
-                        class="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500">
+                        x-ref="fromDateInput"
+                        @input="
+                            const toInput = $refs.toDateInput;
+                            const today = '<?php echo date('Y-m-d'); ?>';
+                            if (toInput) {
+                                // Set To Date min to From Date
+                                toInput.min = $el.value || '';
+                                // Clear To Date if it's before the new From Date
+                                if (toInput.value && $el.value && toInput.value < $el.value) {
+                                    toInput.value = '';
+                                    $wire.set('filterCompletedTo', '');
+                                }
+                                // Validate From Date doesn't exceed To Date
+                                if (toInput.value && $el.value && $el.value > toInput.value) {
+                                    $el.value = '';
+                                    $wire.set('filterCompletedFrom', '');
+                                }
+                            }
+                        "
+                        :max="$wire.filterCompletedTo || '<?php echo date('Y-m-d'); ?>'"
+                        class="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500">
                 </div>
 
                 {{-- To Date Input --}}
                 <div>
                     <div class="flex items-center justify-between mb-1">
                         <label class="block text-sm font-medium text-gray-700">To Date</label>
-                        <button type="button" wire:click="$set('filterCompletedTo', null)" wire:target="filterCompletedTo"
+                        <button type="button" wire:click="$set('filterCompletedTo', '')"
+                            x-show="$wire.filterCompletedTo"
                             class="text-xs text-blue-600 hover:text-blue-800 font-medium">
                             Clear
                         </button>
                     </div>
                     <input type="date" wire:model.live="filterCompletedTo"
+                        x-ref="toDateInput"
+                        @input="
+                            const fromInput = $refs.fromDateInput;
+                            if (fromInput) {
+                                // Clear From Date if it exceeds the new To Date
+                                if (fromInput.value && $el.value && fromInput.value > $el.value) {
+                                    fromInput.value = '';
+                                    $wire.set('filterCompletedFrom', '');
+                                }
+                                // Clear To Date if it's before From Date
+                                if (fromInput.value && $el.value && $el.value < fromInput.value) {
+                                    $el.value = '';
+                                    $wire.set('filterCompletedTo', '');
+                                }
+                            }
+                        "
+                        :min="$wire.filterCompletedFrom || ''"
+                        max="<?php echo date('Y-m-d'); ?>"
                         class="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500">
                 </div>
             </div>
@@ -160,8 +277,9 @@
                 $statusMap = [
                     0 => ['label' => 'Pending', 'color' => 'border-gray-500 bg-gray-50'],
                     1 => ['label' => 'Disinfecting', 'color' => 'border-orange-500 bg-orange-50'],
-                    2 => ['label' => 'In-Transit', 'color' => 'border-red-500 bg-red-50'],
+                    2 => ['label' => 'In-Transit', 'color' => 'border-yellow-500 bg-yellow-50'],
                     3 => ['label' => 'Completed', 'color' => 'border-green-500 bg-green-50'],
+                    4 => ['label' => 'Incomplete', 'color' => 'border-red-500 bg-red-50'],
                 ];
                 $status = $slip->status;
             @endphp
@@ -179,22 +297,22 @@
 
                     {{-- Date/Time --}}
                     @if ($slip->completed_at)
-                        @php
-                            $completedDate = \Carbon\Carbon::parse($slip->completed_at);
-                            $isToday = $completedDate->isToday();
-                        @endphp
-                        <div class="flex items-center gap-1 text-xs">
-                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <span class="text-gray-600">
-                                @if ($isToday)
-                                    {{ $completedDate->format('h:i A') }}
-                                @else
-                                    {{ $completedDate->format('M d, Y') }}
-                                @endif
-                            </span>
-                        </div>
+                    @php
+                        $completedDate = \Carbon\Carbon::parse($slip->completed_at);
+                        $isToday = $completedDate->isToday();
+                    @endphp
+                    <div class="flex items-center gap-1 text-xs">
+                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span class="text-gray-600">
+                            @if ($isToday)
+                                {{ $completedDate->format('h:i A') }}
+                            @else
+                                {{ $completedDate->format('M d, Y') }}
+                            @endif
+                        </span>
+                    </div>
                     @endif
                 </div>
 
@@ -205,8 +323,9 @@
                         class="px-2 py-0.5 text-[10px] font-semibold rounded-full whitespace-nowrap
                         {{ $status === 0 ? 'bg-gray-100 text-gray-700' : '' }}
                         {{ $status === 1 ? 'bg-orange-100 text-orange-700' : '' }}
-                        {{ $status === 2 ? 'bg-red-100 text-red-700' : '' }}
-                        {{ $status === 3 ? 'bg-green-100 text-green-700' : '' }}">
+                        {{ $status === 2 ? 'bg-yellow-100 text-yellow-700' : '' }}
+                        {{ $status === 3 ? 'bg-green-100 text-green-700' : '' }}
+                        {{ $status === 4 ? 'bg-red-100 text-red-700' : '' }}">
                         {{ $statusMap[$status]['label'] }}
                     </span>
                 </div>

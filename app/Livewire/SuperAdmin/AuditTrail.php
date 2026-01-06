@@ -33,7 +33,7 @@ class AuditTrail extends Component
     // Applied filters
     public $appliedAction = [];
     public $appliedModelType = [];
-    public $appliedUserType = [];
+    public $appliedUserType = null;
     public $appliedCreatedFrom = '';
     public $appliedCreatedTo = '';
     
@@ -72,7 +72,7 @@ class AuditTrail extends Component
         $this->filterUserType = [];
         $this->appliedAction = [];
         $this->appliedModelType = [];
-        $this->appliedUserType = [];
+        $this->appliedUserType = null;
     }
     
     public function applySort($column)
@@ -97,8 +97,9 @@ class AuditTrail extends Component
         if (empty($this->sortColumns)) {
             $this->sortColumns = ['created_at' => 'desc'];
         }
-        
-        $this->resetPage();
+
+        // Don't reset page on sorting, only on filtering
+        // $this->resetPage();
     }
     
     public function getSortDirection($column)
@@ -113,13 +114,13 @@ class AuditTrail extends Component
         $this->appliedUserType = $this->filterUserType;
         $this->appliedCreatedFrom = $this->filterCreatedFrom;
         $this->appliedCreatedTo = $this->filterCreatedTo;
-        
-        $this->filtersActive = !empty($this->appliedAction) || 
-                               !empty($this->appliedModelType) || 
-                               !empty($this->appliedUserType) || 
-                               !empty($this->appliedCreatedFrom) || 
+
+        $this->filtersActive = !empty($this->appliedAction) ||
+                               !empty($this->appliedModelType) ||
+                               !is_null($this->appliedUserType) ||
+                               !empty($this->appliedCreatedFrom) ||
                                !empty($this->appliedCreatedTo);
-        
+
         $this->showFilters = false;
         $this->resetPage();
     }
@@ -136,8 +137,8 @@ class AuditTrail extends Component
                 $this->filterModelType = [];
                 break;
             case 'user_type':
-                $this->appliedUserType = [];
-                $this->filterUserType = [];
+                $this->appliedUserType = null;
+                $this->filterUserType = null;
                 break;
             case 'created_from':
                 $this->appliedCreatedFrom = '';
@@ -149,15 +150,15 @@ class AuditTrail extends Component
                 break;
         }
         
-        $this->filtersActive = !empty($this->appliedAction) || 
-                               !empty($this->appliedModelType) || 
-                               !is_null($this->appliedUserType) || 
-                               !empty($this->appliedCreatedFrom) || 
+        $this->filtersActive = !empty($this->appliedAction) ||
+                               !empty($this->appliedModelType) ||
+                               !is_null($this->appliedUserType) ||
+                               !empty($this->appliedCreatedFrom) ||
                                !empty($this->appliedCreatedTo);
-        
+
         $this->resetPage();
     }
-    
+
     public function removeSpecificFilter($filterName, $value)
     {
         switch ($filterName) {
@@ -172,13 +173,18 @@ class AuditTrail extends Component
             case 'user_type':
                 $this->appliedUserType = array_values(array_filter($this->appliedUserType, fn($v) => $v != $value)); // Use != to handle string/int conversion
                 $this->filterUserType = array_values(array_filter($this->filterUserType, fn($v) => $v != $value));
+                // If array becomes empty, set to null
+                if (empty($this->appliedUserType)) {
+                    $this->appliedUserType = null;
+                    $this->filterUserType = null;
+                }
                 break;
         }
         
-        $this->filtersActive = !empty($this->appliedAction) || 
-                               !empty($this->appliedModelType) || 
-                               !empty($this->appliedUserType) || 
-                               !empty($this->appliedCreatedFrom) || 
+        $this->filtersActive = !empty($this->appliedAction) ||
+                               !empty($this->appliedModelType) ||
+                               !is_null($this->appliedUserType) ||
+                               !empty($this->appliedCreatedFrom) ||
                                !empty($this->appliedCreatedTo);
         
         $this->resetPage();
@@ -196,7 +202,7 @@ class AuditTrail extends Component
         
         $this->appliedAction = [];
         $this->appliedModelType = [];
-        $this->appliedUserType = [];
+        $this->appliedUserType = null;
         $this->appliedCreatedFrom = '';
         $this->appliedCreatedTo = '';
         

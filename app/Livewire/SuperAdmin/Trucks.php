@@ -88,6 +88,7 @@ class Trucks extends Component
         1 => 'Disinfecting',
         2 => 'In-Transit',
         3 => 'Completed',
+        4 => 'Incomplete',
     ];
 
     // Details Modal
@@ -223,7 +224,7 @@ class Trucks extends Component
                 ->get()
                 ->mapWithKeys(function ($user) {
                     $name = trim("{$user->first_name} {$user->middle_name} {$user->last_name}");
-                    return [$user->id => $name];
+                    return [$user->id => "{$name} @{$user->username}"];
                 });
         }
         return $this->cachedGuards;
@@ -248,7 +249,7 @@ class Trucks extends Component
             $users = $this->getFilterGuardsCollection();
             $this->cachedFilterGuards = $users->mapWithKeys(function ($user) {
                 $name = trim("{$user->first_name} {$user->middle_name} {$user->last_name}");
-                return [$user->id => $name];
+                return [$user->id => "{$name} @{$user->username}"];
             });
         }
         return $this->cachedFilterGuards;
@@ -1924,6 +1925,25 @@ class Trucks extends Component
                     if (Storage::disk('public')->exists($attachment->file_path)) {
                         Storage::disk('public')->delete($attachment->file_path);
                     }
+
+                    // Log the attachment deletion
+                    $oldValues = [
+                        'file_path' => $attachment->file_path,
+                        'user_id' => $attachment->user_id,
+                        'disinfection_slip_id' => $this->selectedSlip->id,
+                        'slip_number' => $this->selectedSlip->slip_number,
+                    ];
+
+                    Logger::delete(
+                        Attachment::class,
+                        $attachment->id,
+                        "Deleted attachment/photo from disinfection slip {$this->selectedSlip->slip_number}",
+                        $oldValues,
+                        ['related_slip' => $this->selectedSlip->id]
+                    );
+
+                    // Hard delete the attachment record
+                    $attachment->forceDelete();
                 }
 
                 // Remove attachment ID from array
@@ -1933,11 +1953,6 @@ class Trucks extends Component
                 $this->selectedSlip->update([
                     'attachment_ids' => empty($attachmentIds) ? null : $attachmentIds,
                 ]);
-
-                // Hard delete the attachment record (except BGC.png logo)
-                if ($attachment->file_path !== 'images/logo/BGC.png') {
-                    $attachment->forceDelete();
-                }
             }
 
             // Refresh the slip

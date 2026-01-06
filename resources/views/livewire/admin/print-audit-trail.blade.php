@@ -156,6 +156,15 @@
 
     @php
         $defaultLogo = \App\Models\Setting::where('setting_name', 'default_location_logo')->value('value') ?? 'images/logo/BGC.png';
+        $modelTypes = [
+            'App\\Models\\DisinfectionSlip' => 'Disinfection Slip',
+            'App\\Models\\User' => 'User',
+            'App\\Models\\Driver' => 'Driver',
+            'App\\Models\\Location' => 'Location',
+            'App\\Models\\Truck' => 'Truck',
+            'App\\Models\\Setting' => 'Setting',
+            'App\\Models\\Report' => 'Report',
+        ];
     @endphp
     <div class="header">
         <img src="{{ asset('storage/' . $defaultLogo) }}" alt="Farm Logo" class="header-logo">
@@ -174,7 +183,9 @@
                 @endif
 
                 @if (!empty($filters['model_type']))
-                    <p><strong>Model Types:</strong> {{ implode(', ', $filters['model_type']) }}</p>
+                    <p><strong>Model Types:</strong> {{ implode(', ', array_map(function($type) use ($modelTypes) {
+                        return $modelTypes[$type] ?? $type;
+                    }, $filters['model_type'])) }}</p>
                 @endif
 
                 @if (!empty($filters['user_type']))
@@ -249,15 +260,6 @@
                     </td>
                     <td>{{ ucfirst($log['action'] ?? 'N/A') }}</td>
                     <td>
-                        @php
-                            $modelTypes = [
-                                'App\\Models\\DisinfectionSlip' => 'Disinfection Slip',
-                                'App\\Models\\User' => 'User',
-                                'App\\Models\\Driver' => 'Driver',
-                                'App\\Models\\Truck' => 'Truck',
-                                'App\\Models\\Location' => 'Location',
-                            ];
-                        @endphp
                         {{ $modelTypes[$log['model_type']] ?? ($log['model_type'] ?? 'N/A') }}
                     </td>
                     <td>{{ $log['description'] ?? 'N/A' }}</td>

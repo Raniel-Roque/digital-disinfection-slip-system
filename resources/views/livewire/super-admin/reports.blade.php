@@ -274,6 +274,9 @@
                                     <div class="text-sm text-gray-900">
                                         {{ trim($report->user->first_name . ' ' . ($report->user->middle_name ?? '') . ' ' . $report->user->last_name) }}
                                     </div>
+                                    <div class="text-xs text-gray-500 mt-0.5">
+                                        @{{ $report->user->username }}
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-semibold text-gray-900">
@@ -489,6 +492,7 @@
                             <div class="font-semibold text-gray-500">Name:</div>
                             <div class="text-gray-900">
                                 {{ trim($selectedReport->user->first_name . ' ' . ($selectedReport->user->middle_name ?? '') . ' ' . $selectedReport->user->last_name) }}
+                                <div class="text-xs text-gray-500 mt-0.5">@{{ $selectedReport->user->username }}</div>
                             </div>
                         </div>
 

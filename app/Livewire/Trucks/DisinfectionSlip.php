@@ -25,6 +25,7 @@ class DisinfectionSlip extends Component
     public $showDeleteConfirmation = false;
     public $showDisinfectingConfirmation = false;
     public $showCompleteConfirmation = false;
+    public $showIncompleteConfirmation = false;
     public $showRemoveAttachmentConfirmation = false;
     public $showReportModal = false;
     public $selectedSlip = null;
@@ -212,11 +213,16 @@ class DisinfectionSlip extends Component
             return false;
         }
 
-        // Can edit ONLY on OUTGOING, except when Completed (3)
+        // SuperAdmin can edit any slip
+        if (Auth::user()->user_type == 2) {
+            return true;
+        }
+
+        // Can edit ONLY on OUTGOING, except when Completed (3) or Incomplete (4)
         return $this->type === 'outgoing'
-            && Auth::id() === $this->selectedSlip->hatchery_guard_id 
+            && Auth::id() === $this->selectedSlip->hatchery_guard_id
             && $this->selectedSlip->location_id === Session::get('location_id')
-            && $this->selectedSlip->status != 3;
+            && !in_array($this->selectedSlip->status, [3, 4]);
     }
 
     public function canStartDisinfecting()
@@ -253,7 +259,17 @@ class DisinfectionSlip extends Component
                 && $this->selectedSlip->location_id === $currentLocation;
         }
 
-        // Can complete on INCOMING when status is In-Transit (2) - only if claimed by current user or unclaimed
+        // Can complete on INCOMING when status is In-Transit (2)
+        // Guards can only complete unclaimed slips or slips they claimed
+        // SuperAdmins can complete any slip at their location
+        if (Auth::user()->user_type === 2) {
+            return $this->type === 'incoming'
+                && $this->selectedSlip->status == 2
+                && $this->selectedSlip->destination_id === $currentLocation
+                && $this->selectedSlip->location_id !== $currentLocation;
+        }
+
+        // Regular guards: only if claimed by current user or unclaimed
         return $this->type === 'incoming'
             && $this->selectedSlip->status == 2
             && $this->selectedSlip->destination_id === $currentLocation
@@ -267,11 +283,16 @@ class DisinfectionSlip extends Component
             return false;
         }
 
-        // Can delete ONLY on OUTGOING, except when Completed (3)
+        // SuperAdmin can delete any slip
+        if (Auth::user()->user_type == 2) {
+            return true;
+        }
+
+        // Can delete ONLY on OUTGOING, except when Completed (3) or Incomplete (4)
         return $this->type === 'outgoing'
-            && Auth::id() === $this->selectedSlip->hatchery_guard_id 
+            && Auth::id() === $this->selectedSlip->hatchery_guard_id
             && $this->selectedSlip->location_id === Session::get('location_id')
-            && $this->selectedSlip->status != 3;
+            && !in_array($this->selectedSlip->status, [3, 4]);
     }
 
     public function getHasChangesProperty()
@@ -462,6 +483,50 @@ class DisinfectionSlip extends Component
             $this->showCompleteConfirmation = false;
             $this->dispatch('toast', message: "{$slipId} has been completed.", type: 'success');
         }
+
+        // Refresh the slip with relationships
+        $this->selectedSlip->refresh();
+        $this->selectedSlip->load([
+            'truck',
+            'location',
+            'destination',
+            'driver',
+            'hatcheryGuard',
+            'receivedGuard'
+        ]);
+
+        $this->dispatch('slip-updated');
+    }
+
+    public function markAsIncomplete()
+    {
+        // Authorization check using canComplete (same logic for incoming slips)
+        if (!$this->canComplete() || $this->type !== 'incoming') {
+            $this->dispatch('toast', message: 'You are not authorized to mark this disinfection as incomplete.', type: 'error');
+            return;
+        }
+
+        // For INCOMING only: Status 2 (In-Transit) -> 4 (Incomplete)
+        // Keep received_guard_id so incomplete slips show to the user who received them
+        $oldReceivedGuardId = $this->selectedSlip->received_guard_id;
+        $this->selectedSlip->update([
+            'status' => 4, // Incomplete
+            'completed_at' => now(), // Set completion timestamp for incomplete status
+        ]);
+
+        $slipId = $this->selectedSlip->slip_id;
+
+        // Log the mark as incomplete action
+        Logger::update(
+            DisinfectionSlipModel::class,
+            $this->selectedSlip->id,
+            "Marked slip {$slipId} as incomplete",
+            ['status' => 2, 'received_guard_id' => $oldReceivedGuardId, 'completed_at' => $this->selectedSlip->completed_at],
+            ['status' => 4, 'received_guard_id' => $oldReceivedGuardId, 'completed_at' => now()]
+        );
+
+        $this->showIncompleteConfirmation = false;
+        $this->dispatch('toast', message: "{$slipId} has been marked as incomplete.", type: 'warning');
 
         // Refresh the slip with relationships
         $this->selectedSlip->refresh();
@@ -699,6 +764,7 @@ class DisinfectionSlip extends Component
         $this->showDeleteConfirmation = false;
         $this->showDisinfectingConfirmation = false;
         $this->showCompleteConfirmation = false;
+        $this->showIncompleteConfirmation = false;
         $this->showReportModal = false;
         $this->reportDescription = '';
         $this->originalValues = [];
@@ -904,8 +970,25 @@ class DisinfectionSlip extends Component
                     'attachment_ids' => empty($attachmentIds) ? null : $attachmentIds,
                 ]);
 
-                // Hard delete the attachment record (except BGC.png logo)
+                // Log the attachment deletion (except BGC.png logo)
                 if ($attachment->file_path !== 'images/logo/BGC.png') {
+                    // Capture old values for logging
+                    $oldValues = [
+                        'file_path' => $attachment->file_path,
+                        'user_id' => $attachment->user_id,
+                        'disinfection_slip_id' => $this->selectedSlip->id,
+                        'slip_number' => $this->selectedSlip->slip_number,
+                    ];
+
+                    Logger::delete(
+                        Attachment::class,
+                        $attachment->id,
+                        "Deleted attachment/photo from disinfection slip {$this->selectedSlip->slip_number}",
+                        $oldValues,
+                        ['related_slip' => $this->selectedSlip->id]
+                    );
+
+                    // Hard delete the attachment record
                     $attachment->forceDelete();
                 }
 
@@ -951,8 +1034,8 @@ class DisinfectionSlip extends Component
                 return;
             }
 
-            // For INCOMING: Set received_guard_id if not already set
-            if ($this->type === 'incoming' && !$this->selectedSlip->received_guard_id) {
+            // For INCOMING: Set received_guard_id if not already set (only for actual guards, not superadmins)
+            if ($this->type === 'incoming' && !$this->selectedSlip->received_guard_id && Auth::user()->user_type === 0) {
                 $this->selectedSlip->update([
                     'received_guard_id' => Auth::id(),
                 ]);
