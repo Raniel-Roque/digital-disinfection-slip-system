@@ -253,7 +253,7 @@
                             @endif
                         </span>
                     @else
-                        <span class="signature-name" style="color: #dc2626; font-weight: bold;">[Guard] (Deleted)</span>
+                        <span class="signature-name">N/A</span>
                     @endif
                     <span class="signature-subtext">Guard CG/AG</span>
                 </div>
