@@ -111,7 +111,7 @@
                                 </label>
                                 <input type="text" id="default_guard_password" wire:model="default_guard_password"
                                     class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-900 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="brookside25">
+                                    placeholder="Default Password">
                                 <p class="text-xs text-gray-600 leading-relaxed">
                                     This password will be used when creating new guards or resetting guard passwords.
                                 </p>

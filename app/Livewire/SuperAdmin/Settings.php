@@ -54,7 +54,8 @@ class Settings extends Component
         $softDeletedRetention = Setting::where('setting_name', 'soft_deleted_retention_months')->first();
 
         $this->attachment_retention_days = $attachmentRetention ? $attachmentRetention->value : '30';
-        $this->default_guard_password = $defaultPassword ? $defaultPassword->value : 'brookside25';
+        // Don't populate the password field for security reasons - keep it blank
+        $this->default_guard_password = '';
         $this->default_location_logo = $defaultLogo ? $defaultLogo->value : 'images/logo/BGC.png';
         $this->log_retention_months = $logRetention ? $logRetention->value : '3';
         $this->resolved_reports_retention_months = $resolvedReportsRetention ? $resolvedReportsRetention->value : '3';
@@ -63,7 +64,8 @@ class Settings extends Component
         
         // Store original values for change detection
         $this->original_attachment_retention_days = $this->attachment_retention_days;
-        $this->original_default_guard_password = $this->default_guard_password;
+        // Store the actual stored password for change detection, but keep field blank
+        $this->original_default_guard_password = $defaultPassword ? $defaultPassword->value : 'brookside25';
         $this->original_log_retention_months = $this->log_retention_months;
         $this->original_resolved_reports_retention_months = $this->resolved_reports_retention_months;
         $this->original_soft_deleted_retention_months = $this->soft_deleted_retention_months;
@@ -72,7 +74,8 @@ class Settings extends Component
     public function getHasChangesProperty()
     {
         $attachmentChanged = (string)$this->original_attachment_retention_days !== (string)$this->attachment_retention_days;
-        $passwordChanged = $this->original_default_guard_password !== $this->default_guard_password;
+        // Password changed only if user entered a new non-empty password
+        $passwordChanged = !empty($this->default_guard_password) && $this->original_default_guard_password !== $this->default_guard_password;
         $logRetentionChanged = (string)$this->original_log_retention_months !== (string)$this->log_retention_months;
         $resolvedReportsRetentionChanged = (string)$this->original_resolved_reports_retention_months !== (string)$this->resolved_reports_retention_months;
         $softDeletedRetentionChanged = (string)$this->original_soft_deleted_retention_months !== (string)$this->soft_deleted_retention_months;
@@ -85,8 +88,6 @@ class Settings extends Component
     {
         $this->default_logo_file = null;
         $this->resetValidation('default_logo_file');
-        // Update original to current path so change detection works correctly
-        $this->original_default_guard_password = $this->default_guard_password;
     }
 
     public function updateSettings()
@@ -98,7 +99,7 @@ class Settings extends Component
 
         $this->validate([
             'attachment_retention_days' => ['required', 'integer', 'min:1', 'max:365'],
-            'default_guard_password' => ['required', 'string', 'min:6', 'max:255'],
+            'default_guard_password' => ['nullable', 'string', 'min:6', 'max:255'],
             'log_retention_months' => ['required', 'integer', 'min:1', 'max:120'],
             'resolved_reports_retention_months' => ['required', 'integer', 'min:1', 'max:120'],
             'soft_deleted_retention_months' => ['required', 'integer', 'min:1', 'max:120'],
@@ -108,7 +109,6 @@ class Settings extends Component
             'attachment_retention_days.integer' => 'Attachment retention days must be a number.',
             'attachment_retention_days.min' => 'Attachment retention days must be at least 1 day.',
             'attachment_retention_days.max' => 'Attachment retention days cannot exceed 365 days.',
-            'default_guard_password.required' => 'Default guard password is required.',
             'default_guard_password.min' => 'Default guard password must be at least 6 characters.',
             'log_retention_months.required' => 'Log retention months is required.',
             'log_retention_months.integer' => 'Log retention months must be a number.',
@@ -128,7 +128,7 @@ class Settings extends Component
 
         // Check if there are any changes (excluding logo file which is handled separately)
         $attachmentChanged = (string)$this->original_attachment_retention_days !== (string)$this->attachment_retention_days;
-        $passwordChanged = $this->original_default_guard_password !== $this->default_guard_password;
+        $passwordChanged = !empty($this->default_guard_password) && $this->original_default_guard_password !== $this->default_guard_password;
         $logRetentionChanged = (string)$this->original_log_retention_months !== (string)$this->log_retention_months;
         $resolvedReportsRetentionChanged = (string)$this->original_resolved_reports_retention_months !== (string)$this->resolved_reports_retention_months;
         $softDeletedRetentionChanged = (string)$this->original_soft_deleted_retention_months !== (string)$this->soft_deleted_retention_months;
@@ -142,7 +142,7 @@ class Settings extends Component
         // Capture old values for logging
         $oldSettings = [
             'attachment_retention_days' => Setting::where('setting_name', 'attachment_retention_days')->value('value'),
-            'default_guard_password' => Setting::where('setting_name', 'default_guard_password')->value('value'),
+            'default_guard_password' => $passwordChanged ? Setting::where('setting_name', 'default_guard_password')->value('value') : '[UNCHANGED]',
             'default_location_logo' => Setting::where('setting_name', 'default_location_logo')->value('value'),
             'log_retention_months' => Setting::where('setting_name', 'log_retention_months')->value('value'),
             'resolved_reports_retention_months' => Setting::where('setting_name', 'resolved_reports_retention_months')->value('value'),
@@ -155,10 +155,13 @@ class Settings extends Component
             ['value' => (string)$this->attachment_retention_days]
         );
 
-        Setting::updateOrCreate(
-            ['setting_name' => 'default_guard_password'],
-            ['value' => $this->default_guard_password]
-        );
+        // Only update password if a new one was provided
+        if (!empty($this->default_guard_password)) {
+            Setting::updateOrCreate(
+                ['setting_name' => 'default_guard_password'],
+                ['value' => $this->default_guard_password]
+            );
+        }
 
         Setting::updateOrCreate(
             ['setting_name' => 'log_retention_months'],
@@ -199,7 +202,7 @@ class Settings extends Component
         // Log the settings update
         $newSettings = [
             'attachment_retention_days' => (string)$this->attachment_retention_days,
-            'default_guard_password' => $this->default_guard_password,
+            'default_guard_password' => $passwordChanged ? $this->default_guard_password : '[UNCHANGED]',
             'default_location_logo' => $this->default_location_logo,
             'log_retention_months' => (string)$this->log_retention_months,
             'resolved_reports_retention_months' => (string)$this->resolved_reports_retention_months,
@@ -216,7 +219,11 @@ class Settings extends Component
 
         // Update original values after successful save
         $this->original_attachment_retention_days = (string)$this->attachment_retention_days;
-        $this->original_default_guard_password = $this->default_guard_password;
+        // Keep the stored password value for comparison, but reset field to blank
+        if ($passwordChanged) {
+            $this->original_default_guard_password = $this->default_guard_password;
+        }
+        $this->default_guard_password = ''; // Reset field to blank for security
         $this->original_log_retention_months = (string)$this->log_retention_months;
         $this->original_resolved_reports_retention_months = (string)$this->resolved_reports_retention_months;
         $this->original_soft_deleted_retention_months = (string)$this->soft_deleted_retention_months;
