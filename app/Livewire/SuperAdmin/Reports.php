@@ -305,6 +305,17 @@ class Reports extends Component
         return $this->selectedReport->slip_id ? 'slip' : 'misc';
     }
     
+    public function getSelectedSlipAttachmentsProperty()
+    {
+        if (!$this->selectedSlip || empty($this->selectedSlip->attachment_ids)) {
+            return collect([]);
+        }
+        
+        return Attachment::whereIn('id', $this->selectedSlip->attachment_ids)
+            ->with(['user' => function($q) { $q->withTrashed(); }])
+            ->get();
+    }
+    
     public function closeDetailsModal()
     {
         $this->showDetailsModal = false;
@@ -906,8 +917,7 @@ class Reports extends Component
             'destination' => function($q) { $q->withTrashed(); },
             'driver' => function($q) { $q->withTrashed(); },
             'hatcheryGuard' => function($q) { $q->withTrashed(); },
-            'receivedGuard' => function($q) { $q->withTrashed(); },
-            'attachments.user' => function($q) { $q->withTrashed(); }
+            'receivedGuard' => function($q) { $q->withTrashed(); }
         ])->find($this->selectedSlip->id);
 
         $slipId = $this->selectedSlip->slip_id;
