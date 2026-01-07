@@ -224,13 +224,13 @@
                                     $uploader = $attachment->user;
                                     if ($uploader) {
                                         $uploaderName = trim($uploader->first_name . ' ' . ($uploader->middle_name ?? '') . ' ' . $uploader->last_name);
-                                        if ($uploader->trashed()) {
+                                        if (method_exists($uploader, 'trashed') && $uploader->trashed()) {
                                             $uploaderName .= ' (Deleted)';
                                         }
                                         $uploaderUsername = $uploader->username;
                                     } else {
-                                        $uploaderName = 'Deleted User';
-                                        $uploaderUsername = 'user-deleted';
+                                        $uploaderName = '(Deleted)';
+                                        $uploaderUsername = '';
                                     }
                                 @endphp
                                 <div class="w-full shrink-0 px-2 sm:px-4 py-2 sm:py-4 flex flex-col" style="min-width: 100%">
@@ -242,7 +242,9 @@
                                         <div class="text-center mt-2 sm:mt-3 text-xs sm:text-sm text-gray-600">
                                             <span class="font-semibold">Uploaded by:</span> 
                                             <span class="text-gray-800">{{ $uploaderName }}</span>
-                                            <span class="text-gray-500">(&#64;{{ $uploaderUsername }})</span>
+                                            @if($uploaderUsername)
+                                                <span class="text-gray-500">(&#64;{{ $uploaderUsername }})</span>
+                                            @endif
                                         </div>
                                     @else
                                         <div class="text-center p-4 sm:p-8">
@@ -257,7 +259,9 @@
                                             <div class="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600">
                                                 <span class="font-semibold">Uploaded by:</span> 
                                                 <span class="text-gray-800">{{ $uploaderName }}</span>
-                                                <span class="text-gray-500">(&#64;{{ $uploaderUsername }})</span>
+                                                @if($uploaderUsername)
+                                                    <span class="text-gray-500">(&#64;{{ $uploaderUsername }})</span>
+                                                @endif
                                             </div>
                                         </div>
                                     @endif
@@ -321,8 +325,8 @@
 
             <x-slot name="footer">
                 <div class="flex justify-between items-center w-full flex-wrap gap-2">
-                    {{-- Delete Current Photo Button (only if user can manage attachments AND (uploaded the current photo OR is admin/superadmin)) --}}
-                    @if (($canManage || $isAdminOrSuperAdmin) && $totalAttachments > 0 && !in_array($status, [3, 4]))                        
+                    {{-- Delete Current Photo Button --}}
+                    @if ($totalAttachments > 0)
                         @php
                             $attachmentsData = $attachments->map(fn($a) => ['id' => $a->id, 'user_id' => $a->user_id])->values()->all();
                         @endphp
@@ -331,14 +335,18 @@
                             currentUserId: @js($currentUserId),
                             isAdminOrSuperAdmin: @js($isAdminOrSuperAdmin),
                             canManage: @js($canManage),
+                            status: @js($status),
                             getCurrentAttachment() {
                                 const index = $wire.get('currentAttachmentIndex');
                                 return this.attachments[index] || null;
                             },
                             canShowDelete() {
                                 const attachment = this.getCurrentAttachment();
-                                // Admin/SuperAdmin can delete any photo, or user can delete their own photo if they have manage permission
-                                return attachment && (this.isAdminOrSuperAdmin || (this.canManage && attachment.user_id === this.currentUserId));
+                                // SuperAdmin can always delete
+                                if (this.isAdminOrSuperAdmin) return true;
+                                // Admin can only delete if not completed/incomplete
+                                if (this.canManage && this.status !== 3 && this.status !== 4 && attachment && attachment.user_id === this.currentUserId) return true;
+                                return false;
                             },
                             deleteCurrentPhoto() {
                                 const attachment = this.getCurrentAttachment();
