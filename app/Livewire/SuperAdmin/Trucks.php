@@ -211,7 +211,17 @@ class Trucks extends Component
             return;
         }
         
-        // Allow normal component update - Livewire will re-render
+        // If a slip is selected, reload it with trashed relations
+        if ($this->selectedSlip) {
+            $this->selectedSlip = DisinfectionSlipModel::with([
+                'truck' => function($q) { $q->withTrashed(); },
+                'location' => function($q) { $q->withTrashed(); },
+                'destination' => function($q) { $q->withTrashed(); },
+                'driver' => function($q) { $q->withTrashed(); },
+                'hatcheryGuard' => function($q) { $q->withTrashed(); },
+                'receivedGuard' => function($q) { $q->withTrashed(); }
+            ])->find($this->selectedSlip->id);
+        }
     }
     
     // Helper methods to get cached collections
@@ -1081,6 +1091,17 @@ class Trucks extends Component
 
         $this->showDetailsModal = true;
     }
+    
+    public function getSelectedSlipAttachmentsProperty()
+    {
+        if (!$this->selectedSlip || empty($this->selectedSlip->attachment_ids)) {
+            return collect([]);
+        }
+        
+        return Attachment::whereIn('id', $this->selectedSlip->attachment_ids)
+            ->with(['user' => function($q) { $q->withTrashed(); }])
+            ->get();
+    }
 
     public function canEdit()
     {
@@ -1934,7 +1955,7 @@ class Trucks extends Component
 
     public function nextAttachment()
     {
-        $attachments = $this->selectedSlip->attachments();
+        $attachments = $this->selectedSlipAttachments;
         if ($this->currentAttachmentIndex < $attachments->count() - 1) {
             $this->currentAttachmentIndex++;
         }
@@ -2017,7 +2038,7 @@ class Trucks extends Component
             $this->selectedSlip->refresh();
 
             // Adjust current index if needed
-            $attachments = $this->selectedSlip->attachments();
+            $attachments = $this->selectedSlipAttachments;
             if ($this->currentAttachmentIndex >= $attachments->count() && $attachments->count() > 0) {
                 $this->currentAttachmentIndex = $attachments->count() - 1;
             } elseif ($attachments->count() === 0) {
