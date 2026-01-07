@@ -221,10 +221,7 @@
                                     if ($uploader) {
                                         $uploaderName = trim($uploader->first_name . ' ' . ($uploader->middle_name ?? '') . ' ' . $uploader->last_name);
                                         $uploaderUsername = $uploader->username;
-<<<<<<< HEAD
-=======
                                         $isUploaderDeleted = method_exists($uploader, 'trashed') && $uploader->trashed();
->>>>>>> 3bbe4c596f8a8936d87c3131ea61ddaa2169889d
                                     } else {
                                         $uploaderName = null;
                                         $uploaderUsername = null;
@@ -239,12 +236,8 @@
                                         {{-- Uploaded By Information --}}
                                         <div class="text-center mt-2 sm:mt-3 text-xs sm:text-sm text-gray-600">
                                             <span class="font-semibold">Uploaded by:</span> 
-                                            @if($uploader)
+                                            @if($uploaderName && $uploaderUsername)
                                                 <span class="text-gray-800">{{ $uploaderName }}</span>
-<<<<<<< HEAD
-                                                <span class="text-gray-500">(&#64;{{ $uploaderUsername }})</span>
-                                                @if(method_exists($uploader, 'trashed') && $uploader->trashed())
-=======
                                                 <span class="text-gray-500">&#64;{{ $uploaderUsername }}</span>
                                                 @if($isUploaderDeleted)
                                                     <span class="text-red-600 font-semibold"> (Deleted)</span>
@@ -252,7 +245,6 @@
                                             @elseif($uploaderName)
                                                 <span class="text-gray-800">{{ $uploaderName }}</span>
                                                 @if($isUploaderDeleted)
->>>>>>> 3bbe4c596f8a8936d87c3131ea61ddaa2169889d
                                                     <span class="text-red-600 font-semibold"> (Deleted)</span>
                                                 @endif
                                             @else
@@ -271,12 +263,8 @@
                                             {{-- Uploaded By Information for non-images --}}
                                             <div class="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600">
                                                 <span class="font-semibold">Uploaded by:</span> 
-                                                @if($uploader)
+                                                @if($uploaderName && $uploaderUsername)
                                                     <span class="text-gray-800">{{ $uploaderName }}</span>
-<<<<<<< HEAD
-                                                    <span class="text-gray-500">(&#64;{{ $uploaderUsername }})</span>
-                                                    @if(method_exists($uploader, 'trashed') && $uploader->trashed())
-=======
                                                     <span class="text-gray-500">&#64;{{ $uploaderUsername }}</span>
                                                     @if($isUploaderDeleted)
                                                         <span class="text-red-600 font-semibold"> (Deleted)</span>
@@ -284,7 +272,6 @@
                                                 @elseif($uploaderName)
                                                     <span class="text-gray-800">{{ $uploaderName }}</span>
                                                     @if($isUploaderDeleted)
->>>>>>> 3bbe4c596f8a8936d87c3131ea61ddaa2169889d
                                                         <span class="text-red-600 font-semibold"> (Deleted)</span>
                                                     @endif
                                                 @else
