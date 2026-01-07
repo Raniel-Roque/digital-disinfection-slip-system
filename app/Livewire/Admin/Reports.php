@@ -62,6 +62,7 @@ class Reports extends Component
     public $attachmentFile = null;
     public $currentAttachmentIndex = 0;
     public $showRemoveAttachmentConfirmation = false;
+    public $attachmentToDelete = null;
 
     public function getSelectedSlipAttachmentsProperty()
     {
@@ -1266,8 +1267,9 @@ class Reports extends Component
         return !empty($attachmentIds);
     }
     
-    public function confirmRemoveAttachment()
+    public function confirmRemoveAttachment($attachmentId)
     {
+        $this->attachmentToDelete = $attachmentId;
         $this->showRemoveAttachmentConfirmation = true;
     }
     
@@ -1279,63 +1281,77 @@ class Reports extends Component
                 return;
             }
 
-            // Get current attachment IDs
-            $attachmentIds = $this->selectedSlip->attachment_ids ?? [];
-            
-            if (empty($attachmentIds)) {
-                $this->dispatch('toast', message: 'No attachments found to remove.', type: 'error');
+            if (!$this->attachmentToDelete) {
+                $this->dispatch('toast', message: 'No attachment specified to remove.', type: 'error');
                 return;
             }
 
-            // Delete all attachments
-            foreach ($attachmentIds as $attachmentId) {
-                $attachment = Attachment::find($attachmentId);
-                
-                if ($attachment) {
-                    // Delete the physical file from storage (except BGC.png logo)
-                    if ($attachment->file_path !== 'images/logo/BGC.png') {
-                        if (Storage::disk('public')->exists($attachment->file_path)) {
-                            Storage::disk('public')->delete($attachment->file_path);
-                        }
-
-                        // Log the attachment deletion
-                        $oldValues = [
-                            'file_path' => $attachment->file_path,
-                            'user_id' => $attachment->user_id,
-                            'disinfection_slip_id' => $this->selectedSlip->id,
-                            'slip_number' => $this->selectedSlip->slip_id,
-                        ];
-
-                        Logger::delete(
-                            Attachment::class,
-                            $attachment->id,
-                            "Deleted attachment/photo from disinfection slip {$this->selectedSlip->slip_id}",
-                            $oldValues,
-                            ['related_slip' => $this->selectedSlip->id]
-                        );
-
-                        // Hard delete the attachment record
-                        $attachment->forceDelete();
-                    }
-                }
+            // Get current attachment IDs
+            $attachmentIds = $this->selectedSlip->attachment_ids ?? [];
+            
+            if (empty($attachmentIds) || !in_array($this->attachmentToDelete, $attachmentIds)) {
+                $this->dispatch('toast', message: 'Attachment not found.', type: 'error');
+                return;
             }
 
-            // Remove all attachment references from slip
-            $this->selectedSlip->update([
-                'attachment_ids' => null,
-            ]);
+            // Get the attachment record
+            $attachment = Attachment::find($this->attachmentToDelete);
+
+            if ($attachment) {
+                // Delete the physical file from storage (except BGC.png logo)
+                if ($attachment->file_path !== 'images/logo/BGC.png') {
+                    if (Storage::disk('public')->exists($attachment->file_path)) {
+                        Storage::disk('public')->delete($attachment->file_path);
+                    }
+
+                    // Log the attachment deletion
+                    $oldValues = [
+                        'file_path' => $attachment->file_path,
+                        'user_id' => $attachment->user_id,
+                        'disinfection_slip_id' => $this->selectedSlip->id,
+                        'slip_number' => $this->selectedSlip->slip_id,
+                    ];
+
+                    Logger::delete(
+                        Attachment::class,
+                        $attachment->id,
+                        "Deleted attachment/photo from disinfection slip {$this->selectedSlip->slip_id}",
+                        $oldValues,
+                        ['related_slip' => $this->selectedSlip->id]
+                    );
+
+                    // Hard delete the attachment record
+                    $attachment->forceDelete();
+                }
+
+                // Remove attachment ID from array
+                $attachmentIds = array_values(array_filter($attachmentIds, fn($id) => $id != $this->attachmentToDelete));
+
+                // Update slip with remaining attachment IDs (or null if empty)
+                $this->selectedSlip->update([
+                    'attachment_ids' => empty($attachmentIds) ? null : $attachmentIds,
+                ]);
+            }
 
             // Refresh the slip
             $this->selectedSlip->refresh();
 
-            // Close attachment modal and confirmation
-            $this->showAttachmentModal = false;
+            // Adjust current index if needed
+            $attachments = $this->selectedSlipAttachments;
+            if ($this->currentAttachmentIndex >= $attachments->count() && $attachments->count() > 0) {
+                $this->currentAttachmentIndex = $attachments->count() - 1;
+            } elseif ($attachments->count() === 0) {
+                // No more attachments, close modal
+                $this->showAttachmentModal = false;
+                $this->currentAttachmentIndex = 0;
+            }
+
+            // Close confirmation modal
             $this->showRemoveAttachmentConfirmation = false;
-            $this->attachmentFile = null;
+            $this->attachmentToDelete = null;
 
             $slipId = $this->selectedSlip->slip_id;
-            $attachmentCount = count($attachmentIds);
-            $this->dispatch('toast', message: "{$slipId}'s {$attachmentCount} attachment(s) have been removed.", type: 'success');
+            $this->dispatch('toast', message: "Attachment has been removed from {$slipId}.", type: 'success');
 
         } catch (\Exception $e) {
             Log::error('Attachment removal error: ' . $e->getMessage());

@@ -2049,15 +2049,9 @@ class Trucks extends Component
             // Refresh the slip
             $this->selectedSlip->refresh();
 
-            // Adjust current index if needed
-            $attachments = $this->selectedSlipAttachments;
-            if ($this->currentAttachmentIndex >= $attachments->count() && $attachments->count() > 0) {
-                $this->currentAttachmentIndex = $attachments->count() - 1;
-            } elseif ($attachments->count() === 0) {
-                // No more attachments, close modal
-                $this->showAttachmentModal = false;
-                $this->currentAttachmentIndex = 0;
-            }
+            // After deletion, close the attachment modal to avoid stale client-side indices.
+            $this->showAttachmentModal = false;
+            $this->currentAttachmentIndex = 0;
 
             // Close confirmation modal
             $this->showRemoveAttachmentConfirmation = false;
