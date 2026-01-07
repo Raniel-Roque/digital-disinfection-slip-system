@@ -73,8 +73,52 @@ class Reports extends Component
             $this->showSlipDeleteConfirmation) {
             return;
         }
-        
-        // Allow normal component update - Livewire will re-render
+
+        // If a slip is selected, reload it with trashed relations
+        if ($this->selectedSlip) {
+            $this->selectedSlip = DisinfectionSlipModel::with([
+                'truck' => function($q) { $q->withTrashed(); },
+                'location' => function($q) { $q->withTrashed(); },
+                'destination' => function($q) { $q->withTrashed(); },
+                'driver' => function($q) { $q->withTrashed(); },
+                'hatcheryGuard' => function($q) { $q->withTrashed(); },
+                'receivedGuard' => function($q) { $q->withTrashed(); }
+            ])->find($this->selectedSlip->id);
+        }
+        // If a report is selected, reload it with slip and slip's trashed relations
+        if ($this->selectedReport) {
+            $this->selectedReport = $this->showDeleted
+                ? Report::onlyTrashed()->with([
+                    'user' => function($q) { $q->withTrashed(); },
+                    'slip' => function($q) {
+                        $q->withTrashed();
+                        $q->with([
+                            'truck' => function($q) { $q->withTrashed(); },
+                            'location' => function($q) { $q->withTrashed(); },
+                            'destination' => function($q) { $q->withTrashed(); },
+                            'driver' => function($q) { $q->withTrashed(); },
+                            'hatcheryGuard' => function($q) { $q->withTrashed(); },
+                            'receivedGuard' => function($q) { $q->withTrashed(); }
+                        ]);
+                    },
+                    'resolvedBy' => function($q) { $q->withTrashed(); }
+                ])->find($this->selectedReport->id)
+                : Report::with([
+                    'user' => function($q) { $q->withTrashed(); },
+                    'slip' => function($q) {
+                        $q->withTrashed();
+                        $q->with([
+                            'truck' => function($q) { $q->withTrashed(); },
+                            'location' => function($q) { $q->withTrashed(); },
+                            'destination' => function($q) { $q->withTrashed(); },
+                            'driver' => function($q) { $q->withTrashed(); },
+                            'hatcheryGuard' => function($q) { $q->withTrashed(); },
+                            'receivedGuard' => function($q) { $q->withTrashed(); }
+                        ]);
+                    },
+                    'resolvedBy' => function($q) { $q->withTrashed(); }
+                ])->find($this->selectedReport->id);
+        }
     }
     
     // Delete confirmation
@@ -221,26 +265,34 @@ class Reports extends Component
     {
         $this->selectedReport = $this->showDeleted
             ? Report::onlyTrashed()->with([
-                'user' => function($q) {
-                    $q->withTrashed();
-                },
+                'user' => function($q) { $q->withTrashed(); },
                 'slip' => function($q) {
                     $q->withTrashed();
+                    $q->with([
+                        'truck' => function($q) { $q->withTrashed(); },
+                        'location' => function($q) { $q->withTrashed(); },
+                        'destination' => function($q) { $q->withTrashed(); },
+                        'driver' => function($q) { $q->withTrashed(); },
+                        'hatcheryGuard' => function($q) { $q->withTrashed(); },
+                        'receivedGuard' => function($q) { $q->withTrashed(); }
+                    ]);
                 },
-                'resolvedBy' => function($q) {
-                    $q->withTrashed();
-                }
+                'resolvedBy' => function($q) { $q->withTrashed(); }
             ])->findOrFail($reportId)
             : Report::with([
-                'user' => function($q) {
-                    $q->withTrashed();
-                },
+                'user' => function($q) { $q->withTrashed(); },
                 'slip' => function($q) {
                     $q->withTrashed();
+                    $q->with([
+                        'truck' => function($q) { $q->withTrashed(); },
+                        'location' => function($q) { $q->withTrashed(); },
+                        'destination' => function($q) { $q->withTrashed(); },
+                        'driver' => function($q) { $q->withTrashed(); },
+                        'hatcheryGuard' => function($q) { $q->withTrashed(); },
+                        'receivedGuard' => function($q) { $q->withTrashed(); }
+                    ]);
                 },
-                'resolvedBy' => function($q) {
-                    $q->withTrashed();
-                }
+                'resolvedBy' => function($q) { $q->withTrashed(); }
             ])->findOrFail($reportId);
         $this->showDetailsModal = true;
     }

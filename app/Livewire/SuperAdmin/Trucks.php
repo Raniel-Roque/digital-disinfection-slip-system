@@ -1197,6 +1197,17 @@ class Trucks extends Component
 
     public function cancelEdit()
     {
+        // Re-fetch selectedSlip with withTrashed() to preserve deleted relations after cancel
+        if ($this->selectedSlip && $this->selectedSlip->id) {
+            $this->selectedSlip = DisinfectionSlipModel::with([
+                'truck' => function($q) { $q->withTrashed(); },
+                'location' => function($q) { $q->withTrashed(); },
+                'destination' => function($q) { $q->withTrashed(); },
+                'driver' => function($q) { $q->withTrashed(); },
+                'hatcheryGuard' => function($q) { $q->withTrashed(); },
+                'receivedGuard' => function($q) { $q->withTrashed(); }
+            ])->find($this->selectedSlip->id);
+        }
         $this->resetEditForm();
         $this->showCancelEditConfirmation = false;
         $this->showEditModal = false;
