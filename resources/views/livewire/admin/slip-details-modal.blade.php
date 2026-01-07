@@ -357,10 +357,11 @@
                             },
                             canShowDelete() {
                                 const attachment = this.getCurrentAttachment();
-                                // SuperAdmin can always delete
+                                // SuperAdmin can always delete regardless of status
                                 if (this.isAdminOrSuperAdmin) return true;
-                                // Admin can only delete if not completed/incomplete
-                                if (this.canManage && this.status !== 3 && this.status !== 4 && attachment && attachment.user_id === this.currentUserId) return true;
+                                // Admin can only delete if they uploaded it and slip is not completed/incomplete
+                                if (this.status === 3 || this.status === 4) return false;
+                                if (this.canManage && attachment && attachment.user_id === this.currentUserId) return true;
                                 return false;
                             },
                             deleteCurrentPhoto() {

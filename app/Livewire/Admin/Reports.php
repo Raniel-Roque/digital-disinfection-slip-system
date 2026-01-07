@@ -458,6 +458,9 @@ class Reports extends Component
     
     public function openDetailsModal($reportId)
     {
+        // Set modal state FIRST to prevent polling from interfering
+        $this->showDetailsModal = true;
+        
         $this->selectedReport = Report::with([
             'user' => function($q) {
                 $q->withTrashed();
@@ -465,11 +468,10 @@ class Reports extends Component
             'slip' => function($q) {
                 $q->withTrashed();
             },
-            'resolvedBy' => function($q) {
-                $q->withTrashed();
-            }
+                'resolvedBy' => function($q) {
+                    $q->withTrashed();
+                }
         ])->find($reportId);
-        $this->showDetailsModal = true;
     }
         
     public function closeDetailsModal()
@@ -484,8 +486,10 @@ class Reports extends Component
     public function openSlipDetailsModal($slipId)
     {
         // Close report details modal if open
-        $this->showDetailsModal = false;
         $this->selectedReport = null;
+        
+        // Set modal state FIRST to prevent polling from interfering
+        $this->showDetailsModal = true;
         
         $this->selectedSlip = DisinfectionSlipModel::with([
             'truck' => function($q) { $q->withTrashed(); },
@@ -493,11 +497,8 @@ class Reports extends Component
             'destination' => function($q) { $q->withTrashed(); },
             'driver' => function($q) { $q->withTrashed(); },
             'hatcheryGuard' => function($q) { $q->withTrashed(); },
-            'receivedGuard' => function($q) { $q->withTrashed(); },
-            'attachments.user' => function($q) { $q->withTrashed(); }
+            'receivedGuard' => function($q) { $q->withTrashed(); }
         ])->find($slipId);
-        
-        $this->showDetailsModal = true;
     }
 
     public function confirmDeleteSlip()

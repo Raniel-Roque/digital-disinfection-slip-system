@@ -317,6 +317,9 @@ class Reports extends Component
     
     public function openDetailsModal($reportId)
     {
+        // Set modal state FIRST to prevent polling from interfering
+        $this->showDetailsModal = true;
+        
         $this->selectedReport = $this->showDeleted
             ? Report::onlyTrashed()->with([
                 'user' => function($q) { $q->withTrashed(); },
@@ -348,7 +351,6 @@ class Reports extends Component
                 },
                 'resolvedBy' => function($q) { $q->withTrashed(); }
             ])->findOrFail($reportId);
-        $this->showDetailsModal = true;
     }
     
     public function getReportTypeProperty()
@@ -382,8 +384,10 @@ class Reports extends Component
     public function openSlipDetailsModal($slipId)
     {
         // Close report details modal if open
-        $this->showDetailsModal = false;
         $this->selectedReport = null;
+        
+        // Set modal state FIRST to prevent polling from interfering
+        $this->showDetailsModal = true;
         
         $this->selectedSlip = DisinfectionSlipModel::with([
             'truck' => function($q) { $q->withTrashed(); },
@@ -393,8 +397,6 @@ class Reports extends Component
             'hatcheryGuard' => function($q) { $q->withTrashed(); },
             'receivedGuard' => function($q) { $q->withTrashed(); }
         ])->find($slipId);
-        
-        $this->showDetailsModal = true;
     }
 
     public function confirmDeleteSlip()
