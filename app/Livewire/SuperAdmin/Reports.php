@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
+use Illuminate\Support\Facades\Cache;
 class Reports extends Component
 {
     use WithPagination;
@@ -420,32 +421,29 @@ class Reports extends Component
     
     private function getCachedLocations()
     {
-        if ($this->cachedLocations === null) {
-            $this->cachedLocations = Location::orderBy('location_name')->get();
-        }
-        return $this->cachedLocations;
+        return Cache::remember('locations_all', 300, function() {
+            return Location::orderBy('location_name')->get();
+        });
     }
     
     private function getCachedDrivers()
     {
-        if ($this->cachedDrivers === null) {
-            $this->cachedDrivers = Driver::orderBy('first_name')->get();
-        }
-        return $this->cachedDrivers;
+        return Cache::remember('drivers_all', 300, function() {
+            return Driver::orderBy('first_name')->get();
+        });
     }
     
     private function getCachedTrucks()
     {
-        if ($this->cachedTrucks === null) {
-            $this->cachedTrucks = Truck::orderBy('plate_number')->get();
-        }
-        return $this->cachedTrucks;
+        return Cache::remember('trucks_all', 300, function() {
+            return Truck::orderBy('plate_number')->get();
+        });
     }
     
     private function getCachedGuards()
     {
-        if ($this->cachedGuards === null) {
-            $this->cachedGuards = User::where('user_type', 0)
+        return Cache::remember('guards_all', 300, function() {
+            return User::where('user_type', 0)
                 ->where('disabled', false)
                 ->orderBy('first_name')
                 ->orderBy('last_name')
@@ -454,8 +452,7 @@ class Reports extends Component
                     $name = trim("{$user->first_name} {$user->middle_name} {$user->last_name}");
                     return [$user->id => $name];
                 });
-        }
-        return $this->cachedGuards;
+        });
     }
     
     private function ensureSelectedInOptions($options, $selectedValue, $allOptions)
@@ -1211,7 +1208,8 @@ class Reports extends Component
             $this->resetPage();
             return;
         }
-        
+
+        Cache::forget('reports_all');
         // Refresh report to get updated data
         $report->refresh();
         
@@ -1277,6 +1275,7 @@ class Reports extends Component
             return;
         }
         
+        Cache::forget('reports_all');
         // Refresh report to get updated data
         $report->refresh();
         
@@ -1342,6 +1341,7 @@ class Reports extends Component
             $oldValues
         );
         
+        Cache::forget('reports_all');
         $this->showDeleteConfirmation = false;
         $this->selectedReportId = null;
         $this->dispatch('toast', message: 'Report has been deleted.', type: 'success');
@@ -1404,6 +1404,7 @@ class Reports extends Component
             "Restored report {$reportType}"
         );
         
+        Cache::forget('reports_all');
         $this->showRestoreModal = false;
         $this->reset(['selectedReportId', 'selectedReportName']);
         $this->resetPage();

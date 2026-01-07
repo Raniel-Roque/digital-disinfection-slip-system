@@ -10,7 +10,7 @@ use App\Models\Location;
 use App\Models\Driver;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\Cache;
 class TruckListCompleted extends Component
 {
     use WithPagination;
@@ -60,24 +60,32 @@ class TruckListCompleted extends Component
     // Computed properties for locations, drivers, trucks, guards
     public function getLocationsProperty()
     {
-        return Location::withTrashed()->get();
+        return Cache::remember('locations_all', 300, function() {
+            return Location::withTrashed()->get();
+        });
     }
 
     public function getDriversProperty()
     {
-        return Driver::withTrashed()->get();
+        return Cache::remember('drivers_all', 300, function() {
+            return Driver::withTrashed()->get();
+        });
     }
 
     public function getTrucksProperty()
     {
-        return Truck::withTrashed()->get();
+        return Cache::remember('trucks_all', 300, function() {
+            return Truck::withTrashed()->get();
+        });
     }
 
     
     // Computed properties for filtered options
     public function getFilterTruckOptionsProperty()
     {
-        $trucks = $this->trucks;
+        $trucks = Cache::remember('trucks_all', 300, function() {
+            return Truck::withTrashed()->get();
+        });
         $allOptions = $trucks->pluck('plate_number', 'id');
         $options = $allOptions;
         
@@ -93,7 +101,9 @@ class TruckListCompleted extends Component
     
     public function getFilterDriverOptionsProperty()
     {
-        $drivers = $this->drivers;
+        $drivers = Cache::remember('drivers_all', 300, function() {
+            return Driver::withTrashed()->get();
+        });
         $allOptions = $drivers->pluck('full_name', 'id');
         $options = $allOptions;
         
@@ -109,7 +119,9 @@ class TruckListCompleted extends Component
     
     public function getFilterDestinationOptionsProperty()
     {
-        $locations = $this->locations->whereNull('deleted_at')->where('disabled', false);
+        $locations = Cache::remember('locations_all', 300, function() {
+            return Location::withTrashed()->whereNull('deleted_at')->where('disabled', false)->get();
+        });
         $allOptions = $locations->pluck('location_name', 'id');
         $options = $allOptions;
         

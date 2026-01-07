@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use App\Services\Logger;
 
@@ -327,6 +328,8 @@ class Locations extends Component
             ['location_name' => $locationName, 'attachment_id' => $attachmentId]
         );
 
+        Cache::forget('locations_all');
+
         $this->showEditModal = false;
         $this->reset(['selectedLocationId', 'location_name', 'edit_logo', 'current_logo_path', 'remove_logo', 'original_location_name', 'original_attachment_id', 'create_slip', 'original_create_slip']);
         $this->dispatch('toast', message: "{$locationName} has been updated.", type: 'success');
@@ -419,7 +422,9 @@ class Locations extends Component
             ['disabled' => $newStatus]
         );
 
-        $this->showDisableModal = false;
+        Cache::forget('locations_all');
+
+            $this->showDisableModal = false;
         $this->reset(['selectedLocationId', 'selectedLocationDisabled']);
         $this->dispatch('toast', message: $message, type: 'success');
         } finally {
@@ -471,6 +476,8 @@ class Locations extends Component
             "Deleted \"{$locationName}\"",
             $oldValues
         );
+
+        Cache::forget('locations_all');
 
         $this->showDeleteModal = false;
         $this->reset(['selectedLocationId', 'selectedLocationName']);
@@ -568,6 +575,8 @@ class Locations extends Component
             "Restored location {$location->location_name}"
         );
         
+        Cache::forget('locations_all');
+
         $this->showRestoreModal = false;
         $this->reset(['selectedLocationId', 'selectedLocationName']);
         $this->resetPage();
@@ -634,6 +643,8 @@ class Locations extends Component
             'disabled' => false,
             'create_slip' => $this->create_create_slip,
         ]);
+
+        Cache::forget('locations_all');
         
         // Log the create action
         Logger::create(

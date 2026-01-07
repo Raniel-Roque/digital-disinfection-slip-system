@@ -9,6 +9,7 @@ use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class Drivers extends Component
@@ -244,6 +245,8 @@ class Drivers extends Component
             'last_name' => $lastName,
         ]);
 
+        Cache::forget('drivers_all');
+
         // Refresh driver to get updated name
         $driver->refresh();
         $driverName = $this->getDriverFullName($driver);
@@ -305,6 +308,8 @@ class Drivers extends Component
             return;
         }
         
+        Cache::forget('drivers_all');
+
         // Refresh driver to get updated data
         $driver->refresh();
 
@@ -424,6 +429,8 @@ class Drivers extends Component
             'last_name' => $lastName,
             'disabled' => false,
         ]);
+
+        Cache::forget('drivers_all');
 
         $driverName = $this->getDriverFullName($driver);
         

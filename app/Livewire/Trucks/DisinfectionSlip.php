@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
-
+use Illuminate\Support\Facades\Cache;
 class DisinfectionSlip extends Component
 {
     public $showDetailsModal = false;
@@ -66,19 +66,25 @@ class DisinfectionSlip extends Component
     // Computed properties for dynamic dropdown data
     public function getTrucksProperty()
     {
-        return Truck::all();
+        return Cache::remember('trucks_all', 300, function() {
+            return Truck::withTrashed()->whereNull('deleted_at')->where('disabled', false)->orderBy('plate_number')->get();
+        });
     }
 
     public function getLocationsProperty()
     {
         // Exclude the current location from the list
         $currentLocationId = Session::get('location_id');
-        return Location::where('id', '!=', $currentLocationId)->get();
+        return Cache::remember('locations_all', 300, function() use ($currentLocationId) {
+            return Location::withTrashed()->where('id', '!=', $currentLocationId)->where('disabled', false)->orderBy('location_name')->get();
+        });
     }
 
     public function getDriversProperty()
     {
-        return Driver::all();
+        return Cache::remember('drivers_all', 300, function() {
+            return Driver::withTrashed()->whereNull('deleted_at')->where('disabled', false)->orderBy('first_name')->get();
+        });
     }
     
     // Helper method to ensure selected values are always included in filtered options
@@ -102,7 +108,9 @@ class DisinfectionSlip extends Component
     // Computed properties for filtered options with search
     public function getTruckOptionsProperty()
     {
-        $trucks = Truck::orderBy('plate_number')->get();
+        $trucks = Cache::remember('trucks_all', 300, function() {
+            return Truck::withTrashed()->whereNull('deleted_at')->where('disabled', false)->orderBy('plate_number')->get();
+        });
         $allOptions = $trucks->pluck('plate_number', 'id');
         $options = $allOptions;
         
@@ -121,11 +129,9 @@ class DisinfectionSlip extends Component
     public function getLocationOptionsProperty()
     {
         $currentLocationId = Session::get('location_id');
-        $locations = Location::where('id', '!=', $currentLocationId)
-            ->whereNull('deleted_at')
-            ->where('disabled', false)
-            ->orderBy('location_name')
-            ->get();
+        $locations = Cache::remember('locations_all', 300, function() use ($currentLocationId) {
+            return Location::withTrashed()->where('id', '!=', $currentLocationId)->where('disabled', false)->orderBy('location_name')->get();
+        });
         $allOptions = $locations->pluck('location_name', 'id');
         $options = $allOptions;
         
@@ -143,7 +149,9 @@ class DisinfectionSlip extends Component
     
     public function getDriverOptionsProperty()
     {
-        $drivers = Driver::orderBy('first_name')->get();
+        $drivers = Cache::remember('drivers_all', 300, function() {
+            return Driver::withTrashed()->whereNull('deleted_at')->where('disabled', false)->orderBy('first_name')->get();
+        });
         $allOptions = $drivers->pluck('full_name', 'id');
         $options = $allOptions;
         
@@ -396,6 +404,7 @@ class DisinfectionSlip extends Component
             $this->selectedSlip->load(['truck', 'location', 'destination', 'driver', 'hatcheryGuard', 'receivedGuard']);
             return;
         }
+        Cache::forget('disinfection_slips_all');
 
         // Refresh the slip with relationships
         $this->selectedSlip->refresh();
@@ -457,7 +466,7 @@ class DisinfectionSlip extends Component
                 ['status' => 1],
                 ['status' => 2]
             );
-
+            Cache::forget('disinfection_slips_all');
             $this->showCompleteConfirmation = false;
             $this->dispatch('toast', message: "{$slipId} is now In-Transit.", type: 'success');
         }
@@ -479,7 +488,7 @@ class DisinfectionSlip extends Component
                 ['status' => 2, 'completed_at' => null, 'received_guard_id' => $this->selectedSlip->received_guard_id],
                 ['status' => 3, 'completed_at' => now(), 'received_guard_id' => Auth::id()]
             );
-            
+            Cache::forget('disinfection_slips_all');
             $this->showCompleteConfirmation = false;
             $this->dispatch('toast', message: "{$slipId} has been completed.", type: 'success');
         }
@@ -525,6 +534,7 @@ class DisinfectionSlip extends Component
             ['status' => 4, 'received_guard_id' => $oldReceivedGuardId, 'completed_at' => now()]
         );
 
+        Cache::forget('disinfection_slips_all');
         $this->showIncompleteConfirmation = false;
         $this->dispatch('toast', message: "{$slipId} has been marked as incomplete.", type: 'warning');
 
@@ -572,7 +582,7 @@ class DisinfectionSlip extends Component
             "Deleted disinfection slip {$slipId}",
             $oldValues
         );
-        
+        Cache::forget('disinfection_slips_all');
         // Close all modals
         $this->showDeleteConfirmation = false;
         $this->showDetailsModal = false;
@@ -631,6 +641,8 @@ class DisinfectionSlip extends Component
             'driver_id'               => $this->driver_id,
             'reason_for_disinfection' => $sanitizedReason,
         ]);
+
+        Cache::forget('disinfection_slips_all');
 
         // Refresh the slip with relationships
         $this->selectedSlip->refresh();
@@ -1019,6 +1031,8 @@ class DisinfectionSlip extends Component
                 $this->dispatch('toast', message: "Attachment has been removed from {$slipId}.", type: 'success');
             }
 
+        Cache::forget('disinfection_slips_all');
+
         } catch (\Exception $e) {
             Log::error('Attachment removal error: ' . $e->getMessage());
             $this->dispatch('toast', message: 'Failed to remove attachment. Please try again.', type: 'error');
@@ -1122,7 +1136,7 @@ class DisinfectionSlip extends Component
             $slipId = $this->selectedSlip->slip_id;
             $totalAttachments = count($attachmentIds);
             $this->dispatch('toast', message: "Photo added to {$slipId} ({$totalAttachments} total).", type: 'success');
-            
+            Cache::forget('disinfection_slips_all');
             // Don't close modal automatically - allow user to add more photos
             // $this->closeAddAttachmentModal();
 

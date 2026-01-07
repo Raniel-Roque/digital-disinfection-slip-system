@@ -9,6 +9,7 @@ use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class PlateNumbers extends Component
@@ -221,6 +222,8 @@ class PlateNumbers extends Component
             'plate_number' => $plateNumber,
         ]);
 
+        Cache::forget('trucks_all');
+
         $this->showEditModal = false;
         $this->reset(['selectedTruckId', 'plate_number', 'original_plate_number']);
         $this->dispatch('toast', message: "Plate number {$plateNumber} has been updated.", type: 'success');
@@ -285,6 +288,8 @@ class PlateNumbers extends Component
             ['disabled' => $wasDisabled],
             ['disabled' => $newStatus]
         );
+
+        Cache::forget('trucks_all');
 
         $this->showDisableModal = false;
         $this->reset(['selectedTruckId', 'selectedTruckDisabled']);
@@ -389,6 +394,8 @@ class PlateNumbers extends Component
             "Created \"{$plateNumber}\"",
             $newValues
         );
+
+        Cache::forget('trucks_all');
 
         $this->showCreateModal = false;
         $this->reset(['create_plate_number']);

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 use App\Services\Logger;
 
 class PlateNumbers extends Component
@@ -239,6 +240,8 @@ class PlateNumbers extends Component
             ['plate_number' => $plateNumber]
         );
 
+        Cache::forget('trucks_all');
+
         $this->showEditModal = false;
         $this->reset(['selectedTruckId', 'plate_number', 'original_plate_number']);
         $this->dispatch('toast', message: "Plate number {$plateNumber} has been updated.", type: 'success');
@@ -304,6 +307,8 @@ class PlateNumbers extends Component
             ['disabled' => $newStatus]
         );
 
+        Cache::forget('trucks_all');
+
         $this->showDisableModal = false;
         $this->reset(['selectedTruckId', 'selectedTruckDisabled']);
         $this->dispatch('toast', message: $message, type: 'success');
@@ -355,6 +360,8 @@ class PlateNumbers extends Component
             "Deleted \"{$plateNumber}\"",
             $oldValues
         );
+
+        Cache::forget('trucks_all');
 
         $this->showDeleteModal = false;
         $this->reset(['selectedTruckId', 'selectedTruckName']);
@@ -453,7 +460,9 @@ class PlateNumbers extends Component
             'plate_number' => $plateNumber,
             'disabled' => false,
         ]);
-        
+
+        Cache::forget('trucks_all');
+
         // Log the create action
         Logger::create(
             Truck::class,
@@ -677,6 +686,8 @@ class PlateNumbers extends Component
             "Restored plate number {$truck->plate_number}"
         );
         
+        Cache::forget('trucks_all');
+
         $this->showRestoreModal = false;
         $this->reset(['selectedTruckId', 'selectedTruckName']);
         $this->resetPage();

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use App\Services\Logger;
-
+use Illuminate\Support\Facades\Cache;
 class Drivers extends Component
 {
     use WithPagination;
@@ -250,6 +250,8 @@ class Drivers extends Component
             'last_name' => $lastName,
         ]);
 
+        Cache::forget('drivers_all');
+
         // Refresh driver to get updated name
         $driver->refresh();
         $driverName = $this->getDriverFullName($driver);
@@ -393,6 +395,8 @@ class Drivers extends Component
             $oldValues
         );
 
+        Cache::forget('drivers_all');
+
         $this->showDeleteModal = false;
         $this->reset(['selectedDriverId', 'selectedDriverName']);
         $this->resetPage();
@@ -486,6 +490,8 @@ class Drivers extends Component
             'last_name' => $lastName,
             'disabled' => false,
         ]);
+
+        Cache::forget('drivers_all');
 
         $driverName = $this->getDriverFullName($driver);
         
@@ -728,6 +734,8 @@ class Drivers extends Component
             "Restored driver {$driverName}"
         );
         
+        Cache::forget('drivers_all');
+
         $this->showRestoreModal = false;
         $this->reset(['selectedDriverId', 'selectedDriverName']);
         $this->resetPage();

@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Services\Logger;
+use Illuminate\Support\Facades\Cache;
 
 class Trucks extends Component
 {
@@ -162,10 +163,6 @@ class Trucks extends Component
     // Note: availableOriginsOptions and availableDestinationsOptions are now computed properties
     
     // Cached collections to avoid duplicate queries
-    private $cachedLocations = null;
-    private $cachedDrivers = null;
-    private $cachedTrucks = null;
-    private $cachedGuards = null;
     private $cachedFilterGuards = null;
     private $cachedFilterGuardsCollection = null;
 
@@ -227,40 +224,37 @@ class Trucks extends Component
     // Helper methods to get cached collections
     private function getCachedLocations()
     {
-        // Always get fresh data to ensure disabled status is current
-        return Location::withTrashed()->orderBy('location_name')->get();
+        // Shorter cache (5 min) since comment says "ensure disabled status is current"
+        return Cache::remember('locations_all', 300, function() {
+            return Location::withTrashed()->orderBy('location_name')->get();
+        });
     }
     
     private function getCachedDrivers()
     {
-        if ($this->cachedDrivers === null) {
-            $this->cachedDrivers = Driver::withTrashed()->orderBy('first_name')->get();
-        }
-        return $this->cachedDrivers;
+        return Cache::remember('drivers_all', 300, function() {
+            return Driver::withTrashed()->orderBy('first_name')->get();
+        });
     }
     
     private function getCachedTrucks()
     {
-        if ($this->cachedTrucks === null) {
-            $this->cachedTrucks = Truck::withTrashed()->orderBy('plate_number')->get();
-        }
-        return $this->cachedTrucks;
+        return Cache::remember('trucks_all', 300, function() {
+            return Truck::withTrashed()->orderBy('plate_number')->get();
+        });
     }
     
     private function getCachedGuards()
     {
-        if ($this->cachedGuards === null) {
-            $this->cachedGuards = User::where('user_type', 0)
+        return Cache::remember('guards_all', 300, function() {
+            return User::where('user_type', 0)
                 ->where('disabled', false)
                 ->orderBy('first_name')
-                ->orderBy('last_name')
-                ->get()
-                ->mapWithKeys(function ($user) {
+                ->orderBy('last_name')->get()->mapWithKeys(function ($user) {
                     $name = trim("{$user->first_name} {$user->middle_name} {$user->last_name}");
                     return [$user->id => "{$name} @{$user->username}"];
                 });
-        }
-        return $this->cachedGuards;
+        });
     }
     
     // Get guards for filtering (includes disabled guards) - cached User collection

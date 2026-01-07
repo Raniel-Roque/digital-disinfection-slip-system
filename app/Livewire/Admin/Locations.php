@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class Locations extends Component
@@ -294,7 +295,8 @@ class Locations extends Component
             'attachment_id' => $attachmentId,
             'create_slip' => $this->create_slip,
         ]);
-        
+
+        Cache::forget('locations_all');
         // Generate specific description based on what changed
         $descriptionParts = [];
         if ($nameChanged) {

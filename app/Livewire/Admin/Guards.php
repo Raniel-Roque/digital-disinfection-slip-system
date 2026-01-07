@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
-
+use Illuminate\Support\Facades\Cache;
 class Guards extends Component
 {
     use WithPagination;
@@ -282,7 +282,9 @@ class Guards extends Component
                 ->where('user_id', $user->id)
                 ->delete();
         }
-        
+
+        Cache::forget('guards_all');
+
         // Generate description based on what changed
         $changedFields = [];
         if ($user->first_name !== $firstName || $user->last_name !== $lastName) {
@@ -354,7 +356,8 @@ class Guards extends Component
             $this->dispatch('toast', message: 'The user status was changed by another administrator. Please refresh the page.', type: 'error');
             return;
         }
-        
+
+        Cache::forget('guards_all');
         $oldValues = ['disabled' => $wasDisabled];
         $newValues = ['disabled' => $newStatus];
         
@@ -593,6 +596,8 @@ class Guards extends Component
             'user_type' => 0, // Guard
             'password' => Hash::make($defaultPassword),
         ]);
+
+        Cache::forget('guards_all');
 
         $guardName = $this->getGuardFullName($user);
         

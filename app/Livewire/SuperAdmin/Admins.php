@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use App\Services\Logger;
-
+use Illuminate\Support\Facades\Cache;
 class Admins extends Component
 {
     use WithPagination;
@@ -308,6 +308,8 @@ class Admins extends Component
             $updateData
         );
 
+        Cache::forget('admins_all');
+
         $this->showEditModal = false;
         $this->reset(['selectedUserId', 'first_name', 'middle_name', 'last_name', 'original_first_name', 'original_middle_name', 'original_last_name']);
         
@@ -377,6 +379,8 @@ class Admins extends Component
             $oldValues,
             ['disabled' => $newStatus]
         );
+
+        Cache::forget('admins_all');
 
         // Always reset to first page to avoid pagination issues when user disappears/appears from filtered results
         $this->resetPage();
@@ -497,6 +501,8 @@ class Admins extends Component
             $oldValues
         );
 
+        Cache::forget('admins_all');
+
         $this->showDeleteModal = false;
         $this->reset(['selectedUserId', 'selectedUserName']);
         $this->resetPage();
@@ -576,6 +582,8 @@ class Admins extends Component
             "Restored admin {$adminName}",
         );
         
+        Cache::forget('admins_all');
+
         $this->showRestoreModal = false;
         $this->reset(['selectedUserId', 'selectedUserName']);
         $this->resetPage();
@@ -738,6 +746,8 @@ class Admins extends Component
             'user_type' => 1, // Admin
             'password' => Hash::make($defaultPassword),
         ]);
+
+        Cache::forget('admins_all');
 
         $adminName = $this->getAdminFullName($user);
         

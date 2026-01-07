@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use App\Services\Logger;
-
+use Illuminate\Support\Facades\Cache;
 class Guards extends Component
 {
     use WithPagination;
@@ -301,6 +301,8 @@ class Guards extends Component
         }
         $description = !empty($changedFields) ? "Updated " . implode(" and ", $changedFields) : "Updated \"{$guardName}\"";
         
+        Cache::forget('guards_all');
+        
         // Log the update action
         Logger::update(
             User::class,
@@ -370,6 +372,8 @@ class Guards extends Component
         
         // Refresh user to get updated data
         $user->refresh();
+        
+        Cache::forget('guards_all');
         
         // Log the status change
         Logger::update(
@@ -511,6 +515,8 @@ class Guards extends Component
             $oldValues
         );
 
+        Cache::forget('guards_all');
+
         $this->showDeleteModal = false;
         $this->reset(['selectedUserId', 'selectedUserName']);
         $this->resetPage();
@@ -590,6 +596,8 @@ class Guards extends Component
             "Restored guard {$guardName}"
         );
         
+        Cache::forget('guards_all');
+
         $this->showRestoreModal = false;
         $this->reset(['selectedUserId', 'selectedUserName']);
         $this->dispatch('toast', message: 'Guard restored successfully.', type: 'success');
@@ -752,6 +760,8 @@ class Guards extends Component
             'user_type' => 0, // Guard
             'password' => Hash::make($defaultPassword),
         ]);
+
+        Cache::forget('guards_all');
 
         $guardName = $this->getGuardFullName($user);
         

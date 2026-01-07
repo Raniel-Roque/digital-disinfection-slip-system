@@ -16,7 +16,7 @@ use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Facades\Cache;
 class Reports extends Component
 {
     use WithPagination;
@@ -103,12 +103,6 @@ class Reports extends Component
     public $showDeleteConfirmation = false;
     public $selectedReportId = null;
     
-    // Cached properties
-    private $cachedLocations = null;
-    private $cachedDrivers = null;
-    private $cachedTrucks = null;
-    private $cachedGuards = null;
-    
     public function mount()
     {
         // Apply default filter on mount
@@ -174,54 +168,37 @@ class Reports extends Component
     // Helper methods to get cached collections
     private function getCachedLocations()
     {
-        if ($this->cachedLocations === null) {
-            // Admin: Only get non-deleted, non-disabled locations
-            $this->cachedLocations = Location::whereNull('deleted_at')
-                ->where('disabled', false)
-                ->orderBy('location_name')
-                ->get();
-        }
-        return $this->cachedLocations;
+        return Cache::remember('locations_all', 300, function() {
+            return Location::orderBy('location_name')->get();
+        });
     }
 
     private function getCachedDrivers()
     {
-        if ($this->cachedDrivers === null) {
-            // Admin: Only get non-deleted, non-disabled drivers
-            $this->cachedDrivers = Driver::whereNull('deleted_at')
-                ->where('disabled', false)
-                ->orderBy('first_name')
-                ->get();
-        }
-        return $this->cachedDrivers;
+        return Cache::remember('drivers_all', 300, function() {
+            return Driver::orderBy('first_name')->get();
+        });
     }
 
     private function getCachedTrucks()
     {
-        if ($this->cachedTrucks === null) {
-            // Admin: Only get non-deleted, non-disabled trucks
-            $this->cachedTrucks = Truck::whereNull('deleted_at')
-                ->where('disabled', false)
-                ->orderBy('plate_number')
-                ->get();
-        }
-        return $this->cachedTrucks;
+        return Cache::remember('trucks_all', 300, function() {
+            return Truck::orderBy('plate_number')->get();
+        });
     }
     
     private function getCachedGuards()
     {
-        if ($this->cachedGuards === null) {
-            $this->cachedGuards = User::where('user_type', 0)
+        return Cache::remember('guards_all', 300, function() {
+            return User::where('user_type', 0)
                 ->where('disabled', false)
                 ->orderBy('first_name')
-                ->orderBy('last_name')
-                ->get()
+                ->orderBy('last_name')->get()
                 ->mapWithKeys(function ($user) {
                     $name = trim("{$user->first_name} {$user->middle_name} {$user->last_name}");
                     return [$user->id => $name];
                 });
-        }
-        return $this->cachedGuards;
+        });
     }
     
     // Helper method to ensure selected values are always included in filtered options
@@ -545,6 +522,8 @@ class Reports extends Component
                 $this->resetPage();
                 return;
             }
+
+            Cache::forget('reports_all');
             
             // Refresh report to get updated data
             $report->refresh();
@@ -609,6 +588,8 @@ class Reports extends Component
                 return;
             }
             
+            Cache::forget('reports_all');
+
             // Refresh report to get updated data
             $report->refresh();
             
@@ -852,7 +833,9 @@ class Reports extends Component
                 $this->selectedSlip->refresh();
                 return;
             }
-            
+
+            Cache::forget('reports_all');
+
             // Log the delete action
             Logger::delete(
                 DisinfectionSlipModel::class,
@@ -1160,6 +1143,8 @@ class Reports extends Component
             'receivedGuard'
         ]);
 
+        Cache::forget('reports_all');
+
         $slipId = $this->selectedSlip->slip_id;
         
         // Log the update
@@ -1349,6 +1334,8 @@ class Reports extends Component
             // Close confirmation modal
             $this->showRemoveAttachmentConfirmation = false;
             $this->attachmentToDelete = null;
+
+            Cache::forget('reports_all');
 
             $slipId = $this->selectedSlip->slip_id;
             $this->dispatch('toast', message: "Attachment has been removed from {$slipId}.", type: 'success');

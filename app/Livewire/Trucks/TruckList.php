@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * @method void resetPage()
@@ -404,6 +405,7 @@ class TruckList extends Component
             'slip_id' => $this->generateSlipId(),
             'attachment_ids' => !empty($this->pendingAttachmentIds) ? $this->pendingAttachmentIds : null,
         ]);
+        Cache::forget('disinfection_slips_all');
 
         // Log the create action
         Logger::create(

@@ -7,7 +7,7 @@ use App\Models\DisinfectionSlip;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
-
+use Illuminate\Support\Facades\Cache;
 class TruckCountCard extends Component
 {
     public $type; // 'incoming', 'outgoing', 'total', 'inprogress', 'completed'
