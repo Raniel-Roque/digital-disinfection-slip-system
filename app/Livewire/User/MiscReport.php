@@ -7,7 +7,7 @@ use App\Services\Logger;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Facades\Cache;
 class MiscReport extends Component
 {
     public $description = '';
@@ -37,6 +37,8 @@ class MiscReport extends Component
                 "Submitted miscellaneous report",
                 $report->only(['user_id', 'slip_id', 'description'])
             );
+
+            Cache::forget('reports_all');
 
             $this->dispatch('toast', message: 'Report submitted successfully. It will be reviewed by administrators.', type: 'success');
             
