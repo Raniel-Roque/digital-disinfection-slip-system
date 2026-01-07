@@ -109,6 +109,17 @@ class Trucks extends Component
     public $currentAttachmentIndex = 0;
     public $attachmentToDelete = null;
 
+    public function getSelectedSlipAttachmentsProperty()
+    {
+        if (!$this->selectedSlip || empty($this->selectedSlip->attachment_ids)) {
+            return collect([]);
+        }
+        
+        return Attachment::whereIn('id', $this->selectedSlip->attachment_ids)
+            ->with(['user' => function($q) { $q->withTrashed(); }])
+            ->get();
+    }
+
     // Protection flags
     public $isDeleting = false;
 
@@ -1766,11 +1777,23 @@ class Trucks extends Component
     {
         $this->showAttachmentModal = false;
         $this->currentAttachmentIndex = 0;
+
+        // Livewire re-hydrates models without trashed relations; reload for details modal
+        if ($this->selectedSlip) {
+            $this->selectedSlip = DisinfectionSlipModel::with([
+                'truck' => function($q) { $q->withTrashed(); },
+                'location' => function($q) { $q->withTrashed(); },
+                'destination' => function($q) { $q->withTrashed(); },
+                'driver' => function($q) { $q->withTrashed(); },
+                'hatcheryGuard' => function($q) { $q->withTrashed(); },
+                'receivedGuard' => function($q) { $q->withTrashed(); }
+            ])->find($this->selectedSlip->id);
+        }
     }
 
     public function nextAttachment()
     {
-        $attachments = $this->selectedSlip->attachments();
+        $attachments = $this->selectedSlipAttachments;
         if ($this->currentAttachmentIndex < $attachments->count() - 1) {
             $this->currentAttachmentIndex++;
         }

@@ -61,6 +61,60 @@ class Reports extends Component
     }
     
     /**
+     * Livewire lifecycle hook: After hydration, reload selected models with trashed relations
+     * This ensures deleted relations remain accessible across requests
+     */
+    public function hydrate()
+    {
+        // Reload selectedSlip with trashed relations if it exists
+        if ($this->selectedSlip && $this->selectedSlip->id) {
+            $this->selectedSlip = DisinfectionSlipModel::with([
+                'truck' => function($q) { $q->withTrashed(); },
+                'location' => function($q) { $q->withTrashed(); },
+                'destination' => function($q) { $q->withTrashed(); },
+                'driver' => function($q) { $q->withTrashed(); },
+                'hatcheryGuard' => function($q) { $q->withTrashed(); },
+                'receivedGuard' => function($q) { $q->withTrashed(); }
+            ])->find($this->selectedSlip->id);
+        }
+        
+        // Reload selectedReport with trashed relations if it exists
+        if ($this->selectedReport && $this->selectedReport->id) {
+            $this->selectedReport = $this->showDeleted
+                ? Report::onlyTrashed()->with([
+                    'user' => function($q) { $q->withTrashed(); },
+                    'slip' => function($q) {
+                        $q->withTrashed();
+                        $q->with([
+                            'truck' => function($q) { $q->withTrashed(); },
+                            'location' => function($q) { $q->withTrashed(); },
+                            'destination' => function($q) { $q->withTrashed(); },
+                            'driver' => function($q) { $q->withTrashed(); },
+                            'hatcheryGuard' => function($q) { $q->withTrashed(); },
+                            'receivedGuard' => function($q) { $q->withTrashed(); }
+                        ]);
+                    },
+                    'resolvedBy' => function($q) { $q->withTrashed(); }
+                ])->find($this->selectedReport->id)
+                : Report::with([
+                    'user' => function($q) { $q->withTrashed(); },
+                    'slip' => function($q) {
+                        $q->withTrashed();
+                        $q->with([
+                            'truck' => function($q) { $q->withTrashed(); },
+                            'location' => function($q) { $q->withTrashed(); },
+                            'destination' => function($q) { $q->withTrashed(); },
+                            'driver' => function($q) { $q->withTrashed(); },
+                            'hatcheryGuard' => function($q) { $q->withTrashed(); },
+                            'receivedGuard' => function($q) { $q->withTrashed(); }
+                        ]);
+                    },
+                    'resolvedBy' => function($q) { $q->withTrashed(); }
+                ])->find($this->selectedReport->id);
+        }
+    }
+    
+    /**
      * Prevent polling from running when any modal is open
      * This prevents the selected report/slip data from being overwritten
      */
@@ -970,9 +1024,10 @@ class Reports extends Component
         return trim($text) ?: null;
     }
     
-    public function openAttachmentModal($file)
+    public function openAttachmentModal($index = 0)
     {
-        $this->attachmentFile = $file;
+        $this->currentAttachmentIndex = (int) $index;
+        $this->attachmentFile = $index;
         $this->showAttachmentModal = true;
     }
     
@@ -980,11 +1035,24 @@ class Reports extends Component
     {
         $this->showAttachmentModal = false;
         $this->attachmentFile = null;
+        $this->currentAttachmentIndex = 0;
+
+        // Livewire re-hydrates models without trashed relations; reload for details modal
+        if ($this->selectedSlip) {
+            $this->selectedSlip = DisinfectionSlipModel::with([
+                'truck' => function($q) { $q->withTrashed(); },
+                'location' => function($q) { $q->withTrashed(); },
+                'destination' => function($q) { $q->withTrashed(); },
+                'driver' => function($q) { $q->withTrashed(); },
+                'hatcheryGuard' => function($q) { $q->withTrashed(); },
+                'receivedGuard' => function($q) { $q->withTrashed(); }
+            ])->find($this->selectedSlip->id);
+        }
     }
 
     public function nextAttachment()
     {
-        $attachments = $this->selectedSlip->attachments();
+        $attachments = $this->selectedSlipAttachments;
         if ($this->currentAttachmentIndex < $attachments->count() - 1) {
             $this->currentAttachmentIndex++;
         }
