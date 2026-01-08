@@ -328,9 +328,9 @@ class AuditTrail extends Component
                 'created_at' => $log->created_at->toIso8601String(),
                 'user_name' => $userName ?: 'N/A',
                 'user_username' => $log->user_username ?? 'N/A',
-                'user_type' => $log->user_type,
-                'action' => $log->action,
-                'model_type' => $log->model_type,
+                'user_type' => $this->availableUserTypes[$log->user_type] ?? 'N/A', // Map user type
+                'action' => $this->availableActions[$log->action] ?? ucfirst($log->action), // Map action
+                'model_type' => $this->availableModelTypes[$log->model_type] ?? $log->model_type, // Map model type
                 'model_id' => $log->model_id,
                 'description' => $log->description ?? 'N/A',
                 'ip_address' => $log->ip_address ?? 'N/A',
@@ -358,7 +358,6 @@ class AuditTrail extends Component
         
         $this->dispatch('open-print-window', ['url' => $printUrl]);
     }
-    
     private function getFilteredLogsQuery()
     {
         $query = Log::query();
