@@ -588,10 +588,7 @@ class TruckList extends Component
             // Find and remove from pending array
             $key = array_search($attachmentId, $this->pendingAttachmentIds);
             if ($key !== false) {
-                unset($this->pendingAttachmentIds[$key]);
-                $this->pendingAttachmentIds = array_values($this->pendingAttachmentIds); // Re-index array
-
-                // Get the attachment record
+                // Get the attachment record before deletion
                 $attachment = Attachment::find($attachmentId);
                 if ($attachment) {
                     // Check if current user is the one who uploaded this attachment (unless admin/superadmin)
@@ -611,6 +608,26 @@ class TruckList extends Component
                     }
                     // Hard delete the attachment record
                     $attachment->forceDelete();
+                }
+
+                // Remove from array and re-index
+                unset($this->pendingAttachmentIds[$key]);
+                $this->pendingAttachmentIds = array_values($this->pendingAttachmentIds); // Re-index array
+                
+                // Adjust current index after deletion
+                $totalAttachments = count($this->pendingAttachmentIds);
+                if ($totalAttachments === 0) {
+                    // No attachments left, close the modal
+                    $this->currentPendingAttachmentIndex = 0;
+                    $this->showPendingAttachmentModal = false;
+                } else {
+                    // Adjust index to stay within bounds
+                    // If we deleted the last item, move to the new last item
+                    if ($this->currentPendingAttachmentIndex >= $totalAttachments) {
+                        $this->currentPendingAttachmentIndex = $totalAttachments - 1;
+                    }
+                    // If we deleted an item before the current index, no adjustment needed
+                    // If we deleted the current item, stay at the same index (which now shows the next item)
                 }
 
                 $this->dispatch('toast', message: 'Photo removed.', type: 'success');
@@ -653,6 +670,39 @@ class TruckList extends Component
         if ($this->currentPendingAttachmentIndex > 0) {
             $this->currentPendingAttachmentIndex--;
         }
+    }
+
+    public function getCurrentPendingAttachmentId()
+    {
+        $totalAttachments = count($this->pendingAttachmentIds);
+        if ($totalAttachments === 0 || $this->currentPendingAttachmentIndex < 0 || $this->currentPendingAttachmentIndex >= $totalAttachments) {
+            return null;
+        }
+        return $this->pendingAttachmentIds[$this->currentPendingAttachmentIndex] ?? null;
+    }
+
+    public function canDeleteCurrentPendingAttachment()
+    {
+        $attachmentId = $this->getCurrentPendingAttachmentId();
+        if (!$attachmentId) {
+            return false;
+        }
+
+        $attachment = Attachment::find($attachmentId);
+        if (!$attachment) {
+            return false;
+        }
+
+        $user = Auth::user();
+        if (!$user) {
+            return false;
+        }
+
+        $currentRoute = request()->path();
+        $isOnUserRoute = str_starts_with($currentRoute, 'user');
+        $isAdminOrSuperAdmin = !$isOnUserRoute && in_array($user->user_type ?? 0, [1, 2]); // 1 = Admin, 2 = SuperAdmin
+        
+        return $isAdminOrSuperAdmin || $attachment->user_id === Auth::id();
     }
 
     /**
