@@ -507,12 +507,13 @@
                     $attachmentsData = $pendingAttachments->map(fn($a) => ['id' => $a->id, 'user_id' => $a->user_id])->values()->all();
                 @endphp
                 <div x-data="{
+                    // Keep in sync with Livewire's currentPendingAttachmentIndex
+                    currentIndex: @entangle('currentPendingAttachmentIndex').live,
                     attachments: @js($attachmentsData),
                     currentUserId: @js($currentUserId),
                     isAdminOrSuperAdmin: @js($isAdminOrSuperAdmin),
                     getCurrentAttachment() {
-                        const index = $wire.get('currentPendingAttachmentIndex');
-                        return this.attachments[index] || null;
+                        return this.attachments[this.currentIndex] || null;
                     },
                     canShowDelete() {
                         const attachment = this.getCurrentAttachment();
@@ -524,7 +525,7 @@
                             $wire.call('confirmRemovePendingAttachment', attachment.id);
                         }
                     }
-                }" x-init="$watch(() => $wire.currentPendingAttachmentIndex, () => {})">
+                }">
                     <x-buttons.submit-button 
                         @click="deleteCurrentPhoto()"
                         color="red"
