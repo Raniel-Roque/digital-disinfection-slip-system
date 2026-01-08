@@ -2398,7 +2398,7 @@ class Trucks extends Component
             fputcsv($file, ['Slip ID', 'Plate Number', 'Origin', 'Destination', 'Driver', 'Status', 'Hatchery Guard', 'Received Guard', 'Created Date', 'Completed Date']);
             
             foreach ($data as $slip) {
-                $statuses = ['Pending', 'Disinfecting', 'In-Transit', 'Completed'];
+                $statuses = ['Pending', 'Disinfecting', 'In-Transit', 'Completed', 'Incomplete'];
                 $status = $statuses[$slip->status] ?? 'Unknown';
                 $hatcheryGuard = $slip->hatcheryGuard ? trim(implode(' ', array_filter([$slip->hatcheryGuard->first_name, $slip->hatcheryGuard->middle_name, $slip->hatcheryGuard->last_name]))) : 'N/A';
                 $receivedGuard = $slip->receivedGuard ? trim(implode(' ', array_filter([$slip->receivedGuard->first_name, $slip->receivedGuard->middle_name, $slip->receivedGuard->last_name]))) : 'N/A';
@@ -2443,19 +2443,19 @@ class Trucks extends Component
         $exportData = $data->map(function($slip) {
             // Helper function to format names
             $formatName = function($user) {
-                if (!$user) return '[User] (Deleted)';
+                if (!$user) return 'N/A';
                 $name = trim(implode(' ', array_filter([$user->first_name, $user->middle_name, $user->last_name])));
                 return $user->trashed() ? $name . ' (Deleted)' : $name;
             };
             
             return [
                 'slip_id' => $slip->slip_id,
-                'plate_number' => $slip->truck ? ($slip->truck->trashed() ? $slip->truck->plate_number . ' (Deleted)' : $slip->truck->plate_number) : '[Truck] (Deleted)',
-                'origin' => $slip->location ? ($slip->location->trashed() ? $slip->location->location_name . ' (Deleted)' : $slip->location->location_name) : '[Location] (Deleted)',
-                'destination' => $slip->destination ? ($slip->destination->trashed() ? $slip->destination->location_name . ' (Deleted)' : $slip->destination->location_name) : '[Location] (Deleted)',
+                'plate_number' => $slip->truck ? ($slip->truck->trashed() ? $slip->truck->plate_number . ' (Deleted)' : $slip->truck->plate_number) : 'N/A',
+                'origin' => $slip->location ? ($slip->location->trashed() ? $slip->location->location_name . ' (Deleted)' : $slip->location->location_name) : 'N/A',
+                'destination' => $slip->destination ? ($slip->destination->trashed() ? $slip->destination->location_name . ' (Deleted)' : $slip->destination->location_name) : 'N/A',
                 'driver' => $slip->driver ? ($slip->driver->trashed() ?
                     trim(implode(' ', array_filter([$slip->driver->first_name, $slip->driver->middle_name, $slip->driver->last_name]))) . ' (Deleted)' :
-                    trim(implode(' ', array_filter([$slip->driver->first_name, $slip->driver->middle_name, $slip->driver->last_name])))) : '[Driver] (Deleted)',
+                    trim(implode(' ', array_filter([$slip->driver->first_name, $slip->driver->middle_name, $slip->driver->last_name])))) : 'N/A',
                 'status' => $slip->status,
                 'hatchery_guard' => $formatName($slip->hatcheryGuard),
                 'received_guard' => $formatName($slip->receivedGuard),

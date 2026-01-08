@@ -211,7 +211,7 @@
                     <td>{{ $slip->driver ?? ($slip['driver'] ?? '') }}</td>
                     <td>
                         @php
-                            $statuses = ['Pending', 'Disinfecting', 'In-Transit', 'Completed'];
+                            $statuses = ['Pending', 'Disinfecting', 'In-Transit', 'Completed', 'Incomplete'];
                             $statusIndex = $slip->status ?? ($slip['status'] ?? 0);
                             echo $statuses[$statusIndex] ?? 'Unknown';
                         @endphp

@@ -116,7 +116,7 @@ class Trucks extends Component
         }
         
         return Attachment::whereIn('id', $this->selectedSlip->attachment_ids)
-            ->with(['user' => function($q) { $q->withTrashed(); }])
+            ->with('user')
             ->get();
     }
 
@@ -202,21 +202,21 @@ class Trucks extends Component
     private function getCachedLocations()
     {
         return Cache::remember('locations_all', 300, function() {
-            return Location::withTrashed()->orderBy('location_name')->get();
+            return Location::orderBy('location_name')->get();
         });
     }
     
     private function getCachedDrivers()
     {
         return Cache::remember('drivers_all', 300, function() {
-            return Driver::withTrashed()->orderBy('first_name')->get();
+            return Driver::orderBy('first_name')->get();
         });
     }
     
     private function getCachedTrucks()
     {
         return Cache::remember('trucks_all', 300, function() {
-            return Truck::withTrashed()->orderBy('plate_number')->get();
+            return Truck::orderBy('plate_number')->get();
         });
     }
     
@@ -605,15 +605,6 @@ class Trucks extends Component
     {
         $trucks = $this->getCachedTrucks();
         $allOptions = $trucks->pluck('plate_number', 'id');
-        
-        // If selected truck is soft-deleted, include it in options
-        if ($this->editTruckId) {
-            $selectedTruck = Truck::withTrashed()->find($this->editTruckId);
-            if ($selectedTruck && $selectedTruck->trashed() && !isset($allOptions[$this->editTruckId])) {
-                $allOptions[$this->editTruckId] = $selectedTruck->plate_number . ' (Deleted)';
-            }
-        }
-        
         $options = $allOptions;
         
         if (!empty($this->searchEditTruck)) {
@@ -621,23 +612,13 @@ class Trucks extends Component
             $options = $options->filter(function ($label) use ($searchTerm) {
                 return str_contains(strtolower($label), $searchTerm);
             });
-            // Ensure selected value is always included (even if soft-deleted)
+            // Ensure selected value is always included
             $options = $this->ensureSelectedInOptions($options, $this->editTruckId, $allOptions);
         }
         
         return $options->toArray();
     }
 
-    public function getIsSelectedTruckSoftDeletedProperty()
-    {
-        if (!$this->editTruckId || !$this->selectedSlip) {
-            return false;
-        }
-        
-        $truck = Truck::withTrashed()->find($this->editTruckId);
-        return $truck && $truck->trashed();
-    }
-    
     public function getEditDriverOptionsProperty()
     {
         $drivers = $this->getCachedDrivers();
@@ -1019,12 +1000,12 @@ class Trucks extends Component
     public function openDetailsModal($id)
     {
         $this->selectedSlip = DisinfectionSlipModel::with([
-            'truck' => function($q) { $q->withTrashed(); },
-            'location' => function($q) { $q->withTrashed(); },
-            'destination' => function($q) { $q->withTrashed(); },
-            'driver' => function($q) { $q->withTrashed(); },
-            'hatcheryGuard' => function($q) { $q->withTrashed(); },
-            'receivedGuard' => function($q) { $q->withTrashed(); }
+            'truck',
+            'location',
+            'destination',
+            'driver',
+            'hatcheryGuard',
+            'receivedGuard'
         ])->find($id);
 
         $this->showDetailsModal = true;
@@ -1036,11 +1017,6 @@ class Trucks extends Component
             return false;
         }
 
-        // Cannot edit if truck is soft-deleted
-        if ($this->selectedSlip->truck && $this->selectedSlip->truck->trashed()) {
-            return false;
-        }
-
         // Admin cannot edit completed slips (status == 3 or completed_at is set)
         // Only SuperAdmins can edit completed slips
         return $this->selectedSlip->status != 3 && $this->selectedSlip->completed_at === null;
@@ -1049,11 +1025,6 @@ class Trucks extends Component
     public function canDelete()
     {
         if (!$this->selectedSlip) {
-            return false;
-        }
-
-        // Cannot delete if truck is soft-deleted
-        if ($this->selectedSlip->truck && $this->selectedSlip->truck->trashed()) {
             return false;
         }
 
@@ -1069,12 +1040,6 @@ class Trucks extends Component
     public function canRemoveAttachment()
     {
         if (!$this->selectedSlip) {
-            return false;
-        }
-
-        // Admin cannot remove attachment from completed slips (status == 3 or completed_at is set)
-        // Only SuperAdmins can remove attachments from completed slips
-        if ($this->selectedSlip->status == 3 || $this->selectedSlip->status == 4) {
             return false;
         }
 
@@ -1773,15 +1738,14 @@ class Trucks extends Component
         $this->showAttachmentModal = false;
         $this->currentAttachmentIndex = 0;
 
-        // Livewire re-hydrates models without trashed relations; reload for details modal
         if ($this->selectedSlip) {
             $this->selectedSlip = DisinfectionSlipModel::with([
-                'truck' => function($q) { $q->withTrashed(); },
-                'location' => function($q) { $q->withTrashed(); },
-                'destination' => function($q) { $q->withTrashed(); },
-                'driver' => function($q) { $q->withTrashed(); },
-                'hatcheryGuard' => function($q) { $q->withTrashed(); },
-                'receivedGuard' => function($q) { $q->withTrashed(); }
+                'truck',
+                'location',
+                'destination',
+                'driver',
+                'hatcheryGuard',
+                'receivedGuard'
             ])->find($this->selectedSlip->id);
         }
     }
@@ -1928,12 +1892,12 @@ class Trucks extends Component
     public function render()
     {
         $slips = DisinfectionSlipModel::with([
-            'truck' => function($q) { $q->withTrashed(); },
-            'location' => function($q) { $q->withTrashed(); },
-            'destination' => function($q) { $q->withTrashed(); },
-            'driver' => function($q) { $q->withTrashed(); },
-            'hatcheryGuard' => function($q) { $q->withTrashed(); },
-            'receivedGuard' => function($q) { $q->withTrashed(); }
+            'truck',
+            'location',
+            'destination',
+            'driver',
+            'hatcheryGuard',
+            'receivedGuard'
         ])
             // Search
             ->when($this->search, function($query) {
@@ -2156,6 +2120,33 @@ class Trucks extends Component
             ->when($this->appliedCreatedTo, function($query) {
                 $query->whereDate('created_at', '<=', $this->appliedCreatedTo);
             })
+            // Exclude slips with deleted items (default: on for admin)
+            ->when($this->excludeDeletedItems, function($query) {
+                $query->whereHas('truck', function($q) {
+                    $q->whereNull('deleted_at');
+                })
+                ->whereHas('driver', function($q) {
+                    $q->whereNull('deleted_at');
+                })
+                ->whereHas('location', function($q) {
+                    $q->whereNull('deleted_at');
+                })
+                ->whereHas('destination', function($q) {
+                    $q->whereNull('deleted_at');
+                })
+                ->where(function($q) {
+                    $q->whereHas('hatcheryGuard', function($guardQ) {
+                        $guardQ->whereNull('deleted_at');
+                    })
+                    ->orWhereNull('hatchery_guard_id');
+                })
+                ->where(function($q) {
+                    $q->whereHas('receivedGuard', function($guardQ) {
+                        $guardQ->whereNull('deleted_at');
+                    })
+                    ->orWhereNull('received_guard_id');
+                });
+            })
             ->when($this->sortBy === 'slip_id', function($query) {
                 $direction = strtoupper($this->sortDirection);
                 $query->orderByRaw("SUBSTRING(slip_id, 1, 2) " . $direction)
@@ -2184,7 +2175,7 @@ class Trucks extends Component
             fputcsv($file, ['Slip ID', 'Plate Number', 'Origin', 'Destination', 'Driver', 'Status', 'Hatchery Guard', 'Received Guard', 'Created Date', 'Completed Date']);
             
             foreach ($data as $slip) {
-                $statuses = ['Pending', 'Disinfecting', 'In-Transit', 'Completed'];
+                $statuses = ['Pending', 'Disinfecting', 'In-Transit', 'Completed', 'Incomplete'];
                 $status = $statuses[$slip->status] ?? 'Unknown';
                 $hatcheryGuard = $slip->hatcheryGuard ? trim(implode(' ', array_filter([$slip->hatcheryGuard->first_name, $slip->hatcheryGuard->middle_name, $slip->hatcheryGuard->last_name]))) : 'N/A';
                 $receivedGuard = $slip->receivedGuard ? trim(implode(' ', array_filter([$slip->receivedGuard->first_name, $slip->receivedGuard->middle_name, $slip->receivedGuard->last_name]))) : 'N/A';
@@ -2216,19 +2207,18 @@ class Trucks extends Component
         $exportData = $data->map(function($slip) {
             // Helper function to format names
             $formatName = function($user) {
-                if (!$user) return '[User] (Deleted)';
+                if (!$user) return 'N/A';
                 $name = trim(implode(' ', array_filter([$user->first_name, $user->middle_name, $user->last_name])));
-                return $user->trashed() ? $name . ' (Deleted)' : $name;
+                return $name;
             };
-
+    
             return [
                 'slip_id' => $slip->slip_id,
-                'plate_number' => $slip->truck ? ($slip->truck->trashed() ? $slip->truck->plate_number . ' (Deleted)' : $slip->truck->plate_number) : '[Truck] (Deleted)',
-                'origin' => $slip->location ? ($slip->location->trashed() ? $slip->location->location_name . ' (Deleted)' : $slip->location->location_name) : '[Location] (Deleted)',
-                'destination' => $slip->destination ? ($slip->destination->trashed() ? $slip->destination->location_name . ' (Deleted)' : $slip->destination->location_name) : '[Location] (Deleted)',
-                'driver' => $slip->driver ? ($slip->driver->trashed() ?
-                    trim(implode(' ', array_filter([$slip->driver->first_name, $slip->driver->middle_name, $slip->driver->last_name]))) . ' (Deleted)' :
-                    trim(implode(' ', array_filter([$slip->driver->first_name, $slip->driver->middle_name, $slip->driver->last_name])))) : '[Driver] (Deleted)',
+                'plate_number' => $slip->truck ? $slip->truck->plate_number : 'N/A',
+                'origin' => $slip->location ? $slip->location->location_name : 'N/A',
+                'destination' => $slip->destination ? $slip->destination->location_name : 'N/A',
+                'driver' => $slip->driver ? 
+                    trim(implode(' ', array_filter([$slip->driver->first_name, $slip->driver->middle_name, $slip->driver->last_name]))) : 'N/A',
                 'status' => $slip->status,
                 'hatchery_guard' => $formatName($slip->hatcheryGuard),
                 'received_guard' => $formatName($slip->receivedGuard),
