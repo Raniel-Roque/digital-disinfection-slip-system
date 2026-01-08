@@ -73,13 +73,16 @@ class DisinfectionSlip extends Component
 
     public function getLocationsProperty()
     {
-        // Exclude the current location from the list
         $currentLocationId = Session::get('location_id');
-        return Cache::remember('locations_all', 300, function() use ($currentLocationId) {
-            return Location::withTrashed()->where('id', '!=', $currentLocationId)->where('disabled', false)->orderBy('location_name')->get();
+        return Cache::remember("locations_all_{$currentLocationId}", 300, function() use ($currentLocationId) {
+            return Location::where('id', '!=', $currentLocationId)
+                ->whereNull('deleted_at')
+                ->where('disabled', false)
+                ->orderBy('location_name')
+                ->get();
         });
     }
-
+    
     public function getDriversProperty()
     {
         return Cache::remember('drivers_all', 300, function() {
