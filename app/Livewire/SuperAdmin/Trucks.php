@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Services\Logger;
 use Illuminate\Support\Facades\Cache;
+use App\Models\Reason;
 
 class Trucks extends Component
 {
@@ -163,9 +164,9 @@ class Trucks extends Component
     public $searchEditHatcheryGuard = '';
     public $searchEditReceivedGuard = '';
     
-    // Note: availableOriginsOptions and availableDestinationsOptions are now computed properties
-    
-    // Cached collections to avoid duplicate queries
+    public $reasonTexts = [];
+    public $showDeleteReasonConfirmation = false;
+    public $reasonToDelete = null;
     private $cachedFilterGuards = null;
     private $cachedFilterGuardsCollection = null;
 
@@ -193,6 +194,7 @@ class Trucks extends Component
         $this->appliedCreatedTo = $today;
         $this->filtersActive = true;
         
+        $this->loadReasons();
         // Options are now computed properties, no initialization needed
     }
     
@@ -208,7 +210,7 @@ class Trucks extends Component
             $this->showDeleteConfirmation || $this->showRemoveAttachmentConfirmation || 
             $this->showEditModal || $this->showCancelCreateConfirmation || 
             $this->showCancelEditConfirmation || $this->showAttachmentModal || 
-            $this->showRestoreModal || $this->showSettingsModal) {
+            $this->showRestoreModal || $this->showReasonsModal) {
             return;
         }
         
@@ -258,6 +260,13 @@ class Trucks extends Component
                     $name = trim("{$user->first_name} {$user->middle_name} {$user->last_name}");
                     return [$user->id => "{$name} @{$user->username}"];
                 });
+        });
+    }
+    
+    private function getCachedReasons()
+    {
+        return Cache::remember('reasons_all', 300, function() {
+            return Reason::orderBy('reason_text')->get();
         });
     }
     
@@ -2237,14 +2246,14 @@ class Trucks extends Component
                 // Sort by year first, then by number within that year
                 $direction = strtoupper($this->sortDirection);
                 $query->orderByRaw("SUBSTRING(slip_id, 1, 2) " . $direction) // Year part
-                      ->orderByRaw("CAST(SUBSTRING(slip_id, 4) AS UNSIGNED) " . $direction); // Number part
+                    ->orderByRaw("CAST(SUBSTRING(slip_id, 4) AS UNSIGNED) " . $direction); // Number part
             })
             ->when($this->sortBy !== 'slip_id' && !$this->showDeleted, function($query) {
                 $query->orderBy($this->sortBy, $this->sortDirection);
                 // Add secondary sort by slip_id for consistent ordering when primary sort values are equal
                 $direction = strtoupper($this->sortDirection);
                 $query->orderByRaw("SUBSTRING(slip_id, 1, 2) " . $direction) // Year part
-                      ->orderByRaw("CAST(SUBSTRING(slip_id, 4) AS UNSIGNED) " . $direction); // Number part
+                    ->orderByRaw("CAST(SUBSTRING(slip_id, 4) AS UNSIGNED) " . $direction); // Number part
             })
             ->when($this->showDeleted, function ($query) {
                 $query->orderBy('deleted_at', 'desc');
@@ -2257,6 +2266,7 @@ class Trucks extends Component
             'drivers' => $this->drivers,
             'trucks' => $this->trucks,
             'guards' => $this->guards,
+            'reasons' => $this->reasons, // ADD THIS LINE
             'availableOriginsOptions' => $this->availableOriginsOptions,
             'availableDestinationsOptions' => $this->availableDestinationsOptions,
             'availableStatuses' => $this->availableStatuses,
@@ -2507,13 +2517,97 @@ class Trucks extends Component
         
         $this->dispatch('open-print-window', ['url' => $printUrl]);
     }
+
+    public function loadReasons()
+    {
+        $reasons = Reason::orderBy('reason_text')->get();
+        $this->reasonTexts = $reasons->pluck('reason_text', 'id')->toArray();
+    }
+
+    public function getReasonsProperty()
+    {
+        return Reason::orderBy('reason_text')->paginate(10);
+    }
+
+    public function addNewReason()
+    {
+        $reason = Reason::create([
+            'reason_text' => 'New Reason',
+        ]);
+        
+        $this->reasonTexts[$reason->id] = $reason->reason_text;
+        
+        // Clear cache after adding new reason
+        Cache::forget('reasons_all');
+        
+        $this->dispatch('toast', message: 'New reason added.', type: 'success');
+        
+        // Reset to first page to show the new reason
+        $this->resetPage();
+    }
+
+    public function confirmDeleteReason($reasonId)
+    {
+        $this->reasonToDelete = $reasonId;
+        $this->showDeleteReasonConfirmation = true;
+    }
+
+    public function deleteReason()
+    {
+        if (!$this->reasonToDelete) {
+            return;
+        }
+        
+        $reason = Reason::find($this->reasonToDelete);
+        
+        if ($reason) {
+            $reason->delete();
+            unset($this->reasonTexts[$this->reasonToDelete]);
+            
+            // Clear cache after deleting reason
+            Cache::forget('reasons_all');
+            
+            $this->dispatch('toast', message: 'Reason deleted successfully.', type: 'success');
+        }
+        
+        $this->showDeleteReasonConfirmation = false;
+        $this->reasonToDelete = null;
+    }
+
+    public function saveReasons()
+    {
+        // Validate all reason texts
+        $this->validate([
+            'reasonTexts.*' => 'required|string|max:255',
+        ]);
+        
+        // Update all reasons
+        foreach ($this->reasonTexts as $id => $text) {
+            Reason::where('id', $id)->update(['reason_text' => $text]);
+        }
+        
+        // Clear cache after updating reasons
+        Cache::forget('reasons_all');
+        
+        $this->showReasonsModal = false;
+        $this->dispatch('toast', message: 'Reasons updated successfully.', type: 'success');
+    }
+
     public function openReasonsModal()
     {
+        // Reload reasons to discard any unsaved changes
+        $this->loadReasons();
         $this->showReasonsModal = true;
+        $this->showDeleteReasonConfirmation = false;
+        $this->reasonToDelete = null;
     }
 
     public function closeReasonsModal()
     {
+        // Reload reasons to discard any unsaved changes
+        $this->loadReasons();
         $this->showReasonsModal = false;
+        $this->showDeleteReasonConfirmation = false;
+        $this->reasonToDelete = null;
     }
 }

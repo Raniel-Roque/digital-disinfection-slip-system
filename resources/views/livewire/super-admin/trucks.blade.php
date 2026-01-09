@@ -671,7 +671,7 @@
             :available-origins-options="$availableOriginsOptions" :available-destinations-options="$availableDestinationsOptions" :create-truck-options="$createTruckOptions" :create-driver-options="$createDriverOptions" :create-guard-options="$createGuardOptions"
             :create-received-guard-options="$createReceivedGuardOptions" :is-creating="$isCreating" />
 
-        <x-modals.reason-settings />
+        <x-modals.reason-settings :reasons="$reasons" />
         
         {{-- Restore Confirmation Modal --}}
         @if ($showRestoreModal)
