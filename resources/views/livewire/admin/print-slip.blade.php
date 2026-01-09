@@ -221,7 +221,7 @@
         </div>
 
         <div class="form-field">
-            <div class="form-label">Remarks for Disinfection:</div>
+            <div class="form-label">Remarks:</div>
             <div class="form-value">{{ $slip->remarks_for_disinfection ?? '' }}</div>
         </div>
 

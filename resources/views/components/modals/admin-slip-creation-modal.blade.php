@@ -97,7 +97,7 @@
             <div class="text-gray-900">
             <textarea wire:model="remarks_for_disinfection"
                 class="w-full border rounded px-2 py-1 text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                rows="6" placeholder="Enter remarks for disinfection..."></textarea>
+                rows="6" placeholder="Enter remarks..."></textarea>
             @error('remarks_for_disinfection')
                     <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
             @enderror
