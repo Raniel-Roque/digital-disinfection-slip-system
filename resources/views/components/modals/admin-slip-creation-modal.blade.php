@@ -114,7 +114,7 @@
 
         <x-buttons.submit-button wire:click.prevent="createSlip" color="blue" wire:loading.attr="disabled" wire:target="createSlip"
                 x-bind:disabled="isCreating">
-            <span wire:loading.remove wire:target="createSlip">Create Slip</span>
+            <span wire:loading.remove wire:target="createSlip">Create</span>
             <span wire:loading.inline-flex wire:target="createSlip" class="inline-flex items-center gap-2">
                 <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

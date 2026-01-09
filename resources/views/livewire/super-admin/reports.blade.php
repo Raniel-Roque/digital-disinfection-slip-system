@@ -47,7 +47,7 @@
                         </div>
                     </div>
 
-                    {{-- Restore Deleted Button --}}
+                    {{-- Restore Button --}}
                     <button wire:click="toggleDeletedView" wire:loading.attr="disabled" wire:target="toggleDeletedView"
                         class="inline-flex items-center px-4 py-2.5 {{ $showDeleted ? 'bg-gray-600 hover:bg-gray-700' : 'bg-orange-600 hover:bg-orange-700' }} text-white rounded-lg text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 {{ $showDeleted ? 'focus:ring-gray-500' : 'focus:ring-orange-500' }} disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
                         <svg wire:loading.remove wire:target="toggleDeletedView" class="w-5 h-5 mr-2" fill="none"
@@ -58,7 +58,7 @@
                         </svg>
 
                         <span wire:loading.remove
-                            wire:target="toggleDeletedView">{{ $showDeleted ? 'Back to Active' : 'Restore Deleted' }}</span>
+                            wire:target="toggleDeletedView">{{ $showDeleted ? 'Back to Active' : 'Restore' }}</span>
                         <span wire:loading.inline-flex wire:target="toggleDeletedView" class="inline-flex items-center gap-2">
                             <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

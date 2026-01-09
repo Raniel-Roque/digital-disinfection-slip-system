@@ -55,11 +55,11 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
                             </path>
                         </svg>
-                        Create Slip
+                        Create
                     </x-buttons.submit-button>
 
                     {{-- Download Button (Icon only with dropdown) --}}
-                    <x-buttons.export-button />
+                    <x-buttons.export-button type="trucks" />
                 </div>
             </div>
 

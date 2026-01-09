@@ -55,11 +55,11 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
                                 </path>
                             </svg>
-                            Create Location
+                            Create
                         </x-buttons.submit-button>
                     @endif
 
-                    {{-- Restore Deleted Button (Icon + Text) --}}
+                    {{-- Restore Button (Icon + Text) --}}
                     <button wire:click="toggleDeletedView" wire:loading.attr="disabled" wire:target="toggleDeletedView"
                         class="inline-flex items-center px-4 py-2.5 {{ $showDeleted ?? false ? 'bg-gray-600 hover:bg-gray-700' : 'bg-orange-600 hover:bg-orange-700' }} text-white rounded-lg text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 {{ $showDeleted ?? false ? 'focus:ring-gray-500' : 'focus:ring-orange-500' }} disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
                         <svg wire:loading.remove wire:target="toggleDeletedView" class="w-5 h-5 mr-2" fill="none"
@@ -70,7 +70,7 @@
                         </svg>
 
                         <span wire:loading.remove
-                            wire:target="toggleDeletedView">{{ $showDeleted ?? false ? 'Back to Active' : 'Restore Deleted' }}</span>
+                            wire:target="toggleDeletedView">{{ $showDeleted ?? false ? 'Back to Active' : 'Restore' }}</span>
                         <span wire:loading.inline-flex wire:target="toggleDeletedView" class="inline-flex items-center gap-2">
                             <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -606,7 +606,7 @@
                                         <div class="w-11 h-6 rounded-full focus-within:outline-none focus-within:ring-4 focus-within:ring-blue-300 transition-colors duration-200 relative" :class="createSlip ? 'bg-blue-600' : 'bg-gray-200'">
                                             <div class="absolute top-[2px] left-[2px] bg-white border border-gray-300 rounded-full h-5 w-5 transition-transform duration-200" :class="createSlip ? 'translate-x-5' : 'translate-x-0'"></div>
                                         </div>
-                                        <span class="ml-3 text-sm text-gray-700" x-text="createSlip ? 'Enabled - Guards can create slips on outgoing trucks' : 'Disabled - Guards cannot create slips on outgoing trucks'"></span>
+                                        <span class="ml-3 text-sm text-gray-700" x-text="createSlip ? 'Enabled - Guards can create slips at this location' : 'Disabled - Guards cannot create slips at this location'"></span>
                                     </label>
                                 </div>
                             </div>
@@ -803,7 +803,7 @@
                                         <div class="w-11 h-6 rounded-full focus-within:outline-none focus-within:ring-4 focus-within:ring-blue-300 transition-colors duration-200 relative" :class="createSlip ? 'bg-blue-600' : 'bg-gray-200'">
                                             <div class="absolute top-[2px] left-[2px] bg-white border border-gray-300 rounded-full h-5 w-5 transition-transform duration-200" :class="createSlip ? 'translate-x-5' : 'translate-x-0'"></div>
                                         </div>
-                                        <span class="ml-3 text-sm text-gray-700" x-text="createSlip ? 'Enabled - Guards can create slips on outgoing trucks' : 'Disabled - Guards cannot create slips on outgoing trucks'"></span>
+                                        <span class="ml-3 text-sm text-gray-700" x-text="createSlip ? 'Enabled - Guards can create slips at this location' : 'Disabled - Guards cannot create slips at this location'"></span>
                                     </label>
                                 </div>
                             </div>
@@ -816,7 +816,7 @@
                             </button>
                             <button wire:click.prevent="createLocation" wire:loading.attr="disabled" wire:target="createLocation"
                                 class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                                <span wire:loading.remove wire:target="createLocation">Create Location</span>
+                                <span wire:loading.remove wire:target="createLocation">Create</span>
                                 <span wire:loading.inline-flex wire:target="createLocation" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Creating...</span>
                             </button>
                         </div>
