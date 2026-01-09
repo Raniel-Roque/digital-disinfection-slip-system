@@ -128,92 +128,263 @@
                     </div>
                 @endif
 
-
                 {{-- CAMERA WITH UPLOAD FUNCTIONALITY --}}
                 @if (!$isEditing)
-                    <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if (($status == 3 || $status == 4) && $selectedSlip->completed_at) bg-gray-100 @else bg-white @endif">
-                        <div class="font-semibold text-gray-500">Photos:</div>
-                        <div class="text-gray-900" x-data="{ 
-                            showCameraModal: false,
-                            stream: null,
-                            photos: [],
-                            cameraActive: false,
-                            uploading: false,
-                            async startCamera() {
-                                console.log('Starting camera...');
-                                
-                                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                                    alert('Camera not supported! You need HTTPS or localhost.');
-                                    return;
-                                }
-                                
-                                try {
-                                    this.stream = await navigator.mediaDevices.getUserMedia({ 
-                                        video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 640 } },
-                                        audio: false 
-                                    });
-                                    this.$refs.video.srcObject = this.stream;
-                                    this.cameraActive = true;
-                                    console.log('Camera started!');
-                                } catch(err) {
-                                    console.error('Camera error:', err);
-                                    alert('Camera error: ' + err.message);
-                                }
-                            },
-                            capturePhoto() {
-                                console.log('Capturing photo...');
-                                const video = this.$refs.video;
-                                const canvas = this.$refs.canvas;
-                                canvas.width = video.videoWidth;
-                                canvas.height = video.videoHeight;
-                                const ctx = canvas.getContext('2d');
-                                ctx.drawImage(video, 0, 0);
-                                const imageData = canvas.toDataURL('image/jpeg', 0.85);
-                                this.photos.push({ id: Date.now(), data: imageData });
-                                console.log('Photo captured! Total photos:', this.photos.length);
-                            },
-                            stopCamera() {
-                                console.log('Stopping camera...');
-                                if (this.stream) {
-                                    this.stream.getTracks().forEach(track => track.stop());
-                                    this.stream = null;
-                                }
-                                this.$refs.video.srcObject = null;
-                                this.cameraActive = false;
-                            },
-                            deletePhoto(id) {
-                                console.log('Deleting photo:', id);
-                                this.photos = this.photos.filter(p => p.id !== id);
-                            },
-                            async uploadPhotos() {
-                                if (this.photos.length === 0) {
-                                    alert('No photos to upload!');
-                                    return;
-                                }
-                                
-                                console.log('Uploading photos...');
-                                this.uploading = true;
-                                
-                                try {
-                                    // Upload all photos sequentially
-                                    for (const photo of this.photos) {
-                                        await $wire.uploadAttachment(photo.data);
-                                    }
-                                    
-                                    // Reset on success
-                                    this.photos = [];
-                                    this.stopCamera();
-                                    this.showCameraModal = false;
-                                    
-                                    console.log('Upload complete!');
-                                } catch(err) {
-                                    console.error('Upload error:', err);
-                                    alert('Upload failed: ' + err.message);
-                                } finally {
-                                    this.uploading = false;
-                                }
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if (($status == 3 || $status == 4) && $selectedSlip->completed_at) bg-gray-100 @else bg-white @endif">
+                    <div class="font-semibold text-gray-500">Photos:</div>
+                    <div class="text-gray-900" x-data="{ 
+                        showCameraModal: false,
+                        showCancelConfirmation: false,
+                        stream: null,
+                        photos: [],
+                        cameraActive: false,
+                        uploading: false,
+                        processingGallery: false,
+                        async startCamera() {
+                            console.log('Starting camera...');
+                            
+                            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                                alert('Camera not supported! You need HTTPS or localhost.');
+                                return;
                             }
-                        }">
+                            
+                            try {
+                                this.stream = await navigator.mediaDevices.getUserMedia({ 
+                                    video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 640 } },
+                                    audio: false 
+                                });
+                                this.$refs.video.srcObject = this.stream;
+                                this.cameraActive = true;
+                                console.log('Camera started!');
+                            } catch(err) {
+                                console.error('Camera error:', err);
+                                alert('Camera error: ' + err.message);
+                            }
+                        },
+                        capturePhoto() {
+                            console.log('Capturing photo...');
+                            const video = this.$refs.video;
+                            const canvas = this.$refs.canvas;
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                            const ctx = canvas.getContext('2d');
+                            
+                            // Draw the video frame
+                            ctx.drawImage(video, 0, 0);
+                            
+                            // Add timestamp watermark
+                            this.addTimestampWatermark(ctx, canvas.width, canvas.height);
+                            
+                            const imageData = canvas.toDataURL('image/jpeg', 0.85);
+                            this.photos.push({ id: Date.now(), data: imageData });
+                            console.log('Photo captured! Total photos:', this.photos.length);
+                        },
+                        addTimestampWatermark(ctx, width, height) {
+                            // Add timestamp overlay at bottom left
+                            const now = new Date();
+                            const dateStr = now.toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: '2-digit', 
+                                day: '2-digit' 
+                            });
+                            const timeStr = now.toLocaleTimeString('en-US', { 
+                                hour: '2-digit', 
+                                minute: '2-digit', 
+                                second: '2-digit',
+                                hour12: false 
+                            });
+                            const timestamp = `${dateStr} ${timeStr}`;
+                            
+                            // Configure text style
+                            const fontSize = Math.max(16, height * 0.03);
+                            ctx.font = `bold ${fontSize}px Arial`;
+                            ctx.textBaseline = 'bottom';
+                            
+                            // Add semi-transparent black background for text
+                            const padding = fontSize * 0.3;
+                            const textWidth = ctx.measureText(timestamp).width;
+                            const textHeight = fontSize;
+                            const bgX = padding;
+                            const bgY = height - textHeight - padding * 2;
+                            const bgWidth = textWidth + padding * 2;
+                            const bgHeight = textHeight + padding * 2;
+                            
+                            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                            ctx.fillRect(bgX, bgY, bgWidth, bgHeight);
+                            
+                            // Draw text with black stroke/border for maximum visibility
+                            const textX = padding * 2;
+                            const textY = height - padding * 2;
+                            
+                            ctx.strokeStyle = '#000000';
+                            ctx.lineWidth = fontSize * 0.15;
+                            ctx.lineJoin = 'round';
+                            ctx.miterLimit = 2;
+                            ctx.strokeText(timestamp, textX, textY);
+                            
+                            ctx.fillStyle = '#FFFFFF';
+                            ctx.fillText(timestamp, textX, textY);
+                        },
+                        async selectFromGallery() {
+                            console.log('Opening gallery...');
+                            const input = document.createElement('input');
+                            input.type = 'file';
+                            input.accept = 'image/*';
+                            input.multiple = true;
+                            
+                            input.onchange = async (e) => {
+                                const files = Array.from(e.target.files);
+                                if (files.length === 0) return;
+                                
+                                this.processingGallery = true;
+                                
+                                for (const file of files) {
+                                    await this.processGalleryImage(file);
+                                }
+                                
+                                this.processingGallery = false;
+                            };
+                            
+                            input.click();
+                        },
+                        async processGalleryImage(file) {
+                            return new Promise((resolve) => {
+                                const reader = new FileReader();
+                                
+                                reader.onload = (e) => {
+                                    const img = new Image();
+                                    
+                                    img.onload = () => {
+                                        const canvas = this.$refs.canvas;
+                                        const ctx = canvas.getContext('2d');
+                                        
+                                        // Match camera capture size (640x640 or maintain aspect ratio)
+                                        const maxDimension = 640;
+                                        let targetWidth = img.width;
+                                        let targetHeight = img.height;
+                                        
+                                        // Scale down if image is larger than maxDimension
+                                        if (img.width > maxDimension || img.height > maxDimension) {
+                                            const scale = Math.min(maxDimension / img.width, maxDimension / img.height);
+                                            targetWidth = Math.floor(img.width * scale);
+                                            targetHeight = Math.floor(img.height * scale);
+                                        }
+                                        
+                                        // Set canvas to target size
+                                        canvas.width = targetWidth;
+                                        canvas.height = targetHeight;
+                                        
+                                        // Draw the resized image
+                                        ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+                                        
+                                        // Add timestamp watermark
+                                        this.addTimestampWatermark(ctx, canvas.width, canvas.height);
+                                        
+                                        // Compress with same quality as camera capture
+                                        const imageData = canvas.toDataURL('image/jpeg', 0.85);
+                                        
+                                        // Calculate final size
+                                        const base64Length = imageData.length - 'data:image/jpeg;base64,'.length;
+                                        const sizeInBytes = (base64Length * 3) / 4;
+                                        const sizeInMB = (sizeInBytes / 1024 / 1024).toFixed(2);
+                                        
+                                        console.log('Gallery photo processed: ' + targetWidth + 'x' + targetHeight + ', Size: ' + sizeInMB + 'MB');
+                                        
+                                        // Check if still too large
+                                        if (sizeInBytes > 15 * 1024 * 1024) {
+                                            $wire.dispatch('toast', { 
+                                                message: 'Photo \'' + file.name + '\' is too large even after resizing', 
+                                                type: 'error' 
+                                            });
+                                            resolve();
+                                            return;
+                                        }
+                                        
+                                        this.photos.push({ id: Date.now(), data: imageData });
+                                        console.log('Gallery photo added! Total photos:', this.photos.length);
+                                        resolve();
+                                    };
+                                    
+                                    img.onerror = () => {
+                                        console.error('Failed to load image');
+                                        $wire.dispatch('toast', { 
+                                            message: 'Failed to load image: ' + file.name, 
+                                            type: 'error' 
+                                        });
+                                        resolve();
+                                    };
+                                    
+                                    img.src = e.target.result;
+                                };
+                                
+                                reader.onerror = () => {
+                                    console.error('Failed to read file');
+                                    $wire.dispatch('toast', { 
+                                        message: 'Failed to read file: ' + file.name, 
+                                        type: 'error' 
+                                    });
+                                    resolve();
+                                };
+                                
+                                reader.readAsDataURL(file);
+                            });
+                        },
+                        stopCamera() {
+                            console.log('Stopping camera...');
+                            if (this.stream) {
+                                this.stream.getTracks().forEach(track => track.stop());
+                                this.stream = null;
+                            }
+                            this.$refs.video.srcObject = null;
+                            this.cameraActive = false;
+                        },
+                        tryCancel() {
+                            if (this.photos.length > 0 || this.cameraActive) {
+                                this.showCancelConfirmation = true;
+                            } else {
+                                this.confirmCancel();
+                            }
+                        },
+                        confirmCancel() {
+                            console.log('Cancelling and resetting...');
+                            this.stopCamera();
+                            this.photos = [];
+                            this.showCancelConfirmation = false;
+                            this.showCameraModal = false;
+                            this.uploading = false;
+                            this.processingGallery = false;
+                        },
+                        deletePhoto(id) {
+                            console.log('Deleting photo:', id);
+                            this.photos = this.photos.filter(p => p.id !== id);
+                        },
+                        async uploadPhotos() {
+                            if (this.photos.length === 0) {
+                                alert('No photos to upload!');
+                                return;
+                            }
+                            
+                            console.log('Uploading photos...');
+                            this.uploading = true;
+                            
+                            try {
+                                for (const photo of this.photos) {
+                                    await $wire.uploadAttachment(photo.data);
+                                }
+                                
+                                this.photos = [];
+                                this.stopCamera();
+                                this.showCameraModal = false;
+                                
+                                console.log('Upload complete!');
+                            } catch(err) {
+                                console.error('Upload error:', err);
+                                alert('Upload failed: ' + err.message);
+                            } finally {
+                                this.uploading = false;
+                            }
+                        }
+                    }">
                             @php
                                 $attachments = $selectedSlip->attachments();
                                 $attachmentCount = $attachments->count();
@@ -270,98 +441,134 @@
                                 N/A
                             @endif
 
-                            {{-- Camera Modal --}}
-                            <div x-show="showCameraModal" 
-                                x-cloak
-                                class="fixed inset-0 z-50 overflow-y-auto"
-                                style="display: none;">
+                        {{-- Camera Modal --}}
+                        <div x-show="showCameraModal" 
+                        x-cloak
+                        class="fixed inset-0 z-50 overflow-y-auto"
+                        style="display: none;">
+
+                        <div class="fixed inset-0 bg-black/80" @click="tryCancel()"></div>
+
+                        <div class="relative min-h-screen flex items-start sm:items-center justify-center p-2 sm:p-4">
+                            <div class="relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-4 sm:p-6 my-4 sm:my-8 max-h-[95vh] overflow-y-auto">
                                 
-                                <div class="fixed inset-0 bg-black/80" @click="showCameraModal = false; stopCamera()"></div>
-                                
-                                <div class="relative min-h-screen flex items-start sm:items-center justify-center p-2 sm:p-4">
-                                    <div class="relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-4 sm:p-6 my-4 sm:my-8 max-h-[95vh] overflow-y-auto">
-                                        
-                                        <div class="flex items-center justify-between mb-4 sticky top-0 bg-white z-10 pb-2">
-                                            <h3 class="text-base sm:text-lg font-semibold text-gray-900">Add Photos</h3>
-                                            <button @click="showCameraModal = false; stopCamera()" class="text-gray-400 hover:text-gray-600 flex-shrink-0">
-                                                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                                </svg>
-                                            </button>
+                                <div class="flex items-center justify-between mb-4 sticky top-0 bg-white z-10 pb-2">
+                                    <h3 class="text-base sm:text-lg font-semibold text-gray-900">Add Photos</h3>
+                                    <button @click="tryCancel()" class="text-gray-400 hover:text-gray-600 flex-shrink-0">
+                                        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <div class="flex flex-col items-center space-y-3 sm:space-y-4">
+                                    {{-- Status --}}
+                                    <div class="w-full text-center py-2 px-3 sm:px-4 rounded-lg font-medium text-xs sm:text-sm"
+                                        :class="uploading ? 'bg-blue-100 text-blue-700' : (processingGallery ? 'bg-purple-100 text-purple-700' : (cameraActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'))">
+                                        <span x-text="uploading ? 'Uploading...' : (processingGallery ? 'Processing images...' : (cameraActive ? 'Camera is active' : 'Capture or select photos'))"></span>
+                                    </div>
+                                    
+                                    {{-- Camera Preview --}}
+                                    <div class="relative w-full max-w-sm aspect-square bg-gray-900 rounded-lg overflow-hidden"
+                                        x-show="cameraActive">
+                                        <video x-ref="video" class="w-full h-full object-cover" autoplay playsinline></video>
+                                        <canvas x-ref="canvas" class="hidden"></canvas>
+                                    </div>
+
+                                    {{-- Photos Grid --}}
+                                    <div class="w-full" x-show="photos.length > 0">
+                                        <h4 class="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3">Captured Photos (<span x-text="photos.length"></span>)</h4>
+                                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 max-h-[40vh] overflow-y-auto pr-1">
+                                            <template x-for="photo in photos" :key="photo.id">
+                                                <div class="relative rounded-lg overflow-hidden shadow-md">
+                                                    <img :src="photo.data" class="w-full h-24 sm:h-32 object-cover">
+                                                    @if (!in_array($status, [3, 4]))
+                                                        <button @click="deletePhoto(photo.id)" 
+                                                            class="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
+                                                            Delete
+                                                        </button>
+                                                    @endif
+                                                </div>
+                                            </template>
                                         </div>
+                                    </div>
+                                </div>
 
-                                        <div class="flex flex-col items-center space-y-3 sm:space-y-4">
-                                            {{-- Status --}}
-                                            <div class="w-full text-center py-2 px-3 sm:px-4 rounded-lg font-medium text-xs sm:text-sm"
-                                                :class="uploading ? 'bg-blue-100 text-blue-700' : (cameraActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700')">
-                                                <span x-text="uploading ? 'Uploading...' : (cameraActive ? 'Camera is active' : 'Click Start Camera to begin')"></span>
-                                            </div>
-                                            
-                                            {{-- Camera Preview --}}
-                                            <div class="relative w-full max-w-sm aspect-square bg-gray-900 rounded-lg overflow-hidden"
-                                                x-show="cameraActive">
-                                                <video x-ref="video" class="w-full h-full object-cover" autoplay playsinline></video>
-                                                <canvas x-ref="canvas" class="hidden"></canvas>
-                                            </div>
+                                {{-- Footer Buttons --}}
+                                <div class="flex flex-wrap justify-center sm:justify-end gap-2 mt-4 sm:mt-6 sticky bottom-0 bg-white pt-2 pb-1 border-t border-gray-100">
+                                    <button @click="tryCancel()" 
+                                            :disabled="uploading || processingGallery"
+                                            class="px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        Cancel
+                                    </button>
+                                    
+                                    <button @click="selectFromGallery()" 
+                                            x-show="!uploading && !processingGallery"
+                                            class="px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-purple-500 text-white rounded-md hover:bg-purple-600">
+                                        Select from Gallery
+                                    </button>
+                                    
+                                    <button @click="startCamera()" 
+                                            x-show="!cameraActive && !uploading && !processingGallery"
+                                            class="px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                                        Start Camera
+                                    </button>
+                                    
+                                    <button @click="capturePhoto()" 
+                                            x-show="cameraActive && !uploading && !processingGallery"
+                                            class="px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-green-500 text-white rounded-md hover:bg-green-600">
+                                        Capture Photo
+                                    </button>
+                                    
+                                    <button @click="stopCamera()" 
+                                            x-show="cameraActive && !uploading && !processingGallery"
+                                            class="px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-orange-500 text-white rounded-md hover:bg-orange-600">
+                                        Stop Camera
+                                    </button>
+                                    
+                                    <button @click="uploadPhotos()" 
+                                            x-show="photos.length > 0 && !uploading && !processingGallery"
+                                            :disabled="uploading || processingGallery"
+                                            class="px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <span x-show="!uploading">Upload <span x-text="photos.length"></span> Photo<span x-show="photos.length > 1">s</span></span>
+                                        <span x-show="uploading" class="inline-flex items-center gap-2">
+                                            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Uploading...
+                                        </span>
+                                    </button>
+                                </div>
 
-                                            {{-- Photos Grid --}}
-                                            <div class="w-full" x-show="photos.length > 0">
-                                                <h4 class="text-base sm:text-lg font-semibold text-gray-700 mb-2 sm:mb-3">Captured Photos (<span x-text="photos.length"></span>)</h4>
-                                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 max-h-[40vh] overflow-y-auto pr-1">
-                                                    <template x-for="photo in photos" :key="photo.id">
-                                                        <div class="relative rounded-lg overflow-hidden shadow-md">
-                                                            <img :src="photo.data" class="w-full h-24 sm:h-32 object-cover">
-                                                            @if (!in_array($status, [3, 4]))
-                                                                <button @click="deletePhoto(photo.id)" 
-                                                                    class="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
-                                                                    Delete
-                                                                </button>
-                                                            @endif
-                                                        </div>
-                                                    </template>
+                                {{-- Cancel Confirmation Modal --}}
+                                <div x-show="showCancelConfirmation"
+                                    x-cloak
+                                    class="fixed inset-0 z-60 overflow-y-auto"
+                                    style="display: none;">
+                                    <div class="fixed inset-0 bg-black/50"></div>
+                                    <div class="relative min-h-screen flex items-center justify-center p-4">
+                                        <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                                            <div class="text-center">
+                                                <div class="mx-auto mb-4 text-yellow-500 w-16 h-16">
+                                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                                    </svg>
+                                                </div>
+                                                <h3 class="text-lg font-semibold text-gray-900 mb-2">Cancel Photo Capture?</h3>
+                                                <p class="text-gray-700 mb-4">Any captured photos that haven't been uploaded will be lost.</p>
+                                                <div class="flex gap-3 justify-center">
+                                                    <button @click="showCancelConfirmation = false"
+                                                            class="px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                                                        Continue Capturing
+                                                    </button>
+                                                    <button @click="confirmCancel()"
+                                                            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                                                        Yes, Cancel
+                                                    </button>
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        {{-- Footer Buttons --}}
-                                        <div class="flex flex-wrap justify-center sm:justify-end gap-2 mt-4 sm:mt-6 sticky bottom-0 bg-white pt-2 pb-1 border-t border-gray-100">
-                                            <button @click="showCameraModal = false; stopCamera()" 
-                                                    :disabled="uploading"
-                                                    class="px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-                                                Cancel
-                                            </button>
-                                            
-                                            <button @click="startCamera()" 
-                                                    x-show="!cameraActive && !uploading"
-                                                    class="px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-blue-500 text-white rounded-md hover:bg-blue-600">
-                                                Start Camera
-                                            </button>
-                                            
-                                            <button @click="capturePhoto()" 
-                                                    x-show="cameraActive && !uploading"
-                                                    class="px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-green-500 text-white rounded-md hover:bg-green-600">
-                                                Capture Photo
-                                            </button>
-                                            
-                                            <button @click="stopCamera()" 
-                                                    x-show="cameraActive && !uploading"
-                                                    class="px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-orange-500 text-white rounded-md hover:bg-orange-600">
-                                                Stop Camera
-                                            </button>
-                                            
-                                            <button @click="uploadPhotos()" 
-                                                    x-show="photos.length > 0 && !uploading"
-                                                    :disabled="uploading"
-                                                    class="px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
-                                                <span x-show="!uploading">Upload <span x-text="photos.length"></span> Photo<span x-show="photos.length > 1">s</span></span>
-                                                <span x-show="uploading" class="inline-flex items-center gap-2">
-                                                    <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                    </svg>
-                                                    Uploading...
-                                                </span>
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
