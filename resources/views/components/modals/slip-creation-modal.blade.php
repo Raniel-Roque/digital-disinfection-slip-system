@@ -182,57 +182,50 @@
                                 const canvas = this.$refs.canvas;
                                 const ctx = canvas.getContext('2d');
                                 
-                                // Set canvas to same size as image (no cropping)
-                                canvas.width = img.width;
-                                canvas.height = img.height;
+                                // Match camera capture size (640x640 or maintain aspect ratio)
+                                const maxDimension = 640;
+                                let targetWidth = img.width;
+                                let targetHeight = img.height;
                                 
-                                // Draw the entire image
-                                ctx.drawImage(img, 0, 0, img.width, img.height);
+                                // Scale down if image is larger than maxDimension
+                                if (img.width > maxDimension || img.height > maxDimension) {
+                                    const scale = Math.min(maxDimension / img.width, maxDimension / img.height);
+                                    targetWidth = Math.floor(img.width * scale);
+                                    targetHeight = Math.floor(img.height * scale);
+                                }
+                                
+                                // Set canvas to target size
+                                canvas.width = targetWidth;
+                                canvas.height = targetHeight;
+                                
+                                // Draw the resized image
+                                ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
                                 
                                 // Add timestamp watermark
                                 this.addTimestampWatermark(ctx, canvas.width, canvas.height);
                                 
-                                // Try to compress the image to be under 15MB (accounting for base64 overhead)
-                                let imageData = null;
-                                let quality = 0.85;
-                                const maxSizeMB = 10; // Target 10MB to ensure under 15MB after base64 encoding
-                                const maxSizeBytes = maxSizeMB * 1024 * 1024;
-                                let attempts = 0;
-                                const maxAttempts = 15;
+                                // Compress with same quality as camera capture
+                                const imageData = canvas.toDataURL('image/jpeg', 0.85);
                                 
-                                // Try different quality levels to get under target size
-                                while (attempts < maxAttempts) {
-                                    imageData = canvas.toDataURL('image/jpeg', quality);
-                                    
-                                    // Calculate actual decoded size in bytes
-                                    const base64Length = imageData.length - 'data:image/jpeg;base64,'.length;
-                                    const sizeInBytes = (base64Length * 3) / 4;
-                                    
-                                    console.log('Attempt ' + (attempts + 1) + ': Quality ' + quality.toFixed(2) + ', Size ' + (sizeInBytes / 1024 / 1024).toFixed(2) + 'MB');
-                                    
-                                    if (sizeInBytes <= maxSizeBytes) {
-                                        // Image is under target size
-                                        this.photos.push({ id: Date.now(), data: imageData });
-                                        console.log('Gallery photo processed! Total photos:', this.photos.length);
-                                        resolve();
-                                        return;
-                                    }
-                                    
-                                    // Reduce quality for next attempt
-                                    quality -= 0.05;
-                                    attempts++;
-                                    
-                                    if (quality < 0.05) {
-                                        break;
-                                    }
+                                // Calculate final size
+                                const base64Length = imageData.length - 'data:image/jpeg;base64,'.length;
+                                const sizeInBytes = (base64Length * 3) / 4;
+                                const sizeInMB = (sizeInBytes / 1024 / 1024).toFixed(2);
+                                
+                                console.log('Gallery photo processed: ' + targetWidth + 'x' + targetHeight + ', Size: ' + sizeInMB + 'MB');
+                                
+                                // Check if still too large (shouldn't happen with 640px max)
+                                if (sizeInBytes > 15 * 1024 * 1024) {
+                                    $wire.dispatch('toast', { 
+                                        message: 'Photo \'' + file.name + '\' is too large even after resizing', 
+                                        type: 'error' 
+                                    });
+                                    resolve();
+                                    return;
                                 }
                                 
-                                // If we get here, image is too large even at minimum quality
-                                console.error('Image too large to compress under 10MB:', file.name);
-                                $wire.dispatch('toast', { 
-                                    message: 'Photo \'' + file.name + '\' is too large to upload (over 15MB even after compression)', 
-                                    type: 'error' 
-                                });
+                                this.photos.push({ id: Date.now(), data: imageData });
+                                console.log('Gallery photo added! Total photos:', this.photos.length);
                                 resolve();
                             };
                             
