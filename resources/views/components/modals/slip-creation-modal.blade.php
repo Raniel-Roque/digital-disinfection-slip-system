@@ -61,6 +61,7 @@
                 photos: [],
                 cameraActive: false,
                 uploading: false,
+                processingGallery: false,
                 async startCamera() {
                     console.log('Starting camera...');
                     
@@ -93,6 +94,14 @@
                     // Draw the video frame
                     ctx.drawImage(video, 0, 0);
                     
+                    // Add timestamp watermark
+                    this.addTimestampWatermark(ctx, canvas.width, canvas.height);
+                    
+                    const imageData = canvas.toDataURL('image/jpeg', 0.85);
+                    this.photos.push({ id: Date.now(), data: imageData });
+                    console.log('Photo captured! Total photos:', this.photos.length);
+                },
+                addTimestampWatermark(ctx, width, height) {
                     // Add timestamp overlay at bottom left
                     const now = new Date();
                     const dateStr = now.toLocaleDateString('en-US', { 
@@ -109,7 +118,7 @@
                     const timestamp = `${dateStr} ${timeStr}`;
                     
                     // Configure text style
-                    const fontSize = Math.max(16, canvas.height * 0.03); // Responsive font size
+                    const fontSize = Math.max(16, height * 0.03); // Responsive font size
                     ctx.font = `bold ${fontSize}px Arial`;
                     ctx.textBaseline = 'bottom';
                     
@@ -118,7 +127,7 @@
                     const textWidth = ctx.measureText(timestamp).width;
                     const textHeight = fontSize;
                     const bgX = padding;
-                    const bgY = canvas.height - textHeight - padding * 2;
+                    const bgY = height - textHeight - padding * 2;
                     const bgWidth = textWidth + padding * 2;
                     const bgHeight = textHeight + padding * 2;
                     
@@ -127,7 +136,7 @@
                     
                     // Draw text with black stroke/border for maximum visibility
                     const textX = padding * 2;
-                    const textY = canvas.height - padding * 2;
+                    const textY = height - padding * 2;
                     
                     // Draw black stroke (border) around text
                     ctx.strokeStyle = '#000000';
@@ -139,10 +148,75 @@
                     // Draw white text on top
                     ctx.fillStyle = '#FFFFFF';
                     ctx.fillText(timestamp, textX, textY);
+                },
+                async selectFromGallery() {
+                    console.log('Opening gallery...');
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.multiple = true;
                     
-                    const imageData = canvas.toDataURL('image/jpeg', 0.85);
-                    this.photos.push({ id: Date.now(), data: imageData });
-                    console.log('Photo captured! Total photos:', this.photos.length);
+                    input.onchange = async (e) => {
+                        const files = Array.from(e.target.files);
+                        if (files.length === 0) return;
+                        
+                        this.processingGallery = true;
+                        
+                        for (const file of files) {
+                            await this.processGalleryImage(file);
+                        }
+                        
+                        this.processingGallery = false;
+                    };
+                    
+                    input.click();
+                },
+                async processGalleryImage(file) {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        
+                        reader.onload = (e) => {
+                            const img = new Image();
+                            
+                            img.onload = () => {
+                                const canvas = this.$refs.canvas;
+                                const ctx = canvas.getContext('2d');
+                                
+                                // Set canvas to same size as image (no cropping)
+                                canvas.width = img.width;
+                                canvas.height = img.height;
+                                
+                                // Draw the entire image
+                                ctx.drawImage(img, 0, 0, img.width, img.height);
+                                
+                                // Add timestamp watermark
+                                this.addTimestampWatermark(ctx, canvas.width, canvas.height);
+                                
+                                // Compress with same quality as camera capture
+                                const imageData = canvas.toDataURL('image/jpeg', 0.85);
+                                this.photos.push({ id: Date.now(), data: imageData });
+                                console.log('Gallery photo processed! Total photos:', this.photos.length);
+                                
+                                resolve();
+                            };
+                            
+                            img.onerror = () => {
+                                console.error('Failed to load image');
+                                alert('Failed to load image: ' + file.name);
+                                reject();
+                            };
+                            
+                            img.src = e.target.result;
+                        };
+                        
+                        reader.onerror = () => {
+                            console.error('Failed to read file');
+                            alert('Failed to read file: ' + file.name);
+                            reject();
+                        };
+                        
+                        reader.readAsDataURL(file);
+                    });
                 },
                 stopCamera() {
                     console.log('Stopping camera...');
@@ -171,6 +245,7 @@
                     this.showCancelConfirmation = false;
                     this.showCameraModal = false;
                     this.uploading = false;
+                    this.processingGallery = false;
                 },
                 deletePhoto(id) {
                     console.log('Deleting photo:', id);
@@ -211,9 +286,9 @@
 
                 {{-- Cancel Confirmation Modal --}}
                 <div x-show="showCancelConfirmation"
-                     x-cloak
-                     class="fixed inset-0 z-60 overflow-y-auto"
-                     style="display: none;">
+                    x-cloak
+                    class="fixed inset-0 z-60 overflow-y-auto"
+                    style="display: none;">
                     <div class="fixed inset-0 bg-black/50"></div>
                     <div class="relative min-h-screen flex items-center justify-center p-4">
                         <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
@@ -221,7 +296,7 @@
                                 <div class="mx-auto mb-4 text-yellow-500 w-16 h-16">
                                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                                     </svg>
                                 </div>
                                 <h3 class="text-lg font-semibold text-gray-900 mb-2">Cancel Photo Capture?</h3>
@@ -250,7 +325,7 @@
                             </svg>
                             See Photos ({{ $pendingCount }})
                         </button>
-                        <button @click="showCameraModal = true; startCamera()"
+                        <button @click="showCameraModal = true"
                             class="inline-flex items-center px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded-lg transition-colors duration-150 cursor-pointer">
                             <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -259,7 +334,7 @@
                         </button>
                     </div>
                 @else
-                    <button @click="showCameraModal = true; startCamera()"
+                    <button @click="showCameraModal = true"
                         class="inline-flex items-center px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded-lg transition-colors duration-150 cursor-pointer">
                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -291,8 +366,8 @@
                             <div class="flex flex-col items-center space-y-4">
                                 {{-- Status --}}
                                 <div class="w-full text-center py-2 px-4 rounded-lg font-medium text-sm"
-                                    :class="uploading ? 'bg-blue-100 text-blue-700' : (cameraActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700')">
-                                    <span x-text="uploading ? 'Uploading...' : (cameraActive ? 'Camera is active' : 'Click Start Camera to begin')"></span>
+                                    :class="uploading ? 'bg-blue-100 text-blue-700' : (processingGallery ? 'bg-purple-100 text-purple-700' : (cameraActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'))">
+                                    <span x-text="uploading ? 'Uploading...' : (processingGallery ? 'Processing images...' : (cameraActive ? 'Camera is active' : 'Capture or select photos'))"></span>
                                 </div>
                                 
                                 {{-- Camera Preview --}}
@@ -322,31 +397,38 @@
                             {{-- Footer Buttons --}}
                             {{-- Mobile Layout --}}
                             <div class="flex flex-col gap-2 mt-6 w-full md:hidden">
+                                {{-- Select from Gallery Button --}}
+                                <button @click="selectFromGallery()"
+                                        x-show="!uploading && !processingGallery"
+                                        class="w-full px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600">
+                                    Select from Gallery
+                                </button>
+
                                 {{-- Start Camera Button --}}
                                 <button @click="startCamera()"
-                                        x-show="!cameraActive && !uploading"
+                                        x-show="!cameraActive && !uploading && !processingGallery"
                                         class="w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
                                     Start Camera
                                 </button>
 
                                 {{-- Capture Photo Button --}}
                                 <button @click="capturePhoto()"
-                                        x-show="cameraActive && !uploading"
+                                        x-show="cameraActive && !uploading && !processingGallery"
                                         class="w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
                                     Capture Photo
                                 </button>
 
                                 {{-- Stop Camera Button --}}
                                 <button @click="stopCamera()"
-                                        x-show="cameraActive && !uploading"
+                                        x-show="cameraActive && !uploading && !processingGallery"
                                         class="w-full px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">
                                     Stop Camera
                                 </button>
 
                                 {{-- Upload Photos Button --}}
                                 <button @click="uploadPhotos()"
-                                        x-show="photos.length > 0 && !uploading"
-                                        :disabled="uploading"
+                                        x-show="photos.length > 0 && !uploading && !processingGallery"
+                                        :disabled="uploading || processingGallery"
                                         class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
                                     <span x-show="!uploading">Upload <span x-text="photos.length"></span> Photo<span x-show="photos.length > 1">s</span></span>
                                     <span x-show="uploading">Uploading...</span>
@@ -354,7 +436,7 @@
 
                                 {{-- Cancel Button --}}
                                 <button @click="tryCancel()"
-                                        :disabled="uploading"
+                                        :disabled="uploading || processingGallery"
                                         class="w-full px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                                     Cancel
                                 </button>
@@ -363,32 +445,38 @@
                             {{-- Desktop Layout --}}
                             <div class="hidden md:flex justify-end gap-2 mt-6">
                                 <button @click="tryCancel()"
-                                        :disabled="uploading"
+                                        :disabled="uploading || processingGallery"
                                         class="px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                                     Cancel
                                 </button>
 
+                                <button @click="selectFromGallery()"
+                                        x-show="!uploading && !processingGallery"
+                                        class="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600">
+                                    Select from Gallery
+                                </button>
+
                                 <button @click="startCamera()"
-                                        x-show="!cameraActive && !uploading"
+                                        x-show="!cameraActive && !uploading && !processingGallery"
                                         class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
                                     Start Camera
                                 </button>
 
                                 <button @click="capturePhoto()"
-                                        x-show="cameraActive && !uploading"
+                                        x-show="cameraActive && !uploading && !processingGallery"
                                         class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
                                     Capture Photo
                                 </button>
 
                                 <button @click="stopCamera()"
-                                        x-show="cameraActive && !uploading"
+                                        x-show="cameraActive && !uploading && !processingGallery"
                                         class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">
                                     Stop Camera
                                 </button>
 
                                 <button @click="uploadPhotos()"
-                                        x-show="photos.length > 0 && !uploading"
-                                        :disabled="uploading"
+                                        x-show="photos.length > 0 && !uploading && !processingGallery"
+                                        :disabled="uploading || processingGallery"
                                         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
                                     <span x-show="!uploading">Upload <span x-text="photos.length"></span> Photo<span x-show="photos.length > 1">s</span></span>
                                     <span x-show="uploading">Uploading...</span>
