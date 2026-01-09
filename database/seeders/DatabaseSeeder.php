@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\Setting;
+use App\Models\Reason;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -48,6 +49,7 @@ class DatabaseSeeder extends Seeder
             'username' => 'RRoque',
             'user_type' => '2',
         ]);
+        
         User::factory()->create([
             'first_name' => 'Jenny',
             'middle_name' => null,
@@ -86,6 +88,22 @@ class DatabaseSeeder extends Seeder
 
         foreach ($defaultSettings as $setting) {
             Setting::factory()->create($setting);
+        }
+
+        // Create default reasons
+        $defaultReasons = [
+            'Pick-up Eggs',
+            'Pick-up Cull',
+            'Deliver Feeds',
+            'Hauling of Manure',
+            'Back to Feed Mill',
+            'Pick-up Cash (BRINKS Armor Car)',
+        ];
+
+        foreach ($defaultReasons as $reason) {
+            Reason::create([
+                'reason_text' => $reason,
+            ]);
         }
     }
 }

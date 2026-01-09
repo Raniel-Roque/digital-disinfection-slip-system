@@ -26,6 +26,7 @@ class User extends Authenticatable
         'username',
         'password',
         'user_type',
+        'super_guard',
         'disabled',
     ];
 

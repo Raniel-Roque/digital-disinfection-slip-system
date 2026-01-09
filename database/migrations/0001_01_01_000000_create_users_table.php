@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('last_name');
             $table->string('username')->unique();
             $table->integer('user_type')->default(0); // 0: user, 1: admin, 2: superadmin
+            $table->boolean('super_guard')->default(false); // false: regular guard, true: super guard
             $table->string('password');
             $table->boolean('disabled')->default(false);
             $table->timestamps();
