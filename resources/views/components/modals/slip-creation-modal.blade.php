@@ -517,11 +517,43 @@
                                     <span x-show="uploading">Uploading...</span>
                                 </button>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+
+                            {{-- Cancel Confirmation Modal --}}
+                            <div x-show="showCancelConfirmation"
+                                x-cloak
+                                class="fixed inset-0 z-60 overflow-y-auto"
+                                style="display: none;">
+                                <div class="fixed inset-0 bg-black/50"></div>
+                                <div class="relative min-h-screen flex items-center justify-center p-4">
+                                    <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                                        <div class="text-center">
+                                            <div class="mx-auto mb-4 text-yellow-500 w-16 h-16">
+                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                                </svg>
+                                            </div>
+                                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Cancel Photo Capture?</h3>
+                                            <p class="text-gray-700 mb-4">Any captured photos that haven't been uploaded will be lost.</p>
+                                            <div class="flex gap-3 justify-center">
+                                                <button @click="showCancelConfirmation = false"
+                                                        class="px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                                                    Continue Capturing
+                                                </button>
+                                                <button @click="confirmCancel()"
+                                                        class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                                                    Yes, Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>  {{-- Close: relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 --}}
+                    </div>  {{-- Close: relative min-h-screen flex items-center justify-center p-4 --}}
+                </div>  {{-- Close: x-show="showCameraModal" camera modal container --}}
+            </div>  {{-- Close: x-data Alpine.js container --}}
+        </div>  {{-- Close: Photos field --}}
 
         {{-- Reason for Disinfection --}}
         <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
