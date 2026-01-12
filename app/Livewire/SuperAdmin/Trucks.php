@@ -130,6 +130,13 @@ class Trucks extends Component
     public $received_guard_id = null; // Optional receiving guard for creation
     public $remarks_for_disinfection;
     public $isCreating = false;
+    public $newReasonText = '';
+    public $editingReasonId = null;
+    public $editingReasonText = '';
+    public $originalReasonText = '';
+    public $showSaveConfirmation = false;
+    public $showUnsavedChangesConfirmation = false;
+    public $savingReason = false;
     
     // Search properties for dropdowns (create modal)
     public $searchOrigin = '';
@@ -195,7 +202,6 @@ class Trucks extends Component
         $this->filtersActive = true;
         
         $this->loadReasons();
-        // Options are now computed properties, no initialization needed
     }
     
     /**
@@ -2520,30 +2526,143 @@ class Trucks extends Component
 
     public function loadReasons()
     {
-        $reasons = Reason::orderBy('reason_text')->get();
+        $reasons = $this->getCachedReasons();
         $this->reasonTexts = $reasons->pluck('reason_text', 'id')->toArray();
     }
 
     public function getReasonsProperty()
     {
-        return Reason::orderBy('reason_text')->paginate(10);
+        $reasons = $this->getCachedReasons();
+        // Convert collection to paginated result for Livewire
+        $page = $this->getPage();
+        $perPage = 10;
+        $items = $reasons->slice(($page - 1) * $perPage, $perPage)->values();
+        return new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            $reasons->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+    }
+    
+    public function getPage()
+    {
+        return request()->get('page', 1);
     }
 
     public function addNewReason()
     {
+        // Validate the new reason text
+        $this->validate([
+            'newReasonText' => 'required|string|max:255|min:1',
+        ], [], [
+            'newReasonText' => 'New reason',
+        ]);
+        
         $reason = Reason::create([
-            'reason_text' => 'New Reason',
+            'reason_text' => trim($this->newReasonText),
+            'disabled' => false,
         ]);
         
         $this->reasonTexts[$reason->id] = $reason->reason_text;
         
+        // Clear the input field
+        $this->newReasonText = '';
+        
         // Clear cache after adding new reason
         Cache::forget('reasons_all');
         
-        $this->dispatch('toast', message: 'New reason added.', type: 'success');
+        $this->dispatch('toast', message: 'Reason added successfully.', type: 'success');
         
         // Reset to first page to show the new reason
         $this->resetPage();
+    }
+
+    public function startEditingReason($reasonId)
+    {
+        $reason = Reason::find($reasonId);
+        
+        if ($reason) {
+            $this->editingReasonId = $reasonId;
+            $this->editingReasonText = $reason->reason_text;
+            $this->originalReasonText = $reason->reason_text;
+        }
+    }
+
+    public function saveReasonEdit()
+    {
+        // Validate the edited text
+        $this->validate([
+            'editingReasonText' => 'required|string|max:255|min:1',
+        ], [], [
+            'editingReasonText' => 'Reason text',
+        ]);
+        
+        // Check if there are changes
+        if (trim($this->editingReasonText) === $this->originalReasonText) {
+            $this->dispatch('toast', message: 'No changes detected.', type: 'info');
+            $this->cancelEditing();
+            return;
+        }
+        
+        // Show confirmation modal
+        $this->showSaveConfirmation = true;
+    }
+
+    public function confirmSaveReasonEdit()
+    {
+        $this->savingReason = true;
+
+        $reason = Reason::find($this->editingReasonId);
+
+        if ($reason) {
+            $reason->reason_text = trim($this->editingReasonText);
+            $reason->save();
+
+            // Update local cache
+            $this->reasonTexts[$this->editingReasonId] = $reason->reason_text;
+
+            // Clear cache
+            Cache::forget('reasons_all');
+
+            $this->dispatch('toast', message: 'Reason updated successfully.', type: 'success');
+        }
+
+        // Reset editing state
+        $this->showSaveConfirmation = false;
+        $this->cancelEditing();
+
+        // Refresh the page
+        $this->resetPage();
+
+        $this->savingReason = false;
+    }
+
+    public function cancelEditing()
+    {
+        $this->editingReasonId = null;
+        $this->editingReasonText = '';
+        $this->originalReasonText = '';
+    }
+
+    public function toggleReasonDisabled($reasonId)
+    {
+        $reason = Reason::find($reasonId);
+        
+        if ($reason) {
+            $reason->disabled = !$reason->disabled;
+            $reason->save();
+            
+            // Clear cache after toggling disabled state
+            Cache::forget('reasons_all');
+            
+            $status = $reason->disabled ? 'disabled' : 'enabled';
+            $this->dispatch('toast', message: "Reason {$status} successfully.", type: 'success');
+            
+            // Refresh the page to show updated state
+            $this->resetPage();
+        }
     }
 
     public function confirmDeleteReason($reasonId)
@@ -2574,40 +2693,46 @@ class Trucks extends Component
         $this->reasonToDelete = null;
     }
 
-    public function saveReasons()
+    public function attemptCloseReasonsModal()
     {
-        // Validate all reason texts
-        $this->validate([
-            'reasonTexts.*' => 'required|string|max:255',
-        ]);
-        
-        // Update all reasons
-        foreach ($this->reasonTexts as $id => $text) {
-            Reason::where('id', $id)->update(['reason_text' => $text]);
+        // Check if there are unsaved changes
+        if ($this->editingReasonId !== null) {
+            $this->showUnsavedChangesConfirmation = true;
+        } else {
+            $this->closeReasonsModal();
         }
-        
-        // Clear cache after updating reasons
-        Cache::forget('reasons_all');
-        
-        $this->showReasonsModal = false;
-        $this->dispatch('toast', message: 'Reasons updated successfully.', type: 'success');
     }
 
-    public function openReasonsModal()
+    public function closeWithoutSaving()
     {
-        // Reload reasons to discard any unsaved changes
-        $this->loadReasons();
-        $this->showReasonsModal = true;
-        $this->showDeleteReasonConfirmation = false;
-        $this->reasonToDelete = null;
+        $this->showUnsavedChangesConfirmation = false;
+        $this->cancelEditing();
+        $this->closeReasonsModal();
     }
 
     public function closeReasonsModal()
     {
         // Reload reasons to discard any unsaved changes
         $this->loadReasons();
+        $this->newReasonText = '';
+        $this->cancelEditing();
         $this->showReasonsModal = false;
         $this->showDeleteReasonConfirmation = false;
+        $this->showSaveConfirmation = false;
+        $this->showUnsavedChangesConfirmation = false;
+        $this->reasonToDelete = null;
+    }
+
+    public function openReasonsModal()
+    {
+        // Reload reasons to discard any unsaved changes
+        $this->loadReasons();
+        $this->newReasonText = '';
+        $this->cancelEditing();
+        $this->showReasonsModal = true;
+        $this->showDeleteReasonConfirmation = false;
+        $this->showSaveConfirmation = false;
+        $this->showUnsavedChangesConfirmation = false;
         $this->reasonToDelete = null;
     }
 }

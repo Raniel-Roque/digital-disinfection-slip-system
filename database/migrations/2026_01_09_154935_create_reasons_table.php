@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('reasons', function (Blueprint $table) {
             $table->id();
+            $table->boolean('is_disabled')->default(false);
             $table->string('reason_text');
             $table->timestamps();
         });

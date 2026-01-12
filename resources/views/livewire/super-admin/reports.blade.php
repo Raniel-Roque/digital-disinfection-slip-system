@@ -71,7 +71,7 @@
             </div>
 
             {{-- Active Filters Display --}}
-            @if ($filtersActive && !$showDeleted)
+            @if (($filtersActive || $excludeDeletedItems) && !$showDeleted)
                 <div class="mt-4 flex flex-wrap gap-2">
                     <span class="text-sm text-gray-600">Active filters:</span>
 

@@ -48,18 +48,20 @@
                         </div>
                     </div>
 
-                    {{-- Create Button (Primary action - Icon + Text) --}}
-                    <x-buttons.submit-button wire:click="openCreateModal" color="blue" size="lg"
-                        :fullWidth="false">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
-                            </path>
-                        </svg>
-                        Create
-                    </x-buttons.submit-button>
+                    {{-- Desktop: Create Button (Primary action - Icon + Text) --}}
+                    <div class="hidden md:block">
+                        <x-buttons.submit-button wire:click="openCreateModal" color="blue" size="lg"
+                            :fullWidth="false">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
+                                </path>
+                            </svg>
+                            Create
+                        </x-buttons.submit-button>
+                    </div>
 
-                    {{-- Download Button (Icon only with dropdown) --}}
-                    <x-buttons.export-button type="trucks" />
+                    {{-- Export Button with Create option (mobile) --}}
+                    <x-buttons.export-button type="trucks" :showCreate="true" />
                 </div>
             </div>
 
