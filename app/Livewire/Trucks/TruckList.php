@@ -845,12 +845,7 @@ class TruckList extends Component
         $slips = $query
             // SEARCH (only search within already filtered type)
             ->when($this->search, function($q) {
-                $q->where(function($query) {
-                    $query->where('slip_id', 'like', '%' . $this->search . '%')
-                          ->orWhereHas('truck', function($t) {
-                              $t->withTrashed()->where('plate_number', 'like', '%' . $this->search . '%');
-                          });
-                });
+                $q->where('slip_id', 'like', '%' . $this->search . '%');
             })
             
 

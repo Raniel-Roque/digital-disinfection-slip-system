@@ -280,12 +280,7 @@ class TruckListCompleted extends Component
             
             // SEARCH
             ->when($this->search, function($q) {
-                $q->where(function($query) {
-                    $query->where('slip_id', 'like', '%' . $this->search . '%')
-                          ->orWhereHas('truck', function($t) {
-                              $t->withTrashed()->where('plate_number', 'like', '%' . $this->search . '%');
-                          });
-                });
+                $q->where('slip_id', 'like', '%' . $this->search . '%');
             })
             
             // FILTERS
