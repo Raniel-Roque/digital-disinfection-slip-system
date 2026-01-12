@@ -2433,8 +2433,8 @@ class Trucks extends Component
     public function getExportData()
     {
         $query = $this->showDeleted 
-            ? DisinfectionSlipModel::onlyTrashed()->with(['truck' => function($q) { $q->withTrashed(); }, 'location' => function($q) { $q->withTrashed(); }, 'destination' => function($q) { $q->withTrashed(); }, 'driver' => function($q) { $q->withTrashed(); }, 'hatcheryGuard' => function($q) { $q->withTrashed(); }, 'receivedGuard' => function($q) { $q->withTrashed(); }])
-            : DisinfectionSlipModel::with(['truck' => function($q) { $q->withTrashed(); }, 'location' => function($q) { $q->withTrashed(); }, 'destination' => function($q) { $q->withTrashed(); }, 'driver' => function($q) { $q->withTrashed(); }, 'hatcheryGuard' => function($q) { $q->withTrashed(); }, 'receivedGuard' => function($q) { $q->withTrashed(); }])->whereNull('deleted_at');
+            ? DisinfectionSlipModel::onlyTrashed()->with(['truck' => function($q) { $q->withTrashed(); }, 'location' => function($q) { $q->withTrashed(); }, 'destination' => function($q) { $q->withTrashed(); }, 'driver' => function($q) { $q->withTrashed(); }, 'reason', 'hatcheryGuard' => function($q) { $q->withTrashed(); }, 'receivedGuard' => function($q) { $q->withTrashed(); }])
+            : DisinfectionSlipModel::with(['truck' => function($q) { $q->withTrashed(); }, 'location' => function($q) { $q->withTrashed(); }, 'destination' => function($q) { $q->withTrashed(); }, 'driver' => function($q) { $q->withTrashed(); }, 'reason', 'hatcheryGuard' => function($q) { $q->withTrashed(); }, 'receivedGuard' => function($q) { $q->withTrashed(); }])->whereNull('deleted_at');
         
         return $query->when($this->search, function ($query) {
                 $searchTerm = trim($this->search);
@@ -2608,6 +2608,7 @@ class Trucks extends Component
                 'driver' => $slip->driver ? ($slip->driver->trashed() ?
                     trim(implode(' ', array_filter([$slip->driver->first_name, $slip->driver->middle_name, $slip->driver->last_name]))) . ' (Deleted)' :
                     trim(implode(' ', array_filter([$slip->driver->first_name, $slip->driver->middle_name, $slip->driver->last_name])))) : 'N/A',
+                'reason' => $slip->reason ? $slip->reason->reason_text : 'N/A',
                 'status' => $slip->status,
                 'hatchery_guard' => $formatName($slip->hatcheryGuard),
                 'received_guard' => $formatName($slip->receivedGuard),

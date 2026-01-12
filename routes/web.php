@@ -41,6 +41,14 @@ Route::middleware(['auth', 'user.type:0'])->prefix('user')->name('user.')->group
         Route::get('/data/locations', [UserController::class, 'dataLocations'])->name('data.locations');
         Route::get('/data/plate-numbers', [UserController::class, 'dataPlateNumbers'])->name('data.plate-numbers');
     });
+    
+    // Print routes for super guards (outside nested group to inherit name prefix correctly)
+    Route::middleware('super.guard')->group(function () {
+        Route::get('/print/guards', [UserController::class, 'printGuards'])->name('print.guards');
+        Route::get('/print/drivers', [UserController::class, 'printDrivers'])->name('print.drivers');
+        Route::get('/print/locations', [UserController::class, 'printLocations'])->name('print.locations');
+        Route::get('/print/plate-numbers', [UserController::class, 'printPlateNumbers'])->name('print.plate-numbers');
+    });
 });
 
 Route::middleware(['auth', 'user.type:1'])->prefix('admin')->name('admin.')->group(function () {

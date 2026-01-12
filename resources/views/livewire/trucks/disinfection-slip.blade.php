@@ -56,9 +56,14 @@
             </div>
 
             {{-- Body Fields --}}
+            @php
+                // Track row index for alternating colors
+                $rowIndex = 0;
+            @endphp
             <div class="space-y-0 -mx-6">
                 {{-- Plate No --}}
-                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
+                @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                     <div class="font-semibold text-gray-500">Plate No:</div>
                     <div class="text-gray-900">
                     @if ($isEditing)
@@ -75,7 +80,8 @@
             </div>
 
                 {{-- Driver --}}
-                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
+                @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                     <div class="font-semibold text-gray-500">Driver:</div>
                     <div class="text-gray-900">
                     @if ($isEditing)
@@ -93,7 +99,8 @@
 
                 {{-- Origin --}}
                 @if (!$isEditing)
-                    <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
+                    @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                    <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                         <div class="font-semibold text-gray-500">Origin:</div>
                         <div class="text-gray-900">
                             {{ $selectedSlip->location->location_name ?? 'N/A' }}
@@ -102,7 +109,8 @@
                 @endif
 
                 {{-- Destination --}}
-                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
+                @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                     <div class="font-semibold text-gray-500">Destination:</div>
                     <div class="text-gray-900">
                         @if ($isEditing)
@@ -120,7 +128,8 @@
 
                 {{-- Completion Date (only when completed) --}}
                 @if (($status == 3 || $status == 4) && $selectedSlip->completed_at)
-                    <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
+                    @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                    <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                         <div class="font-semibold text-gray-500">End Date:</div>
                         <div class="text-gray-900">
                             {{ \Carbon\Carbon::parse($selectedSlip->completed_at)->format('M d, Y - h:i A') }}
@@ -129,7 +138,8 @@
                 @endif
 
                 {{-- Reason --}}
-                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if (($status == 3 || $status == 4) && $selectedSlip->completed_at) bg-gray-100 @else bg-white @endif">
+                @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                     <div class="font-semibold text-gray-500">Reason:<span class="text-red-500">*</span></div>
                     <div class="text-gray-900">
                         @if ($isEditing)
@@ -141,7 +151,7 @@
                             @enderror
                         @else
                             @php
-                                $reason = $selectedSlip->reason_id ? Reason::find($selectedSlip->reason_id) : null;
+                                $reason = $selectedSlip->reason_id ? \App\Models\Reason::find($selectedSlip->reason_id) : null;
                                 $displayReason = $reason && !$reason->is_disabled ? $reason->reason_text : 'N/A';
                             @endphp
                             {{ $displayReason }}
@@ -151,7 +161,8 @@
 
                 {{-- CAMERA WITH UPLOAD FUNCTIONALITY --}}
                 @if (!$isEditing)
-                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if (($status == 3 || $status == 4) && $selectedSlip->completed_at) bg-gray-100 @else bg-white @endif">
+                @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                     <div class="font-semibold text-gray-500">Photos:</div>
                     <div class="text-gray-900" x-data="{ 
                         showCameraModal: false,
@@ -601,7 +612,8 @@
         @endif
 
         {{-- Remarks --}}
-        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if (($status == 3 || $status == 4) && $selectedSlip->completed_at && !$isEditing) bg-gray-100 @elseif (($status == 3 || $status == 4) && $selectedSlip->completed_at && $isEditing) bg-white @elseif ($isEditing) bg-gray-100 @else bg-white @endif">                    
+        @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; @endphp
+        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">                    
             <div class="font-semibold text-gray-500">Remarks:</div>
                     <div class="text-gray-900 wrap-break-words min-w-0" style="word-break: break-word; overflow-wrap: break-word;">
                         @if ($isEditing)

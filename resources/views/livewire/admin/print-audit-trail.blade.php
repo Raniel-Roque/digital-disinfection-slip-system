@@ -192,7 +192,8 @@
                     @php
                         $userTypes = [
                             0 => 'Guard',
-                            1 => 'Admin'
+                            1 => 'Admin',
+                            'super_guard' => 'Super Guard'
                         ];
                     @endphp
                     <p><strong>User Types:</strong> {{ implode(', ', array_map(function($type) use ($userTypes) {
@@ -249,14 +250,7 @@
                     </td>
                     <td>{{ $log['user_name'] ?? 'N/A' }}</td>
                     <td>
-                        @php
-                            $userTypes = [
-                                0 => 'Guard',
-                                1 => 'Admin',
-                                2 => 'Superadmin'
-                            ];
-                        @endphp
-                        {{ $userTypes[$log['user_type']] ?? 'N/A' }}
+                        {{ $log['user_type'] ?? 'N/A' }}
                     </td>
                     <td>{{ ucfirst($log['action'] ?? 'N/A') }}</td>
                     <td>

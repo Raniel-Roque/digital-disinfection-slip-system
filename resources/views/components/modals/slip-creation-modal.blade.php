@@ -14,9 +14,14 @@
 <x-modals.modal-template show="showCreateModal" title="CREATE NEW DISINFECTION SLIP" max-width="max-w-3xl">
 
     {{-- Body Fields --}}
+    @php
+        // Track row index for alternating colors
+        $rowIndex = 0;
+    @endphp
     <div class="space-y-0 -mx-6">
         {{-- Plate Number --}}
-        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
+        @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
             <div class="font-semibold text-gray-500">Plate No:<span class="text-red-500">*</span></div>
             <div class="text-gray-900">
                 <x-forms.searchable-dropdown wire-model="truck_id" :options="$truckOptions" search-property="searchTruck"
@@ -28,7 +33,8 @@
         </div>
 
         {{-- Destination --}}
-        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
+        @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
             <div class="font-semibold text-gray-500">Destination:<span class="text-red-500">*</span></div>
             <div class="text-gray-900">
                 <x-forms.searchable-dropdown wire-model="destination_id" :options="$locationOptions"
@@ -41,7 +47,8 @@
         </div>
 
         {{-- Driver Name --}}
-        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
+        @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
             <div class="font-semibold text-gray-500">Driver Name:<span class="text-red-500">*</span></div>
             <div class="text-gray-900">
                 <x-forms.searchable-dropdown wire-model="driver_id" :options="$driverOptions" search-property="searchDriver"
@@ -53,7 +60,8 @@
         </div>
 
         {{-- Reason --}}
-        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
+        @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
             <div class="font-semibold text-gray-500">Reason:<span class="text-red-500">*</span></div>
             <div class="text-gray-900">
                 <x-forms.searchable-dropdown wire-model="reason_id" :options="$reasonOptions" search-property="searchReason"
@@ -65,7 +73,8 @@
         </div>
 
         {{-- Photos --}}
-        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
+        @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
             <div class="font-semibold text-gray-500">Photos:</div>
             <div class="text-gray-900" x-data="{
                 showCameraModal: false,
@@ -569,7 +578,8 @@
         </div>  {{-- Close: Photos field --}}
 
         {{-- Remarks for Disinfection --}}
-        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
+        @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; @endphp
+        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
             <div class="font-semibold text-gray-500">Remarks:</div>
             <div class="text-gray-900">
                 <textarea wire:model="remarks_for_disinfection"

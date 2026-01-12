@@ -196,21 +196,21 @@
     {{-- Card List --}}
     <div @if (!$showFilters && !$showCreateModal) wire:poll.keep-alive @endif class="space-y-3 pb-4">
 
-        @forelse ($slips as $slip)
+        @forelse ($slips as $index => $slip)
             @php
                 $statusMap = [
-                    0 => ['label' => 'Pending', 'color' => 'border-gray-500 bg-gray-50'],
-                    1 => ['label' => 'Disinfecting', 'color' => 'border-orange-500 bg-orange-50'],
-                    2 => ['label' => 'In-Transit', 'color' => 'border-yellow-500 bg-yellow-50'],
-                    3 => ['label' => 'Completed', 'color' => 'border-green-500 bg-green-50'],
-                    4 => ['label' => 'Incomplete', 'color' => 'border-red-500 bg-red-50'],
+                    0 => ['label' => 'Pending', 'color' => 'border-gray-500', 'bg' => 'bg-gray-50'],
+                    1 => ['label' => 'Disinfecting', 'color' => 'border-orange-500', 'bg' => 'bg-orange-50'],
+                    2 => ['label' => 'In-Transit', 'color' => 'border-yellow-500', 'bg' => 'bg-yellow-50'],
+                    3 => ['label' => 'Completed', 'color' => 'border-green-500', 'bg' => 'bg-green-50'],
+                    4 => ['label' => 'Incomplete', 'color' => 'border-red-500', 'bg' => 'bg-red-50'],
                 ];
                 $status = $slip->status;
             @endphp
 
             {{-- Card (Now Clickable) --}}
             <div wire:click="$dispatch('open-disinfection-details', { id: {{ $slip->id }}, type: '{{ $type }}' })"
-                class="flex justify-between items-center p-2.5 border-l-4 rounded-lg shadow-sm transition hover:shadow-md cursor-pointer {{ $statusMap[$status]['color'] }}">
+                class="flex justify-between items-center p-2.5 border-l-4 rounded-lg shadow-sm transition hover:shadow-md cursor-pointer {{ $statusMap[$status]['bg'] }} {{ $statusMap[$status]['color'] }}">
 
                 <div class="flex-1">
                     {{-- Slip No - Prominent --}}

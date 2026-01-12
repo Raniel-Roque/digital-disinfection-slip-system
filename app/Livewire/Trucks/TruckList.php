@@ -9,6 +9,7 @@ use App\Models\Truck;
 use App\Models\Location;
 use App\Models\Driver;
 use App\Models\Attachment;
+use App\Models\Reason;
 use App\Services\Logger;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
@@ -88,14 +89,14 @@ class TruckList extends Component
     {
         $this->type = $type;
         
-        // Outgoing: default filter to today
+        // Outgoing: set default filter values to today (for UI), but don't apply them automatically
         // Incoming: no default date filter
         if ($this->type === 'outgoing') {
             $today = now()->format('Y-m-d');
             $this->filterDateFrom = $today;
             $this->filterDateTo = $today;
-            $this->appliedDateFrom = $today;
-            $this->appliedDateTo = $today;
+            $this->appliedDateFrom = null;
+            $this->appliedDateTo = null;
         } else {
             $this->filterDateFrom = null;
             $this->filterDateTo = null;
@@ -261,10 +262,10 @@ class TruckList extends Component
     
     private function checkFiltersActive()
     {
+        // Only check actual filters, not sorts (sorts are separate from filters)
         $this->filtersActive = !empty($this->appliedDateFrom) ||
                               !empty($this->appliedDateTo) ||
-                              $this->appliedStatus !== '' ||
-                              ($this->sortDirection !== null && $this->sortDirection !== 'desc');
+                              $this->appliedStatus !== '';
     }
 
     public function cancelFilters()

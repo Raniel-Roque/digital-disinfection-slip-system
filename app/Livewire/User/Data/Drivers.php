@@ -650,9 +650,7 @@ class Drivers extends Component
         Session::put("export_sorting_{$token}", $sorting);
         Session::put("export_data_{$token}_expires", now()->addMinutes(10));
         
-        // Note: Print route would need to be created for super guards if needed
-        $this->dispatch('toast', message: 'Print functionality not yet available for super guards.', type: 'info');
-        return;
+        $printUrl = route('user.print.drivers', ['token' => $token]);
         
         $this->dispatch('open-print-window', ['url' => $printUrl]);
     }

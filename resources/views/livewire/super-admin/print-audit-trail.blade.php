@@ -169,6 +169,7 @@
             0 => 'Guard',
             1 => 'Admin',
             2 => 'Super Admin',
+            'super_guard' => 'Super Guard',
         ];
     @endphp
     <div class="header">
@@ -248,7 +249,7 @@
                     </td>
                     <td>{{ $log['user_name'] ?? 'N/A' }}</td>
                     <td>
-                        {{ $userTypes[$log['user_type']] ?? 'N/A' }}
+                        {{ $log['user_type'] ?? 'N/A' }}
                     </td>
                     <td>{{ ucfirst($log['action'] ?? 'N/A') }}</td>
                     <td>

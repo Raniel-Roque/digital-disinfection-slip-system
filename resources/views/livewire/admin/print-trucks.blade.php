@@ -194,6 +194,7 @@
                 <th>Origin</th>
                 <th>Destination</th>
                 <th>Driver</th>
+                <th>Reason</th>
                 <th>Status</th>
                 <th>Hatchery Guard</th>
                 <th>Received Guard</th>
@@ -209,6 +210,7 @@
                     <td>{{ $slip->origin ?? ($slip['origin'] ?? '') }}</td>
                     <td>{{ $slip->destination ?? ($slip['destination'] ?? '') }}</td>
                     <td>{{ $slip->driver ?? ($slip['driver'] ?? '') }}</td>
+                    <td>{{ $slip->reason ?? ($slip['reason'] ?? 'N/A') }}</td>
                     <td>
                         @php
                             $statuses = ['Pending', 'Disinfecting', 'In-Transit', 'Completed', 'Incomplete'];
@@ -239,7 +241,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="10" style="text-align: center;">No disinfection slips found</td>
+                    <td colspan="11" style="text-align: center;">No disinfection slips found</td>
                 </tr>
             @endforelse
         </tbody>

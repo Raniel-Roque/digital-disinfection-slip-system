@@ -124,6 +124,19 @@ class Trucks extends Component
     // Protection flags
     public $isDeleting = false;
 
+    // Reasons Modal
+    public $showReasonsModal = false;
+    public $newReasonText = '';
+    public $editingReasonId = null;
+    public $editingReasonText = '';
+    public $originalReasonText = '';
+    public $showSaveConfirmation = false;
+    public $showUnsavedChangesConfirmation = false;
+    public $savingReason = false;
+    public $reasonTexts = [];
+    public $showDeleteReasonConfirmation = false;
+    public $reasonToDelete = null;
+
     // Create Modal
     public $showCreateModal = false;
     public $showCancelCreateConfirmation = false;
@@ -200,6 +213,8 @@ class Trucks extends Component
         $this->appliedCreatedTo = $today;
         $this->filtersActive = true;
         
+        $this->loadReasons();
+        
         // Options are now computed properties, no initialization needed
     }
     
@@ -222,6 +237,13 @@ class Trucks extends Component
     {
         return Cache::remember('trucks_all', 300, function() {
             return Truck::orderBy('plate_number')->get();
+        });
+    }
+    
+    private function getCachedReasons()
+    {
+        return Cache::remember('reasons_all', 300, function() {
+            return Reason::orderBy('reason_text')->get();
         });
     }
     
@@ -2129,6 +2151,7 @@ class Trucks extends Component
             'drivers' => $this->drivers,
             'trucks' => $this->trucks,
             'guards' => $this->guards,
+            'reasons' => $this->reasons,
             'availableOriginsOptions' => $this->availableOriginsOptions,
             'availableDestinationsOptions' => $this->availableDestinationsOptions,
             'availableStatuses' => $this->availableStatuses,
@@ -2156,7 +2179,7 @@ class Trucks extends Component
 
     public function getExportData()
     {
-        return DisinfectionSlipModel::with(['truck', 'location', 'destination', 'driver', 'hatcheryGuard', 'receivedGuard'])
+        return DisinfectionSlipModel::with(['truck', 'location', 'destination', 'driver', 'reason', 'hatcheryGuard', 'receivedGuard'])
             ->when($this->search, function ($query) {
                 $searchTerm = trim($this->search);
                 $searchTerm = preg_replace('/[%_]/', '', $searchTerm);
@@ -2310,6 +2333,7 @@ class Trucks extends Component
                 'destination' => $slip->destination ? $slip->destination->location_name : 'N/A',
                 'driver' => $slip->driver ? 
                     trim(implode(' ', array_filter([$slip->driver->first_name, $slip->driver->middle_name, $slip->driver->last_name]))) : 'N/A',
+                'reason' => $slip->reason ? $slip->reason->reason_text : 'N/A',
                 'status' => $slip->status,
                 'hatchery_guard' => $formatName($slip->hatcheryGuard),
                 'received_guard' => $formatName($slip->receivedGuard),
@@ -2356,5 +2380,219 @@ class Trucks extends Component
         $printUrl = route('admin.print.slip', ['token' => $token]);
         
         $this->dispatch('open-print-window', ['url' => $printUrl]);
+    }
+
+    public function loadReasons()
+    {
+        $reasons = $this->getCachedReasons();
+        $this->reasonTexts = $reasons->pluck('reason_text', 'id')->toArray();
+    }
+
+    public function getReasonsProperty()
+    {
+        $reasons = $this->getCachedReasons();
+        // Convert collection to paginated result for Livewire
+        $page = request()->get('page', 1);
+        $perPage = 10;
+        $items = $reasons->slice(($page - 1) * $perPage, $perPage)->values();
+        return new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            $reasons->count(),
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+    }
+
+    public function addNewReason()
+    {
+        // Validate the new reason text
+        $this->validate([
+            'newReasonText' => 'required|string|max:255|min:1',
+        ], [], [
+            'newReasonText' => 'New reason',
+        ]);
+        
+        $reason = Reason::create([
+            'reason_text' => trim($this->newReasonText),
+            'disabled' => false,
+        ]);
+        
+        $this->reasonTexts[$reason->id] = $reason->reason_text;
+        
+        // Log the create action
+        Logger::create(
+            Reason::class,
+            $reason->id,
+            "Added new reason: {$reason->reason_text}",
+            $reason->only(['reason_text', 'is_disabled'])
+        );
+        
+        // Clear the input field
+        $this->newReasonText = '';
+        
+        // Clear cache after adding new reason
+        Cache::forget('reasons_all');
+        Cache::forget('reasons_active');
+        
+        $this->dispatch('toast', message: 'Reason added successfully.', type: 'success');
+        
+        // Reset to first page to show the new reason
+        $this->resetPage();
+    }
+
+    public function startEditingReason($reasonId)
+    {
+        $reason = Reason::find($reasonId);
+        
+        if ($reason) {
+            $this->editingReasonId = $reasonId;
+            $this->editingReasonText = $reason->reason_text;
+            $this->originalReasonText = $reason->reason_text;
+        }
+    }
+
+    public function saveReasonEdit()
+    {
+        // Validate the edited text
+        $this->validate([
+            'editingReasonText' => 'required|string|max:255|min:1',
+        ], [], [
+            'editingReasonText' => 'Reason text',
+        ]);
+        
+        // Check if there are changes
+        if (trim($this->editingReasonText) === $this->originalReasonText) {
+            $this->dispatch('toast', message: 'No changes detected.', type: 'info');
+            $this->cancelEditing();
+            return;
+        }
+        
+        // Show confirmation modal
+        $this->showSaveConfirmation = true;
+    }
+
+    public function confirmSaveReasonEdit()
+    {
+        $this->savingReason = true;
+
+        $reason = Reason::find($this->editingReasonId);
+
+        if ($reason) {
+            // Capture old values for logging
+            $oldValues = $reason->only(['reason_text', 'is_disabled']);
+            
+            $reason->reason_text = trim($this->editingReasonText);
+            $reason->save();
+
+            // Log the update action
+            Logger::update(
+                Reason::class,
+                $reason->id,
+                "Updated reason: {$reason->reason_text}",
+                $oldValues,
+                $reason->only(['reason_text', 'is_disabled'])
+            );
+
+            // Update local cache
+            $this->reasonTexts[$this->editingReasonId] = $reason->reason_text;
+
+            // Clear cache
+            Cache::forget('reasons_all');
+            Cache::forget('reasons_active');
+
+            $this->dispatch('toast', message: 'Reason updated successfully.', type: 'success');
+        }
+
+        // Reset editing state
+        $this->showSaveConfirmation = false;
+        $this->cancelEditing();
+
+        // Refresh the page
+        $this->resetPage();
+
+        $this->savingReason = false;
+    }
+
+    public function cancelEditing()
+    {
+        $this->editingReasonId = null;
+        $this->editingReasonText = '';
+        $this->originalReasonText = '';
+    }
+
+    public function toggleReasonDisabled($reasonId)
+    {
+        $reason = Reason::find($reasonId);
+        
+        if ($reason) {
+            // Capture old values for logging
+            $oldValues = $reason->only(['reason_text', 'is_disabled']);
+            
+            $reason->disabled = !$reason->disabled;
+            $reason->save();
+            
+            // Log the update action
+            Logger::update(
+                Reason::class,
+                $reason->id,
+                ($reason->disabled ? "Disabled reason: {$reason->reason_text}" : "Enabled reason: {$reason->reason_text}"),
+                $oldValues,
+                $reason->only(['reason_text', 'is_disabled'])
+            );
+            
+            // Clear cache after toggling disabled state
+            Cache::forget('reasons_all');
+            Cache::forget('reasons_active');
+            
+            $status = $reason->disabled ? 'disabled' : 'enabled';
+            $this->dispatch('toast', message: "Reason {$status} successfully.", type: 'success');
+            
+            // Refresh the page to show updated state
+            $this->resetPage();
+        }
+    }
+
+    public function attemptCloseReasonsModal()
+    {
+        // Check if there are unsaved changes
+        if ($this->editingReasonId !== null) {
+            $this->showUnsavedChangesConfirmation = true;
+        } else {
+            $this->closeReasonsModal();
+        }
+    }
+
+    public function closeWithoutSaving()
+    {
+        $this->showUnsavedChangesConfirmation = false;
+        $this->cancelEditing();
+        $this->closeReasonsModal();
+    }
+
+    public function closeReasonsModal()
+    {
+        // Reload reasons to discard any unsaved changes
+        $this->loadReasons();
+        $this->newReasonText = '';
+        $this->cancelEditing();
+        $this->showReasonsModal = false;
+        $this->showDeleteReasonConfirmation = false;
+        $this->showSaveConfirmation = false;
+        $this->showUnsavedChangesConfirmation = false;
+        $this->reasonToDelete = null;
+    }
+
+    public function openReasonsModal()
+    {
+        // Reload reasons to discard any unsaved changes
+        $this->loadReasons();
+        $this->newReasonText = '';
+        $this->cancelEditing();
+        $this->showReasonsModal = true;
+        $this->showDeleteReasonConfirmation = false;
+        $this->showSaveConfirmation = false;
+        $this->showUnsavedChangesConfirmation = false;
+        $this->reasonToDelete = null;
     }
 }

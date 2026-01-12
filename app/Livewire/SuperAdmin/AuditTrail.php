@@ -325,12 +325,37 @@ class AuditTrail extends Component
                 $log->user_last_name
             ])));
             
+            // Check if user is a super guard (stored in changes JSON)
+            $userTypeLabel = 'N/A';
+            if ($log->user_type !== null) {
+                $isSuperGuard = false;
+                if ($log->user_type === 0 && $log->changes) {
+                    $changes = null;
+                    $changesValue = $log->changes;
+                    if (is_string($changesValue)) {
+                        /** @var array<string, mixed>|null $changes */
+                        $changes = json_decode($changesValue, true);
+                    } elseif (is_array($changesValue)) {
+                        $changes = $changesValue;
+                    }
+                    if (is_array($changes)) {
+                        $isSuperGuard = isset($changes['user_super_guard']) && $changes['user_super_guard'] === true;
+                    }
+                }
+                
+                if ($log->user_type === 0 && $isSuperGuard) {
+                    $userTypeLabel = $this->availableUserTypes['super_guard'] ?? 'Super Guard';
+                } else {
+                    $userTypeLabel = $this->availableUserTypes[$log->user_type] ?? 'N/A';
+                }
+            }
+            
             return [
                 'id' => $log->id,
                 'created_at' => $log->created_at->toIso8601String(),
                 'user_name' => $userName ?: 'N/A',
                 'user_username' => $log->user_username ?? 'N/A',
-                'user_type' => $this->availableUserTypes[$log->user_type] ?? 'N/A', // Map user type
+                'user_type' => $userTypeLabel, // Map user type with super guard check
                 'action' => $this->availableActions[$log->action] ?? ucfirst($log->action), // Map action
                 'model_type' => $this->availableModelTypes[$log->model_type] ?? $log->model_type, // Map model type
                 'model_id' => $log->model_id,

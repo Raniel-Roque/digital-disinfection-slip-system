@@ -527,6 +527,9 @@
             :available-origins-options="$availableOriginsOptions" :available-destinations-options="$availableDestinationsOptions" :create-truck-options="$createTruckOptions" :create-driver-options="$createDriverOptions" :create-guard-options="$createGuardOptions"
             :create-received-guard-options="$createReceivedGuardOptions" :create-reason-options="$this->createReasonOptions" :is-creating="$isCreating" />
 
+        {{-- Reasons Settings Modal --}}
+        <x-modals.reason-settings :reasons="$reasons" :editing-reason-id="$editingReasonId" :editing-reason-text="$editingReasonText" :show-unsaved-changes-confirmation="$showUnsavedChangesConfirmation" :show-save-confirmation="$showSaveConfirmation" :saving-reason="$savingReason" />
+
         {{-- Admin Edit Modal --}}
         @if ($selectedSlip)
             {{-- Delete Confirmation Modal --}}

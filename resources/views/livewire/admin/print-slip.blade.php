@@ -221,6 +221,17 @@
         </div>
 
         <div class="form-field">
+            <div class="form-label">Reason:</div>
+            <div class="form-value">
+                @php
+                    $reason = $slip->reason_id ? \App\Models\Reason::find($slip->reason_id) : null;
+                    $displayReason = $reason && !$reason->is_disabled ? $reason->reason_text : 'N/A';
+                @endphp
+                {{ $displayReason }}
+            </div>
+        </div>
+
+        <div class="form-field">
             <div class="form-label">Remarks:</div>
             <div class="form-value">{{ $slip->remarks_for_disinfection ?? '' }}</div>
         </div>

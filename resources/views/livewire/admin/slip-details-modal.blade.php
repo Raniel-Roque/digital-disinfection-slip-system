@@ -43,9 +43,14 @@
             </div>
 
             {{-- Body Fields --}}
+            @php
+                // Track row index for alternating colors
+                $rowIndex = 0;
+            @endphp
             <div class="space-y-0 -mx-6">
                 {{-- Plate No --}}
-                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
+                @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                     <div class="font-semibold text-gray-500">Plate No:</div>
                     <div class="text-gray-900">
                         @if ($selectedSlip->truck)
@@ -60,7 +65,8 @@
                 </div>
 
             {{-- Driver --}}
-                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
+                @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                     <div class="font-semibold text-gray-500">Driver:</div>
                     <div class="text-gray-900">
                         {{ $selectedSlip->driver?->first_name . ' ' . $selectedSlip->driver?->last_name ?? 'N/A' }}
@@ -68,7 +74,8 @@
                 </div>
 
                 {{-- Origin --}}
-                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
+                @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                     <div class="font-semibold text-gray-500">Origin:</div>
                     <div class="text-gray-900">
                         {{ $selectedSlip->location->location_name ?? 'N/A' }}
@@ -76,7 +83,8 @@
                 </div>
 
                 {{-- Destination --}}
-                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
+                @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                     <div class="font-semibold text-gray-500">Destination:</div>
                     <div class="text-gray-900">
                         {{ $selectedSlip->destination->location_name ?? 'N/A' }}
@@ -85,7 +93,8 @@
 
                 {{-- Completion Date (only when completed) --}}
                 @if ($status == 2 && $selectedSlip->completed_at)
-                    <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
+                    @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                    <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                         <div class="font-semibold text-gray-500">End Date:</div>
                         <div class="text-gray-900">
                             {{ \Carbon\Carbon::parse($selectedSlip->completed_at)->format('M d, Y - h:i A') }}
@@ -94,7 +103,8 @@
                 @endif
 
                 {{-- Photos --}}
-                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if ($status == 2 && $selectedSlip->completed_at) bg-gray-100 @else bg-white @endif">
+                @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                     <div class="font-semibold text-gray-500">Photos:</div>
                     <div class="text-gray-900">
                         @if ($this->selectedSlipAttachments->count() > 0)
@@ -112,7 +122,8 @@
                 </div>
 
                 {{-- Reason --}}
-                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if ($status == 2 && $selectedSlip->completed_at) bg-gray-100 @else bg-white @endif">
+                @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                     <div class="font-semibold text-gray-500">Reason:</div>
                     <div class="text-gray-900">
                         @php
@@ -124,7 +135,8 @@
                 </div>
 
                 {{-- Remarks --}}
-                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if ($status == 2 && $selectedSlip->completed_at) bg-white @else bg-gray-100 @endif">
+                @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                     <div class="font-semibold text-gray-500">Remarks:</div>
                     <div class="text-gray-900 wrap-break-words min-w-0" style="word-break: break-word; overflow-wrap: break-word;">
                         <div class="whitespace-pre-wrap">{{ $selectedSlip->remarks_for_disinfection ?? 'N/A' }}</div>
