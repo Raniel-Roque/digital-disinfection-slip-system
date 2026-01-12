@@ -87,6 +87,12 @@ class Trucks extends Component
     public $filtersActive = false;
     public $excludeDeletedItems = true; // Default: exclude slips with deleted related items
     
+    // Store previous date filter values when entering restore mode
+    private $previousFilterCreatedFrom = null;
+    private $previousFilterCreatedTo = null;
+    private $previousAppliedCreatedFrom = null;
+    private $previousAppliedCreatedTo = null;
+    
     public $availableStatuses = [
         0 => 'Pending',
         1 => 'Disinfecting',
@@ -128,6 +134,7 @@ class Trucks extends Component
     public $driver_id;
     public $hatchery_guard_id;
     public $received_guard_id = null; // Optional receiving guard for creation
+    public $reason_id;
     public $remarks_for_disinfection;
     public $isCreating = false;
     public $newReasonText = '';
@@ -145,6 +152,7 @@ class Trucks extends Component
     public $searchDriver = '';
     public $searchHatcheryGuard = '';
     public $searchReceivedGuard = '';
+    public $searchReason = '';
     
     // Search properties for details modal
     public $searchDetailsTruck = '';
@@ -160,6 +168,7 @@ class Trucks extends Component
     public $editDriverId;
     public $editHatcheryGuardId; // For status 0
     public $editReceivedGuardId = null;
+    public $editReasonId;
     public $editRemarksForDisinfection;
     public $editStatus;
     
@@ -170,6 +179,7 @@ class Trucks extends Component
     public $searchEditDriver = '';
     public $searchEditHatcheryGuard = '';
     public $searchEditReceivedGuard = '';
+    public $searchEditReason = '';
     
     public $reasonTexts = [];
     public $showDeleteReasonConfirmation = false;
@@ -586,6 +596,29 @@ class Trucks extends Component
         return $guards->toArray();
     }
     
+    public function getCreateReasonOptionsProperty()
+    {
+        // Get only non-disabled reasons for dropdown (disabled reasons cannot be selected)
+        $reasons = Cache::remember('reasons_active', 300, function() {
+            return Reason::where('is_disabled', false)->orderBy('reason_text')->get();
+        });
+        $allOptions = $reasons->pluck('reason_text', 'id');
+        $options = $allOptions;
+        
+        if (!empty($this->searchReason)) {
+            $searchTerm = strtolower($this->searchReason);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+            // Only include selected value if it's in the available (non-disabled) options
+            if ($this->reason_id && isset($allOptions[$this->reason_id])) {
+                $options = $this->ensureSelectedInOptions($options, $this->reason_id, $allOptions);
+            }
+        }
+        
+        return $options->toArray();
+    }
+    
     // Computed properties for details modal filtered options
     public function getDetailsTruckOptionsProperty()
     {
@@ -760,6 +793,29 @@ class Trucks extends Component
         }
         
         return $guards->toArray();
+    }
+    
+    public function getEditReasonOptionsProperty()
+    {
+        // Get only non-disabled reasons for dropdown (disabled reasons cannot be selected)
+        $reasons = Cache::remember('reasons_active', 300, function() {
+            return Reason::where('is_disabled', false)->orderBy('reason_text')->get();
+        });
+        $allOptions = $reasons->pluck('reason_text', 'id');
+        $options = $allOptions;
+        
+        if (!empty($this->searchEditReason)) {
+            $searchTerm = strtolower($this->searchEditReason);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+            // Only include selected value if it's in the available (non-disabled) options
+            if ($this->editReasonId && isset($allOptions[$this->editReasonId])) {
+                $options = $this->ensureSelectedInOptions($options, $this->editReasonId, $allOptions);
+            }
+        }
+        
+        return $options->toArray();
     }
     
     public function getEditAvailableOriginsOptionsProperty()
@@ -1166,6 +1222,7 @@ class Trucks extends Component
                 'location' => function($q) { $q->withTrashed(); },
                 'destination' => function($q) { $q->withTrashed(); },
                 'driver' => function($q) { $q->withTrashed(); },
+                'reason',
                 'hatcheryGuard' => function($q) { $q->withTrashed(); },
                 'receivedGuard' => function($q) { $q->withTrashed(); }
             ])->find($this->selectedSlip->id);
@@ -1178,6 +1235,14 @@ class Trucks extends Component
         $this->editDriverId = $this->selectedSlip->driver_id;
         $this->editHatcheryGuardId = $this->selectedSlip->hatchery_guard_id;
         $this->editReceivedGuardId = $this->selectedSlip->received_guard_id;
+        // Only set editReasonId if the reason exists and is not disabled
+        $reasonId = $this->selectedSlip->reason_id;
+        if ($reasonId) {
+            $reason = Reason::find($reasonId);
+            $this->editReasonId = ($reason && !$reason->is_disabled) ? $reasonId : null;
+        } else {
+            $this->editReasonId = null;
+        }
         $this->editRemarksForDisinfection = $this->selectedSlip->remarks_for_disinfection;
         $this->editStatus = $this->selectedSlip->status;
 
@@ -1188,6 +1253,7 @@ class Trucks extends Component
         $this->searchEditDriver = '';
         $this->searchEditHatcheryGuard = '';
         $this->searchEditReceivedGuard = '';
+        $this->searchEditReason = '';
 
         $this->showEditModal = true;
     }
@@ -1255,6 +1321,7 @@ class Trucks extends Component
         $this->editDriverId = null;
         $this->editHatcheryGuardId = null;
         $this->editReceivedGuardId = null;
+        $this->editReasonId = null;
         $this->editRemarksForDisinfection = null;
         $this->editStatus = null;
         $this->searchEditTruck = '';
@@ -1263,6 +1330,7 @@ class Trucks extends Component
         $this->searchEditDriver = '';
         $this->searchEditHatcheryGuard = '';
         $this->searchEditReceivedGuard = '';
+        $this->searchEditReason = '';
         $this->resetErrorBag();
     }
 
@@ -1278,6 +1346,7 @@ class Trucks extends Component
                $this->editDriverId != $this->selectedSlip->driver_id ||
                $this->editHatcheryGuardId != $this->selectedSlip->hatchery_guard_id ||
                $this->editReceivedGuardId != $this->selectedSlip->received_guard_id ||
+               $this->editReasonId != $this->selectedSlip->reason_id ||
                $this->editRemarksForDisinfection != $this->selectedSlip->remarks_for_disinfection ||
                $this->editStatus != $this->selectedSlip->status;
     }
@@ -1322,6 +1391,18 @@ class Trucks extends Component
                 },
             ],
             'editDriverId' => 'required|exists:drivers,id',
+            'editReasonId' => [
+                'required',
+                'exists:reasons,id',
+                function ($attribute, $value, $fail) {
+                    if ($value) {
+                        $reason = Reason::find($value);
+                        if (!$reason || $reason->is_disabled) {
+                            $fail('The selected reason is not available.');
+                        }
+                    }
+                },
+            ],
             'editRemarksForDisinfection' => 'nullable|string|max:1000',
         ];
 
@@ -1440,6 +1521,7 @@ class Trucks extends Component
             'editDriverId' => 'Driver',
             'editHatcheryGuardId' => 'Hatchery Guard',
             'editReceivedGuardId' => 'Receiving Guard',
+            'editReasonId' => 'Reason',
             'editRemarksForDisinfection' => 'Remarks for Disinfection',
             'editStatus' => 'Status',
         ]);
@@ -1461,6 +1543,7 @@ class Trucks extends Component
             'driver_id',
             'hatchery_guard_id',
             'received_guard_id',
+            'reason_id',
             'remarks_for_disinfection',
             'status'
         ]);
@@ -1470,6 +1553,7 @@ class Trucks extends Component
             'truck_id' => $this->editTruckId,
             'destination_id' => $this->editDestinationId,
             'driver_id' => $this->editDriverId,
+            'reason_id' => $this->editReasonId,
             'remarks_for_disinfection' => $sanitizedRemarks,
             'status' => $this->editStatus,
         ];
@@ -1514,6 +1598,7 @@ class Trucks extends Component
             'location' => function($q) { $q->withTrashed(); },
             'destination' => function($q) { $q->withTrashed(); },
             'driver' => function($q) { $q->withTrashed(); },
+            'reason',
             'hatcheryGuard' => function($q) { $q->withTrashed(); },
             'receivedGuard' => function($q) { $q->withTrashed(); }
         ]);
@@ -1605,6 +1690,35 @@ class Trucks extends Component
     public function toggleDeletedView()
     {
         $this->showDeleted = !$this->showDeleted;
+        
+        if ($this->showDeleted) {
+            // Entering restore mode: Store current values only if not already stored, then clear date filters
+            if ($this->previousAppliedCreatedFrom === null && $this->previousAppliedCreatedTo === null) {
+                $this->previousFilterCreatedFrom = $this->filterCreatedFrom;
+                $this->previousFilterCreatedTo = $this->filterCreatedTo;
+                $this->previousAppliedCreatedFrom = $this->appliedCreatedFrom;
+                $this->previousAppliedCreatedTo = $this->appliedCreatedTo;
+            }
+            
+            $this->filterCreatedFrom = '';
+            $this->filterCreatedTo = '';
+            $this->appliedCreatedFrom = null;
+            $this->appliedCreatedTo = null;
+        } else {
+            // Exiting restore mode: Always restore previous values, then reset stored values
+            $this->filterCreatedFrom = $this->previousFilterCreatedFrom ?? '';
+            $this->filterCreatedTo = $this->previousFilterCreatedTo ?? '';
+            $this->appliedCreatedFrom = $this->previousAppliedCreatedFrom;
+            $this->appliedCreatedTo = $this->previousAppliedCreatedTo;
+            $this->filtersActive = ($this->appliedCreatedFrom || $this->appliedCreatedTo);
+            
+            // Reset stored values for next time
+            $this->previousFilterCreatedFrom = null;
+            $this->previousFilterCreatedTo = null;
+            $this->previousAppliedCreatedFrom = null;
+            $this->previousAppliedCreatedTo = null;
+        }
+        
         $this->resetPage();
     }
 
@@ -1718,6 +1832,7 @@ class Trucks extends Component
         $this->driver_id = null;
         $this->hatchery_guard_id = null;
         $this->received_guard_id = null;
+        $this->reason_id = null;
         $this->remarks_for_disinfection = null;
         $this->searchOrigin = '';
         $this->searchDestination = '';
@@ -1725,6 +1840,7 @@ class Trucks extends Component
         $this->searchDriver = '';
         $this->searchHatcheryGuard = '';
         $this->searchReceivedGuard = '';
+        $this->searchReason = '';
         $this->resetErrorBag();
     }
 
@@ -1736,6 +1852,7 @@ class Trucks extends Component
                !empty($this->driver_id) || 
                !empty($this->hatchery_guard_id) || 
                !empty($this->received_guard_id) || 
+               !empty($this->reason_id) ||
                !empty($this->remarks_for_disinfection);
     }
 
@@ -1812,6 +1929,18 @@ class Trucks extends Component
                     }
                 },
             ],
+            'reason_id' => [
+                'required',
+                'exists:reasons,id',
+                function ($attribute, $value, $fail) {
+                    if ($value) {
+                        $reason = Reason::find($value);
+                        if (!$reason || $reason->is_disabled) {
+                            $fail('The selected reason is not available.');
+                        }
+                    }
+                },
+            ],
             'remarks_for_disinfection' => 'nullable|string|max:1000',
         ], [], [
             'location_id' => 'Origin',
@@ -1820,6 +1949,7 @@ class Trucks extends Component
             'driver_id' => 'Driver',
             'hatchery_guard_id' => 'Hatchery Guard',
             'received_guard_id' => 'Receiving Guard',
+            'reason_id' => 'Reason',
             'remarks_for_disinfection' => 'Remarks for Disinfection',
         ]);
 
@@ -1833,6 +1963,7 @@ class Trucks extends Component
             'driver_id' => $this->driver_id,
             'hatchery_guard_id' => $this->hatchery_guard_id,
             'received_guard_id' => $this->received_guard_id,
+            'reason_id' => $this->reason_id,
             'remarks_for_disinfection' => $sanitizedRemarks,
             'status' => 0, // Pending
         ]);
@@ -1851,6 +1982,7 @@ class Trucks extends Component
                 'driver_id',
                 'hatchery_guard_id',
                 'received_guard_id',
+                'reason_id',
                 'remarks_for_disinfection',
                 'status'
             ])
@@ -2567,11 +2699,20 @@ class Trucks extends Component
         
         $this->reasonTexts[$reason->id] = $reason->reason_text;
         
+        // Log the create action
+        Logger::create(
+            Reason::class,
+            $reason->id,
+            "Added new reason: {$reason->reason_text}",
+            $reason->only(['reason_text', 'is_disabled'])
+        );
+        
         // Clear the input field
         $this->newReasonText = '';
         
         // Clear cache after adding new reason
         Cache::forget('reasons_all');
+        Cache::forget('reasons_active');
         
         $this->dispatch('toast', message: 'Reason added successfully.', type: 'success');
         
@@ -2617,14 +2758,27 @@ class Trucks extends Component
         $reason = Reason::find($this->editingReasonId);
 
         if ($reason) {
+            // Capture old values for logging
+            $oldValues = $reason->only(['reason_text', 'is_disabled']);
+            
             $reason->reason_text = trim($this->editingReasonText);
             $reason->save();
+
+            // Log the update action
+            Logger::update(
+                Reason::class,
+                $reason->id,
+                "Updated reason: {$reason->reason_text}",
+                $oldValues,
+                $reason->only(['reason_text', 'is_disabled'])
+            );
 
             // Update local cache
             $this->reasonTexts[$this->editingReasonId] = $reason->reason_text;
 
             // Clear cache
             Cache::forget('reasons_all');
+            Cache::forget('reasons_active');
 
             $this->dispatch('toast', message: 'Reason updated successfully.', type: 'success');
         }
@@ -2651,11 +2805,24 @@ class Trucks extends Component
         $reason = Reason::find($reasonId);
         
         if ($reason) {
+            // Capture old values for logging
+            $oldValues = $reason->only(['reason_text', 'is_disabled']);
+            
             $reason->disabled = !$reason->disabled;
             $reason->save();
             
+            // Log the update action
+            Logger::update(
+                Reason::class,
+                $reason->id,
+                ($reason->disabled ? "Disabled reason: {$reason->reason_text}" : "Enabled reason: {$reason->reason_text}"),
+                $oldValues,
+                $reason->only(['reason_text', 'is_disabled'])
+            );
+            
             // Clear cache after toggling disabled state
             Cache::forget('reasons_all');
+            Cache::forget('reasons_active');
             
             $status = $reason->disabled ? 'disabled' : 'enabled';
             $this->dispatch('toast', message: "Reason {$status} successfully.", type: 'success');
@@ -2680,11 +2847,25 @@ class Trucks extends Component
         $reason = Reason::find($this->reasonToDelete);
         
         if ($reason) {
+            // Capture old values for logging
+            $oldValues = $reason->only(['reason_text', 'is_disabled']);
+            $reasonText = $reason->reason_text;
+            $reasonId = $reason->id;
+            
             $reason->delete();
             unset($this->reasonTexts[$this->reasonToDelete]);
             
+            // Log the delete action
+            Logger::delete(
+                Reason::class,
+                $reasonId,
+                "Deleted reason: {$reasonText}",
+                $oldValues
+            );
+            
             // Clear cache after deleting reason
             Cache::forget('reasons_all');
+            Cache::forget('reasons_active');
             
             $this->dispatch('toast', message: 'Reason deleted successfully.', type: 'success');
         }

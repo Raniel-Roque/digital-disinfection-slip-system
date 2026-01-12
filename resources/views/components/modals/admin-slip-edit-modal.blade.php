@@ -9,6 +9,7 @@
     'editDriverOptions' => [],
     'editGuardOptions' => [],
     'editReceivedGuardOptions' => [],
+    'editReasonOptions' => [],
     'slipStatus' => null,
     'editStatus' => null,
     'selectedSlip' => null,
@@ -310,6 +311,19 @@
                         </div>
                     </div>
                     @error('editDestinationId')
+                        <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
+                    @enderror
+                </div>
+            </div>
+
+            {{-- Reason --}}
+            <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if (($status == 3 || $status == 4) && $selectedSlip->completed_at) bg-white @else bg-gray-100 @endif">
+                <div class="font-semibold text-gray-500">Reason:<span class="text-red-500">*</span></div>
+                <div class="text-gray-900">
+                    <x-forms.searchable-dropdown wire-model="editReasonId" :options="$editReasonOptions"
+                        search-property="searchEditReason" placeholder="Select reason..."
+                        search-placeholder="Search reasons..." />
+                    @error('editReasonId')
                         <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
                     @enderror
                 </div>

@@ -17,8 +17,8 @@ return new class extends Migration {
             $table->foreignId('destination_id')->constrained('locations')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('driver_id')->constrained('drivers')->cascadeOnUpdate()->cascadeOnDelete();
  
-            // Reason - nullable, no foreign key constraint
-            $table->unsignedBigInteger('reason_id')->nullable();
+            // Reason - nullable, with foreign key constraint
+            $table->foreignId('reason_id')->nullable()->constrained('reasons')->cascadeOnUpdate()->nullOnDelete();
 
             // Remarks
             $table->text('remarks_for_disinfection')->nullable(); 

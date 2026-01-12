@@ -180,11 +180,12 @@
     </div>
 
     {{-- From Date Input --}}
-    <div>
+    <div x-data="{ filterValue: @entangle('filterCreatedFrom') }">
         <div class="flex items-center justify-between mb-1">
             <label class="block text-sm font-medium text-gray-700">From Date</label>
             <button type="button" wire:click="$set('filterCreatedFrom', null)"
                 wire:target="filterCreatedFrom"
+                x-show="filterValue && filterValue !== '' && filterValue !== null"
                 class="text-xs text-blue-600 hover:text-blue-800 font-medium">
                 Clear
             </button>
@@ -213,11 +214,12 @@
     </div>
 
     {{-- To Date Input --}}
-    <div>
+    <div x-data="{ filterValue: @entangle('filterCreatedTo') }">
         <div class="flex items-center justify-between mb-1">
             <label class="block text-sm font-medium text-gray-700">To Date</label>
             <button type="button" wire:click="$set('filterCreatedTo', null)"
                 wire:target="filterCreatedTo"
+                x-show="filterValue && filterValue !== '' && filterValue !== null"
                 class="text-xs text-blue-600 hover:text-blue-800 font-medium">
                 Clear
             </button>

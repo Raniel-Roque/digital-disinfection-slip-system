@@ -8,6 +8,7 @@ use App\Models\Attachment;
 use App\Models\Truck;
 use App\Models\Location;
 use App\Models\Driver;
+use App\Models\Reason;
 use App\Models\User;
 use App\Services\Logger;
 use Livewire\WithPagination;
@@ -132,6 +133,7 @@ class Trucks extends Component
     public $driver_id;
     public $hatchery_guard_id;
     public $received_guard_id = null; // Optional receiving guard for creation
+    public $reason_id;
     public $remarks_for_disinfection;
     public $isCreating = false;
     
@@ -142,6 +144,7 @@ class Trucks extends Component
     public $searchDriver = '';
     public $searchHatcheryGuard = '';
     public $searchReceivedGuard = '';
+    public $searchReason = '';
     
     // Search properties for details modal
     public $searchDetailsTruck = '';
@@ -157,6 +160,7 @@ class Trucks extends Component
     public $editDriverId;
     public $editHatcheryGuardId; // For status 0
     public $editReceivedGuardId = null;
+    public $editReasonId;
     public $editRemarksForDisinfection;
     public $editStatus;
     
@@ -167,6 +171,7 @@ class Trucks extends Component
     public $searchEditDriver = '';
     public $searchEditHatcheryGuard = '';
     public $searchEditReceivedGuard = '';
+    public $searchEditReason = '';
     
     private $cachedFilterGuards = null;
     private $cachedFilterGuardsCollection = null;
@@ -545,6 +550,29 @@ class Trucks extends Component
         return $guards->toArray();
     }
     
+    public function getCreateReasonOptionsProperty()
+    {
+        // Get only non-disabled reasons for dropdown (disabled reasons cannot be selected)
+        $reasons = Cache::remember('reasons_active', 300, function() {
+            return Reason::where('is_disabled', false)->orderBy('reason_text')->get();
+        });
+        $allOptions = $reasons->pluck('reason_text', 'id');
+        $options = $allOptions;
+        
+        if (!empty($this->searchReason)) {
+            $searchTerm = strtolower($this->searchReason);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+            // Only include selected value if it's in the available (non-disabled) options
+            if ($this->reason_id && isset($allOptions[$this->reason_id])) {
+                $options = $this->ensureSelectedInOptions($options, $this->reason_id, $allOptions);
+            }
+        }
+        
+        return $options->toArray();
+    }
+    
     // Computed properties for details modal filtered options
     public function getDetailsTruckOptionsProperty()
     {
@@ -687,6 +715,29 @@ class Trucks extends Component
         }
         
         return $guards->toArray();
+    }
+    
+    public function getEditReasonOptionsProperty()
+    {
+        // Get only non-disabled reasons for dropdown (disabled reasons cannot be selected)
+        $reasons = Cache::remember('reasons_active', 300, function() {
+            return Reason::where('is_disabled', false)->orderBy('reason_text')->get();
+        });
+        $allOptions = $reasons->pluck('reason_text', 'id');
+        $options = $allOptions;
+        
+        if (!empty($this->searchEditReason)) {
+            $searchTerm = strtolower($this->searchEditReason);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+            // Only include selected value if it's in the available (non-disabled) options
+            if ($this->editReasonId && isset($allOptions[$this->editReasonId])) {
+                $options = $this->ensureSelectedInOptions($options, $this->editReasonId, $allOptions);
+            }
+        }
+        
+        return $options->toArray();
     }
     
     public function getEditAvailableOriginsOptionsProperty()
@@ -1056,6 +1107,14 @@ class Trucks extends Component
         $this->editDriverId = $this->selectedSlip->driver_id;
         $this->editHatcheryGuardId = $this->selectedSlip->hatchery_guard_id;
         $this->editReceivedGuardId = $this->selectedSlip->received_guard_id;
+        // Only set editReasonId if the reason exists and is not disabled
+        $reasonId = $this->selectedSlip->reason_id;
+        if ($reasonId) {
+            $reason = Reason::find($reasonId);
+            $this->editReasonId = ($reason && !$reason->is_disabled) ? $reasonId : null;
+        } else {
+            $this->editReasonId = null;
+        }
         $this->editRemarksForDisinfection = $this->selectedSlip->remarks_for_disinfection;
         $this->editStatus = $this->selectedSlip->status;
         
@@ -1066,6 +1125,7 @@ class Trucks extends Component
         $this->searchEditDriver = '';
         $this->searchEditHatcheryGuard = '';
         $this->searchEditReceivedGuard = '';
+        $this->searchEditReason = '';
         
         $this->showEditModal = true;
     }
@@ -1110,6 +1170,7 @@ class Trucks extends Component
         $this->editDriverId = null;
         $this->editHatcheryGuardId = null;
         $this->editReceivedGuardId = null;
+        $this->editReasonId = null;
         $this->editRemarksForDisinfection = null;
         $this->editStatus = null;
         $this->searchEditTruck = '';
@@ -1118,6 +1179,7 @@ class Trucks extends Component
         $this->searchEditDriver = '';
         $this->searchEditHatcheryGuard = '';
         $this->searchEditReceivedGuard = '';
+        $this->searchEditReason = '';
         $this->resetErrorBag();
     }
 
@@ -1133,6 +1195,7 @@ class Trucks extends Component
                $this->editDriverId != $this->selectedSlip->driver_id ||
                $this->editHatcheryGuardId != $this->selectedSlip->hatchery_guard_id ||
                $this->editReceivedGuardId != $this->selectedSlip->received_guard_id ||
+               $this->editReasonId != $this->selectedSlip->reason_id ||
                $this->editRemarksForDisinfection != $this->selectedSlip->remarks_for_disinfection ||
                $this->editStatus != $this->selectedSlip->status;
     }
@@ -1178,6 +1241,18 @@ class Trucks extends Component
                 },
             ],
             'editDriverId' => 'required|exists:drivers,id',
+            'editReasonId' => [
+                'required',
+                'exists:reasons,id',
+                function ($attribute, $value, $fail) {
+                    if ($value) {
+                        $reason = Reason::find($value);
+                        if (!$reason || $reason->is_disabled) {
+                            $fail('The selected reason is not available.');
+                        }
+                    }
+                },
+            ],
             'editRemarksForDisinfection' => 'nullable|string|max:1000',
         ];
 
@@ -1296,6 +1371,7 @@ class Trucks extends Component
             'editDriverId' => 'Driver',
             'editHatcheryGuardId' => 'Hatchery Guard',
             'editReceivedGuardId' => 'Receiving Guard',
+            'editReasonId' => 'Reason',
             'editRemarksForDisinfection' => 'Remarks for Disinfection',
             'editStatus' => 'Status',
         ]);
@@ -1312,7 +1388,7 @@ class Trucks extends Component
         // Capture old values for logging
         $oldValues = $this->selectedSlip->only([
             'truck_id', 'location_id', 'destination_id', 'driver_id',
-            'hatchery_guard_id', 'received_guard_id', 'remarks_for_disinfection', 'status'
+            'hatchery_guard_id', 'received_guard_id', 'reason_id', 'remarks_for_disinfection', 'status'
         ]);
 
         // Build update data based on status
@@ -1320,6 +1396,7 @@ class Trucks extends Component
             'truck_id' => $this->editTruckId,
             'destination_id' => $this->editDestinationId,
             'driver_id' => $this->editDriverId,
+            'reason_id' => $this->editReasonId,
             'remarks_for_disinfection' => $sanitizedRemarks,
             'status' => $this->editStatus,
         ];
@@ -1373,7 +1450,7 @@ class Trucks extends Component
         // Log the update
         $newValues = $this->selectedSlip->only([
             'truck_id', 'location_id', 'destination_id', 'driver_id',
-            'hatchery_guard_id', 'received_guard_id', 'remarks_for_disinfection', 'status'
+            'hatchery_guard_id', 'received_guard_id', 'reason_id', 'remarks_for_disinfection', 'status'
         ]);
         Logger::update(
             DisinfectionSlipModel::class,
@@ -1590,6 +1667,18 @@ class Trucks extends Component
                     }
                 },
             ],
+            'reason_id' => [
+                'required',
+                'exists:reasons,id',
+                function ($attribute, $value, $fail) {
+                    if ($value) {
+                        $reason = Reason::find($value);
+                        if (!$reason || $reason->is_disabled) {
+                            $fail('The selected reason is not available.');
+                        }
+                    }
+                },
+            ],
             'remarks_for_disinfection' => 'nullable|string|max:1000',
         ], [], [
             'location_id' => 'Origin',
@@ -1598,6 +1687,7 @@ class Trucks extends Component
             'driver_id' => 'Driver',
             'hatchery_guard_id' => 'Hatchery Guard',
             'received_guard_id' => 'Receiving Guard',
+            'reason_id' => 'Reason',
             'remarks_for_disinfection' => 'Remarks for Disinfection',
         ]);
 
@@ -1609,6 +1699,7 @@ class Trucks extends Component
             'location_id' => $this->location_id,
             'destination_id' => $this->destination_id,
             'driver_id' => $this->driver_id,
+            'reason_id' => $this->reason_id,
             'hatchery_guard_id' => $this->hatchery_guard_id,
             'received_guard_id' => $this->received_guard_id,
             'remarks_for_disinfection' => $sanitizedRemarks,
@@ -1620,7 +1711,7 @@ class Trucks extends Component
         // Log the creation
         $newValues = $slip->only([
             'truck_id', 'location_id', 'destination_id', 'driver_id',
-            'hatchery_guard_id', 'received_guard_id', 'remarks_for_disinfection', 'status'
+            'hatchery_guard_id', 'received_guard_id', 'reason_id', 'remarks_for_disinfection', 'status'
         ]);
         Logger::create(
             DisinfectionSlipModel::class,

@@ -62,6 +62,7 @@ class TruckList extends Component
     public $truck_id;
     public $destination_id;
     public $driver_id;
+    public $reason_id;
     public $remarks_for_disinfection;
     public $isCreating = false;
 
@@ -79,6 +80,7 @@ class TruckList extends Component
     public $searchTruck = '';
     public $searchDestination = '';
     public $searchDriver = '';
+    public $searchReason = '';
 
     protected $listeners = ['slip-created' => '$refresh'];
 
@@ -218,6 +220,29 @@ class TruckList extends Component
         
         return is_array($options) ? $options : $options->toArray();
     }
+    
+    public function getReasonOptionsProperty()
+    {
+        // Get only non-disabled reasons for dropdown (disabled reasons cannot be selected)
+        $reasons = Cache::remember('reasons_active', 300, function() {
+            return Reason::where('is_disabled', false)->orderBy('reason_text')->get();
+        });
+        $allOptions = $reasons->pluck('reason_text', 'id');
+        $options = $allOptions;
+        
+        if (!empty($this->searchReason)) {
+            $searchTerm = strtolower($this->searchReason);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+            // Only include selected value if it's in the available (non-disabled) options
+            if ($this->reason_id && isset($allOptions[$this->reason_id])) {
+                $options = $this->ensureSelectedInOptions($options, $this->reason_id, $allOptions);
+            }
+        }
+        
+        return is_array($options) ? $options : $options->toArray();
+    }
 
     public function updatedSearch()
     {
@@ -329,10 +354,12 @@ class TruckList extends Component
         $this->truck_id = null;
         $this->destination_id = null;
         $this->driver_id = null;
+        $this->reason_id = null;
         $this->remarks_for_disinfection = null;
         $this->searchTruck = '';
         $this->searchDestination = '';
         $this->searchDriver = '';
+        $this->searchReason = '';
         $this->pendingAttachmentIds = [];
         $this->showAddAttachmentModal = false;
         $this->showRemovePendingAttachmentConfirmation = false;
@@ -388,6 +415,18 @@ class TruckList extends Component
                 },
             ],
             'driver_id' => 'required|exists:drivers,id',
+            'reason_id' => [
+                'required',
+                'exists:reasons,id',
+                function ($attribute, $value, $fail) {
+                    if ($value) {
+                        $reason = Reason::find($value);
+                        if (!$reason || $reason->is_disabled) {
+                            $fail('The selected reason is not available.');
+                        }
+                    }
+                },
+            ],
             'remarks_for_disinfection' => 'nullable|string|max:1000',
         ]);
 
@@ -398,6 +437,7 @@ class TruckList extends Component
             'truck_id' => $this->truck_id,
             'destination_id' => $this->destination_id,
             'driver_id' => $this->driver_id,
+            'reason_id' => $this->reason_id,
             'remarks_for_disinfection' => $sanitizedRemarks,
             'location_id' => $currentLocationId,
             'hatchery_guard_id' => Auth::id(),
@@ -412,7 +452,7 @@ class TruckList extends Component
             DisinfectionSlip::class,
             $slip->id,
             "Created disinfection slip {$slip->slip_id}",
-            $slip->only(['truck_id', 'destination_id', 'driver_id', 'location_id', 'status'])
+            $slip->only(['truck_id', 'destination_id', 'driver_id', 'location_id', 'reason_id', 'status'])
         );
 
         $this->dispatch('toast', message: 'Disinfection slip created successfully!', type: 'success');        

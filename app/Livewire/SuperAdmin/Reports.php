@@ -50,6 +50,12 @@ class Reports extends Component
     public $filtersActive = true; // Default to true since we filter by unresolved
     public $excludeDeletedItems = true; // Default: exclude deleted items (automatically enabled)
     
+    // Store previous date filter values when entering restore mode
+    private $previousFilterCreatedFrom = null;
+    private $previousFilterCreatedTo = null;
+    private $previousAppliedCreatedFrom = null;
+    private $previousAppliedCreatedTo = null;
+    
     public $availableStatuses = [
         '0' => 'Unresolved',
         '1' => 'Resolved',
@@ -69,7 +75,7 @@ class Reports extends Component
     {
         // Reload selectedSlip with trashed relations if it exists
         if ($this->selectedSlip && $this->selectedSlip->id) {
-            $this->selectedSlip = DisinfectionSlipModel::with([
+            $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
                 'truck' => function($q) { $q->withTrashed(); },
                 'location' => function($q) { $q->withTrashed(); },
                 'destination' => function($q) { $q->withTrashed(); },
@@ -131,7 +137,7 @@ class Reports extends Component
 
         // If a slip is selected, reload it with trashed relations
         if ($this->selectedSlip) {
-            $this->selectedSlip = DisinfectionSlipModel::with([
+            $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
                 'truck' => function($q) { $q->withTrashed(); },
                 'location' => function($q) { $q->withTrashed(); },
                 'destination' => function($q) { $q->withTrashed(); },
@@ -240,6 +246,34 @@ class Reports extends Component
     public function toggleDeletedView()
     {
         $this->showDeleted = !$this->showDeleted;
+        
+        if ($this->showDeleted) {
+            // Entering restore mode: Store current values only if not already stored, then clear date filters
+            if ($this->previousAppliedCreatedFrom === null && $this->previousAppliedCreatedTo === null) {
+                $this->previousFilterCreatedFrom = $this->filterCreatedFrom;
+                $this->previousFilterCreatedTo = $this->filterCreatedTo;
+                $this->previousAppliedCreatedFrom = $this->appliedCreatedFrom;
+                $this->previousAppliedCreatedTo = $this->appliedCreatedTo;
+            }
+            
+            $this->filterCreatedFrom = '';
+            $this->filterCreatedTo = '';
+            $this->appliedCreatedFrom = '';
+            $this->appliedCreatedTo = '';
+        } else {
+            // Exiting restore mode: Always restore previous values, then reset stored values
+            $this->filterCreatedFrom = $this->previousFilterCreatedFrom ?? '';
+            $this->filterCreatedTo = $this->previousFilterCreatedTo ?? '';
+            $this->appliedCreatedFrom = $this->previousAppliedCreatedFrom ?? '';
+            $this->appliedCreatedTo = $this->previousAppliedCreatedTo ?? '';
+            
+            // Reset stored values for next time
+            $this->previousFilterCreatedFrom = null;
+            $this->previousFilterCreatedTo = null;
+            $this->previousAppliedCreatedFrom = null;
+            $this->previousAppliedCreatedTo = null;
+        }
+        
         $this->resetPage();
     }
     
@@ -1039,7 +1073,7 @@ class Reports extends Component
 
         // Livewire re-hydrates models without trashed relations; reload for details modal
         if ($this->selectedSlip) {
-            $this->selectedSlip = DisinfectionSlipModel::with([
+            $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
                 'truck' => function($q) { $q->withTrashed(); },
                 'location' => function($q) { $q->withTrashed(); },
                 'destination' => function($q) { $q->withTrashed(); },

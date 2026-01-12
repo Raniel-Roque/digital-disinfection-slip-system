@@ -56,6 +56,7 @@ class AuditTrail extends Component
         'App\\Models\\Truck' => 'Truck',
         'App\\Models\\Setting' => 'Setting',
         'App\\Models\\Report' => 'Report',
+        'App\\Models\\Reason' => 'Reason',
     ];
     
     public $availableUserTypes = [

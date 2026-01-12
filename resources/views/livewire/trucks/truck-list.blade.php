@@ -185,7 +185,7 @@
 
     {{-- CREATE MODAL --}}
     <x-modals.slip-creation-modal show="showCreateModal" :trucks="$trucks" :locations="$locations" :drivers="$drivers"
-        :truckOptions="$truckOptions" :locationOptions="$locationOptions" :driverOptions="$driverOptions" :is-creating="$isCreating"
+        :truckOptions="$truckOptions" :locationOptions="$locationOptions" :driverOptions="$driverOptions" :reasonOptions="$this->reasonOptions" :is-creating="$isCreating"
         :pendingAttachmentIds="$pendingAttachmentIds" />
 
     {{-- Add Attachment Modal is now inline Alpine.js modal in slip-creation-modal --}}

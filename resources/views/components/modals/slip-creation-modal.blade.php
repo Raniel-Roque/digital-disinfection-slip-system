@@ -5,6 +5,7 @@
     'truckOptions' => [],
     'locationOptions' => [],
     'driverOptions' => [],
+    'reasonOptions' => [],
     'isCreating' => false,
     'pendingAttachmentIds' => [],
 ])
@@ -46,6 +47,18 @@
                 <x-forms.searchable-dropdown wire-model="driver_id" :options="$driverOptions" search-property="searchDriver"
                     placeholder="Select driver..." search-placeholder="Search drivers..." />
                 @error('driver_id')
+                    <span class="text-red-500 text-xs">{{ $message }}</span>
+                @enderror
+            </div>
+        </div>
+
+        {{-- Reason --}}
+        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
+            <div class="font-semibold text-gray-500">Reason:<span class="text-red-500">*</span></div>
+            <div class="text-gray-900">
+                <x-forms.searchable-dropdown wire-model="reason_id" :options="$reasonOptions" search-property="searchReason"
+                    placeholder="Select reason..." search-placeholder="Search reasons..." />
+                @error('reason_id')
                     <span class="text-red-500 text-xs">{{ $message }}</span>
                 @enderror
             </div>

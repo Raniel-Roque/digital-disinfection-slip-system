@@ -128,6 +128,27 @@
                     </div>
                 @endif
 
+                {{-- Reason --}}
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if (($status == 3 || $status == 4) && $selectedSlip->completed_at) bg-gray-100 @else bg-white @endif">
+                    <div class="font-semibold text-gray-500">Reason:<span class="text-red-500">*</span></div>
+                    <div class="text-gray-900">
+                        @if ($isEditing)
+                            <x-forms.searchable-dropdown wire-model="reason_id" :options="$this->reasonOptions"
+                                search-property="searchReason" placeholder="Select reason..."
+                                search-placeholder="Search reasons..." />
+                            @error('reason_id')
+                                <div class="text-red-500 text-xs mt-1">{{ $message }}</div>
+                            @enderror
+                        @else
+                            @php
+                                $reason = $selectedSlip->reason_id ? Reason::find($selectedSlip->reason_id) : null;
+                                $displayReason = $reason && !$reason->is_disabled ? $reason->reason_text : 'N/A';
+                            @endphp
+                            {{ $displayReason }}
+                        @endif
+                    </div>
+                </div>
+
                 {{-- CAMERA WITH UPLOAD FUNCTIONALITY --}}
                 @if (!$isEditing)
                 <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if (($status == 3 || $status == 4) && $selectedSlip->completed_at) bg-gray-100 @else bg-white @endif">
@@ -580,7 +601,7 @@
         @endif
 
         {{-- Remarks --}}
-        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if (($status == 3 || $status == 4) && $selectedSlip->completed_at && !$isEditing) bg-white @elseif (($status == 3 || $status == 4) && $selectedSlip->completed_at && $isEditing) bg-gray-100 @elseif ($isEditing) bg-white @else bg-gray-100 @endif">                    
+        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if (($status == 3 || $status == 4) && $selectedSlip->completed_at && !$isEditing) bg-gray-100 @elseif (($status == 3 || $status == 4) && $selectedSlip->completed_at && $isEditing) bg-white @elseif ($isEditing) bg-gray-100 @else bg-white @endif">                    
             <div class="font-semibold text-gray-500">Remarks:</div>
                     <div class="text-gray-900 wrap-break-words min-w-0" style="word-break: break-word; overflow-wrap: break-word;">
                         @if ($isEditing)

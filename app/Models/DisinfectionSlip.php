@@ -18,6 +18,7 @@ class DisinfectionSlip extends Model
         'location_id',
         'destination_id',
         'driver_id',
+        'reason_id',
         'remarks_for_disinfection',
         'attachment_ids',
         'hatchery_guard_id',
@@ -125,6 +126,11 @@ class DisinfectionSlip extends Model
     public function driver()
     {
         return $this->belongsTo(Driver::class);
+    }
+
+    public function reason()
+    {
+        return $this->belongsTo(Reason::class);
     }
 
     /**

@@ -8,6 +8,7 @@ use App\Models\Attachment;
 use App\Models\Truck;
 use App\Models\Location;
 use App\Models\Driver;
+use App\Models\Reason;
 use App\Models\Report;
 use App\Services\Logger;
 use Illuminate\Support\Facades\Auth;
@@ -46,12 +47,14 @@ class DisinfectionSlip extends Component
     public $truck_id;
     public $destination_id;
     public $driver_id;
+    public $reason_id;
     public $remarks_for_disinfection;
 
     // Search properties for dropdowns
     public $searchTruck = '';
     public $searchDestination = '';
     public $searchDriver = '';
+    public $searchReason = '';
 
     // Original values for cancel
     private $originalValues = [];
@@ -169,6 +172,29 @@ class DisinfectionSlip extends Component
         
         return is_array($options) ? $options : $options->toArray();
     }
+    
+    public function getReasonOptionsProperty()
+    {
+        // Get only non-disabled reasons for dropdown (disabled reasons cannot be selected)
+        $reasons = Cache::remember('reasons_active', 300, function() {
+            return Reason::where('is_disabled', false)->orderBy('reason_text')->get();
+        });
+        $allOptions = $reasons->pluck('reason_text', 'id');
+        $options = $allOptions;
+        
+        if (!empty($this->searchReason)) {
+            $searchTerm = strtolower($this->searchReason);
+            $options = $options->filter(function ($label) use ($searchTerm) {
+                return str_contains(strtolower($label), $searchTerm);
+            });
+            // Only include selected value if it's in the available (non-disabled) options
+            if ($this->reason_id && isset($allOptions[$this->reason_id])) {
+                $options = $this->ensureSelectedInOptions($options, $this->reason_id, $allOptions);
+            }
+        }
+        
+        return is_array($options) ? $options : $options->toArray();
+    }
 
     public function openDetailsModal($id, $type = null)
     {
@@ -190,6 +216,7 @@ class DisinfectionSlip extends Component
             'driver' => function($q) {
                 $q->withTrashed();
             },
+            'reason',
             'hatcheryGuard' => function($q) {
                 $q->withTrashed();
             },
@@ -203,6 +230,16 @@ class DisinfectionSlip extends Component
         $this->truck_id                = $this->selectedSlip->truck_id;
         $this->destination_id          = $this->selectedSlip->destination_id;
         $this->driver_id               = $this->selectedSlip->driver_id;
+        
+        // Only set reason_id if the reason exists and is not disabled
+        $reasonId = $this->selectedSlip->reason_id;
+        if ($reasonId) {
+            $reason = Reason::find($reasonId);
+            $this->reason_id = ($reason && !$reason->is_disabled) ? $reasonId : null;
+        } else {
+            $this->reason_id = null;
+        }
+        
         $this->remarks_for_disinfection = $this->selectedSlip->remarks_for_disinfection;
 
         $this->isEditing = false;
@@ -316,6 +353,7 @@ class DisinfectionSlip extends Component
         return $this->truck_id != ($this->originalValues['truck_id'] ?? $this->selectedSlip->truck_id) ||
                $this->destination_id != ($this->originalValues['destination_id'] ?? $this->selectedSlip->destination_id) ||
                $this->driver_id != ($this->originalValues['driver_id'] ?? $this->selectedSlip->driver_id) ||
+               $this->reason_id != ($this->originalValues['reason_id'] ?? $this->selectedSlip->reason_id) ||
                ($this->remarks_for_disinfection ?? '') != ($this->originalValues['remarks_for_disinfection'] ?? $this->selectedSlip->remarks_for_disinfection ?? '');
     }
 
@@ -365,6 +403,7 @@ class DisinfectionSlip extends Component
             'truck_id'                => $this->truck_id,
             'destination_id'          => $this->destination_id,
             'driver_id'               => $this->driver_id,
+            'reason_id'               => $this->reason_id,
             'remarks_for_disinfection' => $originalRemarks,
         ];
     }
@@ -375,12 +414,14 @@ class DisinfectionSlip extends Component
         $this->truck_id                = $this->originalValues['truck_id'] ?? $this->selectedSlip->truck_id;
         $this->destination_id          = $this->originalValues['destination_id'] ?? $this->selectedSlip->destination_id;
         $this->driver_id               = $this->originalValues['driver_id'] ?? $this->selectedSlip->driver_id;
+        $this->reason_id               = $this->originalValues['reason_id'] ?? $this->selectedSlip->reason_id;
         $this->remarks_for_disinfection = $this->originalValues['remarks_for_disinfection'] ?? $this->selectedSlip->remarks_for_disinfection;
         
         // Reset search properties
         $this->searchTruck = '';
         $this->searchDestination = '';
         $this->searchDriver = '';
+        $this->searchReason = '';
         
         // Reset states
         $this->isEditing = false;
@@ -632,6 +673,18 @@ class DisinfectionSlip extends Component
                 },
             ],
             'driver_id'               => 'required|exists:drivers,id',
+            'reason_id'               => [
+                'required',
+                'exists:reasons,id',
+                function ($attribute, $value, $fail) {
+                    if ($value) {
+                        $reason = Reason::find($value);
+                        if (!$reason || $reason->is_disabled) {
+                            $fail('The selected reason is not available.');
+                        }
+                    }
+                },
+            ],
             'remarks_for_disinfection' => 'nullable|string|max:1000',
         ]);
 
@@ -642,6 +695,7 @@ class DisinfectionSlip extends Component
             'truck_id'                => $this->truck_id,
             'destination_id'          => $this->destination_id,
             'driver_id'               => $this->driver_id,
+            'reason_id'               => $this->reason_id,
             'remarks_for_disinfection' => $sanitizedRemarks,
         ]);
 
@@ -665,12 +719,14 @@ class DisinfectionSlip extends Component
             'truck_id' => $this->originalValues['truck_id'] ?? null,
             'destination_id' => $this->originalValues['destination_id'] ?? null,
             'driver_id' => $this->originalValues['driver_id'] ?? null,
+            'reason_id' => $this->originalValues['reason_id'] ?? null,
             'remarks_for_disinfection' => $this->originalValues['remarks_for_disinfection'] ?? null,
         ];
         $newValues = [
             'truck_id' => $this->truck_id,
             'destination_id' => $this->destination_id,
             'driver_id' => $this->driver_id,
+            'reason_id' => $this->reason_id,
             'remarks_for_disinfection' => $sanitizedRemarks,
         ];
         

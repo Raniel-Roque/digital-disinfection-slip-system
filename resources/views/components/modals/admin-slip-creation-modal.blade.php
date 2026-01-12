@@ -9,6 +9,7 @@
     'createDriverOptions' => [],
     'createGuardOptions' => [],
     'createReceivedGuardOptions' => [],
+    'createReasonOptions' => [],
     'isCreating' => false,
 ])
 
@@ -91,8 +92,20 @@
         </div>
     </div>
 
-    {{-- Remarks for Disinfection --}}
+    {{-- Reason --}}
         <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
+            <div class="font-semibold text-gray-500">Reason:<span class="text-red-500">*</span></div>
+            <div class="text-gray-900">
+            <x-forms.searchable-dropdown wire-model="reason_id" :options="$createReasonOptions" search-property="searchReason"
+                placeholder="Select reason..." search-placeholder="Search reasons..." />
+            @error('reason_id')
+                    <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
+            @enderror
+        </div>
+    </div>
+
+    {{-- Remarks for Disinfection --}}
+        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
             <div class="font-semibold text-gray-500">Remarks:</div>
             <div class="text-gray-900">
             <textarea wire:model="remarks_for_disinfection"

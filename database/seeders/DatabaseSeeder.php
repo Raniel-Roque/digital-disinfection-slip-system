@@ -103,6 +103,7 @@ class DatabaseSeeder extends Seeder
         foreach ($defaultReasons as $reason) {
             Reason::create([
                 'reason_text' => $reason,
+                'is_disabled' => false,
             ]);
         }
     }

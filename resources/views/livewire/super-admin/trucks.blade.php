@@ -302,23 +302,9 @@
                         Clear all
                     </button>
                 </div>
-                @elseif (($appliedCreatedFrom || $appliedCreatedTo || $excludeDeletedItems) && ($showDeleted ?? false))
+                @elseif (($appliedCreatedFrom || $appliedCreatedTo) && ($showDeleted ?? false))
                 <div class="mt-4 flex flex-wrap gap-2">
                     <span class="text-sm text-gray-600">Active filters (Restore Mode):</span>
-            
-                    @if ($excludeDeletedItems)
-                        <span
-                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            Excluding slips with deleted items
-                            <button wire:click="$set('excludeDeletedItems', false)" class="ml-1.5 inline-flex items-center hover:cursor-pointer cursor-pointer">
-                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                        clip-rule="evenodd"></path>
-                                </svg>
-                            </button>
-                        </span>
-                    @endif
             
                     @if ($appliedCreatedFrom)
                         <span
@@ -697,7 +683,7 @@
         {{-- Admin Create Modal --}}
         <x-modals.admin-slip-creation-modal :trucks="$trucks" :locations="$locations" :drivers="$drivers" :guards="$guards"
             :available-origins-options="$availableOriginsOptions" :available-destinations-options="$availableDestinationsOptions" :create-truck-options="$createTruckOptions" :create-driver-options="$createDriverOptions" :create-guard-options="$createGuardOptions"
-            :create-received-guard-options="$createReceivedGuardOptions" :is-creating="$isCreating" />
+            :create-received-guard-options="$createReceivedGuardOptions" :create-reason-options="$this->createReasonOptions" :is-creating="$isCreating" />
 
         <x-modals.reason-settings :reasons="$reasons" :editing-reason-id="$editingReasonId" :editing-reason-text="$editingReasonText" :show-unsaved-changes-confirmation="$showUnsavedChangesConfirmation" :show-save-confirmation="$showSaveConfirmation" :saving-reason="$savingReason" />
         
@@ -762,7 +748,7 @@
 
             <x-modals.admin-slip-edit-modal :trucks="$trucks" :locations="$locations" :drivers="$drivers" :guards="$guards"
                 :available-origins-options="$editAvailableOriginsOptions" :available-destinations-options="$editAvailableDestinationsOptions" :edit-truck-options="$editTruckOptions" :edit-driver-options="$editDriverOptions" :edit-guard-options="$editGuardOptions"
-                :edit-received-guard-options="$editReceivedGuardOptions" :slip-status="$selectedSlip->status" :edit-status="$editStatus" :selected-slip="$selectedSlip" />
+                :edit-received-guard-options="$editReceivedGuardOptions" :edit-reason-options="$this->editReasonOptions" :slip-status="$selectedSlip->status" :edit-status="$editStatus" :selected-slip="$selectedSlip" />
         @endif
     </div>
 </div>
