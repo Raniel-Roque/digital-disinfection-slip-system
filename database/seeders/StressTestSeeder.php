@@ -9,7 +9,6 @@ use App\Models\Location;
 use App\Models\Reason;
 use App\Models\DisinfectionSlip;
 use App\Models\Report;
-use App\Models\Attachment;
 use App\Models\Log;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -85,7 +84,7 @@ class StressTestSeeder extends Seeder
         }
         $this->command->info('✓ Created 5,000 users');
         
-        // Get user IDs for attachments (only IDs, not full models)
+        // Get user IDs (only IDs, not full models)
         /** @phpstan-ignore-next-line */
         $userIds = User::pluck('id')->toArray();
         
@@ -122,18 +121,9 @@ class StressTestSeeder extends Seeder
         $this->command->info('Creating 5,000 locations...');
         for ($batch = 0; $batch < $totalBatches; $batch++) {
             for ($i = 0; $i < $batchSize; $i++) {
-                $hasLogo = fake()->boolean(70);
-                $attachmentId = null;
-                if ($hasLogo && !empty($userIds)) {
-                    // Use existing user for logo attachment to avoid creating duplicate users
-                    $attachmentId = Attachment::factory()->logo()->create([
-                        'user_id' => fake()->randomElement($userIds),
-                    ])->id;
-                }
-                
                 Location::create([
                     'location_name' => fake()->randomElement(['BGC', 'Baliwag', 'San Rafael', 'Angeles', 'Tarlac', 'Pampanga', 'Bulacan', 'Manila', 'Laguna', 'Cavite', 'Batangas', 'Quezon', 'Nueva Ecija', 'Zambales']) . ' ' . fake()->randomElement(['Hatchery', 'Farm', 'Facility', 'Processing Plant', 'Distribution Center']),
-                    'attachment_id' => $attachmentId,
+                    'attachment_id' => null,
                     'disabled' => false,
                     'create_slip' => fake()->boolean(80),
                 ]);
@@ -185,13 +175,6 @@ class StressTestSeeder extends Seeder
         for ($batch = 0; $batch < $slipBatches; $batch++) {
             for ($i = 0; $i < $batchSize; $i++) {
                 $status = fake()->randomElement([0, 1, 2, 3]);
-                $hasAttachment = fake()->boolean(60);
-                $attachmentIds = null;
-                if ($hasAttachment && !empty($userIds)) {
-                    $attachmentIds = [Attachment::factory()->create([
-                        'user_id' => fake()->randomElement($userIds),
-                    ])->id];
-                }
                 
                 // Randomize created_at across multiple years (2024, 2025, 2026, 2027)
                 $createdAt = fake()->dateTimeBetween('2024-01-01', '2027-12-31');
@@ -218,7 +201,7 @@ class StressTestSeeder extends Seeder
                     'received_guard_id' => fake()->boolean(80) && !empty($guardIds) ? fake()->randomElement($guardIds) : null,
                     'reason_id' => fake()->boolean(70) && !empty($reasonIds) ? fake()->randomElement($reasonIds) : null,
                     'remarks_for_disinfection' => fake()->optional(0.7)->sentence(),
-                    'attachment_ids' => $attachmentIds,
+                    'attachment_ids' => null,
                     'status' => $status,
                     'completed_at' => $completedAt,
                     'created_at' => $createdAt,
@@ -228,18 +211,6 @@ class StressTestSeeder extends Seeder
             $this->command->info("  Batch " . ($batch + 1) . "/{$slipBatches} completed");
         }
         $this->command->info('✓ Created 1,000 disinfection slips');
-        
-        // Create 5,000 Attachments
-        $this->command->info('Creating 5,000 attachments...');
-        for ($batch = 0; $batch < $totalBatches; $batch++) {
-            for ($i = 0; $i < $batchSize; $i++) {
-                Attachment::factory()->create([
-                    'user_id' => fake()->randomElement($userIds),
-                ]);
-            }
-            $this->command->info("  Batch " . ($batch + 1) . "/{$totalBatches} completed");
-        }
-        $this->command->info('✓ Created 5,000 attachments');
         
         // Create 1,000 Reports
         $this->command->info('Creating 1,000 reports...');
@@ -435,7 +406,6 @@ class StressTestSeeder extends Seeder
         $this->command->info('  - Locations: 5,000');
         $this->command->info('  - Reasons: 5,000');
         $this->command->info('  - Disinfection Slips: 1,000');
-        $this->command->info('  - Attachments: 5,000');
         $this->command->info('  - Reports: 1,000');
         $this->command->info('  - Audit Logs: 5,000');
     }

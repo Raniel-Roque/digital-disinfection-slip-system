@@ -1468,19 +1468,19 @@ class Reports extends Component
         // This significantly reduces memory usage with large datasets (5,000+ records)
         $query = $this->showDeleted
             ? Report::onlyTrashed()->with([
-                'user:id,first_name,middle_name,last_name,username,deleted_at' => function($q) {
-                    $q->withTrashed();
+                'user' => function($q) {
+                    $q->withTrashed()->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'deleted_at');
                 },
-                'slip:id,slip_id,truck_id,location_id,destination_id,driver_id,status,completed_at,deleted_at' => function($q) {
-                    $q->withTrashed();
+                'slip' => function($q) {
+                    $q->withTrashed()->select('id', 'slip_id', 'truck_id', 'location_id', 'destination_id', 'driver_id', 'status', 'completed_at', 'deleted_at');
                 }
             ])
             : Report::with([
-                'user:id,first_name,middle_name,last_name,username,deleted_at' => function($q) {
-                    $q->withTrashed();
+                'user' => function($q) {
+                    $q->withTrashed()->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'deleted_at');
                 },
-                'slip:id,slip_id,truck_id,location_id,destination_id,driver_id,status,completed_at,deleted_at' => function($q) {
-                    $q->withTrashed();
+                'slip' => function($q) {
+                    $q->withTrashed()->select('id', 'slip_id', 'truck_id', 'location_id', 'destination_id', 'driver_id', 'status', 'completed_at', 'deleted_at');
                 }
             ])->whereNull('deleted_at');
         
