@@ -5,8 +5,8 @@
         <div class="mb-6">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900">Trucks from Disinfection Slips</h1>
-                    <p class="text-gray-600 text-sm mt-1">View all trucks associated with disinfection slips</p>
+                    <h1 class="text-2xl font-bold text-gray-900">Disinfection Slips</h1>
+                    <p class="text-gray-600 text-sm mt-1">View all disinfection slips</p>
                 </div>
 
                 {{-- Search and Filter Bar --}}
