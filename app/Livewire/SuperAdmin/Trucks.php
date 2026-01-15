@@ -243,14 +243,16 @@ class Trucks extends Component
         }
         
         // If a slip is selected, reload it with trashed relations (including if the slip itself is deleted)
+        // Optimize relationship loading by only selecting needed fields
         if ($this->selectedSlip) {
             $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
-                'truck' => function($q) { $q->withTrashed(); },
-                'location' => function($q) { $q->withTrashed(); },
-                'destination' => function($q) { $q->withTrashed(); },
-                'driver' => function($q) { $q->withTrashed(); },
-                'hatcheryGuard' => function($q) { $q->withTrashed(); },
-                'receivedGuard' => function($q) { $q->withTrashed(); }
+                'truck:id,plate_number,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'location:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'destination:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'driver:id,first_name,middle_name,last_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'reason:id,reason_text,is_disabled',
+                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); }
             ])->find($this->selectedSlip->id);
         }
     }
@@ -1190,13 +1192,16 @@ class Trucks extends Component
 
     public function openDetailsModal($id)
     {
+        // Optimize relationship loading by only selecting needed fields
+        // This significantly reduces memory usage with large datasets
         $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
-            'truck' => function($q) { $q->withTrashed(); },
-            'location' => function($q) { $q->withTrashed(); },
-            'destination' => function($q) { $q->withTrashed(); },
-            'driver' => function($q) { $q->withTrashed(); },
-            'hatcheryGuard' => function($q) { $q->withTrashed(); },
-            'receivedGuard' => function($q) { $q->withTrashed(); }
+            'truck:id,plate_number,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+            'location:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+            'destination:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+            'driver:id,first_name,middle_name,last_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+            'reason:id,reason_text,is_disabled',
+            'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+            'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); }
         ])->find($id);
 
         $this->showDetailsModal = true;
@@ -1208,8 +1213,10 @@ class Trucks extends Component
             return collect([]);
         }
         
+        // Optimize attachment loading by only selecting needed fields
         return Attachment::whereIn('id', $this->selectedSlip->attachment_ids)
-            ->with(['user' => function($q) { $q->withTrashed(); }])
+            ->select('id', 'file_path', 'file_name', 'file_size', 'mime_type', 'user_id', 'created_at', 'updated_at', 'deleted_at')
+            ->with(['user:id,first_name,middle_name,last_name,username,deleted_at' => function($q) { $q->withTrashed(); }])
             ->get();
     }
 
@@ -1257,15 +1264,16 @@ class Trucks extends Component
     public function openEditModal()
     {
         // Re-fetch selectedSlip with withTrashed() to preserve deleted relations and find deleted slips
+        // Optimize relationship loading by only selecting needed fields
         if ($this->selectedSlip && $this->selectedSlip->id) {
             $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
-                'truck' => function($q) { $q->withTrashed(); },
-                'location' => function($q) { $q->withTrashed(); },
-                'destination' => function($q) { $q->withTrashed(); },
-                'driver' => function($q) { $q->withTrashed(); },
-                'reason',
-                'hatcheryGuard' => function($q) { $q->withTrashed(); },
-                'receivedGuard' => function($q) { $q->withTrashed(); }
+                'truck:id,plate_number,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'location:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'destination:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'driver:id,first_name,middle_name,last_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'reason:id,reason_text,is_disabled',
+                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); }
             ])->find($this->selectedSlip->id);
         }
 
@@ -1316,14 +1324,16 @@ class Trucks extends Component
     public function closeEditModal()
     {
         // Re-fetch selectedSlip with withTrashed() to preserve deleted relations
+        // Optimize relationship loading by only selecting needed fields
         if ($this->selectedSlip && $this->selectedSlip->id) {
             $this->selectedSlip = DisinfectionSlipModel::with([
-                'truck' => function($q) { $q->withTrashed(); },
-                'location' => function($q) { $q->withTrashed(); },
-                'destination' => function($q) { $q->withTrashed(); },
-                'driver' => function($q) { $q->withTrashed(); },
-                'hatcheryGuard' => function($q) { $q->withTrashed(); },
-                'receivedGuard' => function($q) { $q->withTrashed(); }
+                'truck:id,plate_number,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'location:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'destination:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'driver:id,first_name,middle_name,last_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'reason:id,reason_text,is_disabled',
+                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); }
             ])->find($this->selectedSlip->id);
         }
         
@@ -1339,14 +1349,16 @@ class Trucks extends Component
     public function cancelEdit()
     {
         // Re-fetch selectedSlip with withTrashed() to preserve deleted relations after cancel (including if slip is deleted)
+        // Optimize relationship loading by only selecting needed fields
         if ($this->selectedSlip && $this->selectedSlip->id) {
             $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
-                'truck' => function($q) { $q->withTrashed(); },
-                'location' => function($q) { $q->withTrashed(); },
-                'destination' => function($q) { $q->withTrashed(); },
-                'driver' => function($q) { $q->withTrashed(); },
-                'hatcheryGuard' => function($q) { $q->withTrashed(); },
-                'receivedGuard' => function($q) { $q->withTrashed(); }
+                'truck:id,plate_number,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'location:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'destination:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'driver:id,first_name,middle_name,last_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'reason:id,reason_text,is_disabled',
+                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); }
             ])->find($this->selectedSlip->id);
         }
         $this->resetEditForm();
@@ -2153,14 +2165,16 @@ class Trucks extends Component
         $this->currentAttachmentIndex = 0;
 
         // Livewire re-hydrates models without trashed relations; reload for details modal
+        // Optimize relationship loading by only selecting needed fields
         if ($this->selectedSlip) {
             $this->selectedSlip = DisinfectionSlipModel::with([
-                'truck' => function($q) { $q->withTrashed(); },
-                'location' => function($q) { $q->withTrashed(); },
-                'destination' => function($q) { $q->withTrashed(); },
-                'driver' => function($q) { $q->withTrashed(); },
-                'hatcheryGuard' => function($q) { $q->withTrashed(); },
-                'receivedGuard' => function($q) { $q->withTrashed(); }
+                'truck:id,plate_number,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'location:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'destination:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'driver:id,first_name,middle_name,last_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'reason:id,reason_text,is_disabled',
+                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); }
             ])->find($this->selectedSlip->id);
         }
     }
@@ -2306,9 +2320,25 @@ class Trucks extends Component
 
     public function render()
     {
-        $query = $this->showDeleted 
-            ? DisinfectionSlipModel::onlyTrashed()->with(['truck' => function($q) { $q->withTrashed(); }, 'location' => function($q) { $q->withTrashed(); }, 'destination' => function($q) { $q->withTrashed(); }, 'driver' => function($q) { $q->withTrashed(); }, 'hatcheryGuard' => function($q) { $q->withTrashed(); }, 'receivedGuard' => function($q) { $q->withTrashed(); }])
-            : DisinfectionSlipModel::with(['truck' => function($q) { $q->withTrashed(); }, 'location' => function($q) { $q->withTrashed(); }, 'destination' => function($q) { $q->withTrashed(); }, 'driver' => function($q) { $q->withTrashed(); }, 'hatcheryGuard' => function($q) { $q->withTrashed(); }, 'receivedGuard' => function($q) { $q->withTrashed(); }])->whereNull('deleted_at');
+        // Optimize relationship loading by only selecting needed fields
+        // This significantly reduces memory usage with large datasets (5,000+ records)
+        $query = $this->showDeleted
+            ? DisinfectionSlipModel::onlyTrashed()->with([
+                'truck:id,plate_number,disabled,deleted_at',
+                'location:id,location_name,disabled,deleted_at',
+                'destination:id,location_name,disabled,deleted_at',
+                'driver:id,first_name,middle_name,last_name,disabled,deleted_at',
+                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at',
+                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at'
+            ])
+            : DisinfectionSlipModel::with([
+                'truck:id,plate_number,disabled,deleted_at',
+                'location:id,location_name,disabled,deleted_at',
+                'destination:id,location_name,disabled,deleted_at',
+                'driver:id,first_name,middle_name,last_name,disabled,deleted_at',
+                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at',
+                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at'
+            ])->whereNull('deleted_at');
         
         $slips = $query
             // Search
@@ -2407,31 +2437,33 @@ class Trucks extends Component
                 $query->whereDate('created_at', '<=', $this->appliedCreatedTo);
             })
             // Exclude slips with deleted items (default: on)
+            // Use whereIn with subqueries for better performance than whereHas with large datasets
+            // This avoids loading all IDs into memory and is faster than whereHas
             ->when($this->excludeDeletedItems, function($query) {
-                $query->whereHas('truck', function($q) {
-                    $q->whereNull('deleted_at');
-                })
-                ->whereHas('driver', function($q) {
-                    $q->whereNull('deleted_at');
-                })
-                ->whereHas('location', function($q) {
-                    $q->whereNull('deleted_at');
-                })
-                ->whereHas('destination', function($q) {
-                    $q->whereNull('deleted_at');
-                })
-                ->where(function($q) {
-                    $q->whereHas('hatcheryGuard', function($guardQ) {
-                        $guardQ->whereNull('deleted_at');
+                $query->whereIn('truck_id', function($subquery) {
+                        $subquery->select('id')->from('trucks')->whereNull('deleted_at');
                     })
-                    ->orWhereNull('hatchery_guard_id');
-                })
-                ->where(function($q) {
-                    $q->whereHas('receivedGuard', function($guardQ) {
-                        $guardQ->whereNull('deleted_at');
+                    ->whereIn('driver_id', function($subquery) {
+                        $subquery->select('id')->from('drivers')->whereNull('deleted_at');
                     })
-                    ->orWhereNull('received_guard_id');
-                });
+                    ->whereIn('location_id', function($subquery) {
+                        $subquery->select('id')->from('locations')->whereNull('deleted_at');
+                    })
+                    ->whereIn('destination_id', function($subquery) {
+                        $subquery->select('id')->from('locations')->whereNull('deleted_at');
+                    })
+                    ->where(function($q) {
+                        $q->whereIn('hatchery_guard_id', function($subquery) {
+                            $subquery->select('id')->from('users')->whereNull('deleted_at');
+                        })
+                          ->orWhereNull('hatchery_guard_id');
+                    })
+                    ->where(function($q) {
+                        $q->whereIn('received_guard_id', function($subquery) {
+                            $subquery->select('id')->from('users')->whereNull('deleted_at');
+                        })
+                          ->orWhereNull('received_guard_id');
+                    });
             })
             // Apply sorting (works with all filters)
             ->when($this->sortBy === 'slip_id' && !$this->showDeleted, function($query) {

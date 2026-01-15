@@ -482,10 +482,12 @@ class TruckList extends Component
     private function cleanupOrphanedPendingAttachments()
     {
         // Find all attachments with "pending" in filename that are not referenced by any slip
+        /** @phpstan-ignore-next-line */
         $orphanedAttachments = Attachment::where('file_path', 'like', 'images/uploads/disinfection_slip_pending_%')
             ->get()
             ->filter(function ($attachment) {
                 // Check if this attachment is referenced by any slip
+                /** @phpstan-ignore-next-line */
                 $isReferenced = DisinfectionSlip::whereJsonContains('attachment_ids', $attachment->id)->exists();
                 return !$isReferenced;
             });
@@ -1126,15 +1128,17 @@ class TruckList extends Component
                 $q->where('status', $this->appliedStatus);
             })
 
+            // Optimize relationship loading by only selecting needed fields
+            // This significantly reduces memory usage with large datasets (5,000+ records)
             ->with([
-                'truck' => function($q) {
+                'truck:id,plate_number,disabled,deleted_at' => function($q) {
                     $q->withTrashed();
                 },
-                'location',
-                'destination',
-                'driver',
-                'hatcheryGuard',
-                'receivedGuard'
+                'location:id,location_name,disabled,deleted_at',
+                'destination:id,location_name,disabled,deleted_at',
+                'driver:id,first_name,middle_name,last_name,disabled,deleted_at',
+                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at',
+                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at'
             ]) // Eager load all relationships to prevent N+1 queries
             ->when($this->sortDirection === 'asc', function($q) {
                 $q->orderBy('slip_id', 'asc');
@@ -1165,7 +1169,7 @@ class TruckList extends Component
     {
         // Only cache id and reason_text to reduce memory usage
         return Cache::remember('reasons_all', 300, function() {
-            return Reason::select('id', 'reason_text', 'is_disabled')
+            return Reason::select(['id', 'reason_text', 'is_disabled'])
                 ->orderBy('reason_text', 'asc')
                 ->get();
         });

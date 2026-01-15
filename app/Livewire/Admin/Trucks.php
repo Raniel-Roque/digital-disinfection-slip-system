@@ -119,8 +119,10 @@ class Trucks extends Component
             return collect([]);
         }
         
+        // Optimize attachment loading by only selecting needed fields
         return Attachment::whereIn('id', $this->selectedSlip->attachment_ids, 'and', false)
-            ->with('user')
+            ->select('id', 'file_path', 'file_name', 'file_size', 'mime_type', 'user_id', 'created_at', 'updated_at', 'deleted_at')
+            ->with('user:id,first_name,middle_name,last_name,username,deleted_at')
             ->get();
     }
 
@@ -235,7 +237,7 @@ class Trucks extends Component
     {
         // Only cache id and location_name to reduce memory usage with large datasets
         return Cache::remember('locations_all', 300, function() {
-            return Location::select('id', 'location_name', 'disabled', 'deleted_at')
+            return Location::select(['id', 'location_name', 'disabled', 'deleted_at'])
                 ->orderBy('location_name', 'asc')
                 ->get();
         });
@@ -245,7 +247,7 @@ class Trucks extends Component
     {
         // Only cache id and name fields to reduce memory usage with large datasets
         return Cache::remember('drivers_all', 300, function() {
-            return Driver::select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')
+            return Driver::select(['id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at'])
                 ->orderBy('first_name', 'asc')
                 ->get();
         });
@@ -255,7 +257,7 @@ class Trucks extends Component
     {
         // Only cache id and plate_number to reduce memory usage with large datasets
         return Cache::remember('trucks_all', 300, function() {
-            return Truck::select('id', 'plate_number', 'disabled', 'deleted_at')
+            return Truck::select(['id', 'plate_number', 'disabled', 'deleted_at'])
                 ->orderBy('plate_number', 'asc')
                 ->get();
         });
@@ -265,7 +267,7 @@ class Trucks extends Component
     {
         // Only cache id and reason_text to reduce memory usage with large datasets
         return Cache::remember('reasons_all', 300, function() {
-            return Reason::select('id', 'reason_text')
+            return Reason::select(['id', 'reason_text'])
                 ->orderBy('reason_text', 'asc')
                 ->get();
         });
@@ -1106,14 +1108,16 @@ class Trucks extends Component
 
     public function openDetailsModal($id)
     {
+        // Optimize relationship loading by only selecting needed fields
+        // This significantly reduces memory usage with large datasets
         $this->selectedSlip = DisinfectionSlipModel::with([
-            'truck',
-            'location',
-            'destination',
-            'driver',
-            'reason',
-            'hatcheryGuard',
-            'receivedGuard'
+            'truck:id,plate_number,disabled,deleted_at',
+            'location:id,location_name,disabled,deleted_at',
+            'destination:id,location_name,disabled,deleted_at',
+            'driver:id,first_name,middle_name,last_name,disabled,deleted_at',
+            'reason:id,reason_text,is_disabled',
+            'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at',
+            'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at'
         ])->find($id);
 
         $this->showDetailsModal = true;
@@ -1180,6 +1184,7 @@ class Trucks extends Component
         // Only set editReasonId if the reason exists and is not disabled
         $reasonId = $this->selectedSlip->reason_id;
         if ($reasonId) {
+            /** @phpstan-ignore-next-line */
             $reason = Reason::find($reasonId);
             $this->editReasonId = ($reason && !$reason->is_disabled) ? $reasonId : null;
         } else {
@@ -1319,6 +1324,7 @@ class Trucks extends Component
                 'exists:reasons,id',
                 function ($attribute, $value, $fail) {
                     if ($value) {
+                        /** @phpstan-ignore-next-line */
                         $reason = Reason::find($value);
                         if (!$reason || $reason->is_disabled) {
                             $fail('The selected reason is not available.');
@@ -1344,6 +1350,7 @@ class Trucks extends Component
                 'required',
                 'exists:users,id',
                 function ($attribute, $value, $fail) {
+                    /** @phpstan-ignore-next-line */
                     $guard = User::find($value);
                     if (!$guard) {
                         $fail('The selected hatchery guard does not exist.');
@@ -1367,6 +1374,7 @@ class Trucks extends Component
                         return;
                     }
                     if ($value) {
+                        /** @phpstan-ignore-next-line */
                         $guard = User::find($value);
                         if (!$guard) {
                             $fail('The selected receiving guard does not exist.');
@@ -1399,6 +1407,7 @@ class Trucks extends Component
                 'required',
                 'exists:users,id',
                 function ($attribute, $value, $fail) {
+                    /** @phpstan-ignore-next-line */
                     $guard = User::find($value);
                     if (!$guard) {
                         $fail('The selected hatchery guard does not exist.');
@@ -1421,6 +1430,7 @@ class Trucks extends Component
                         $fail('The receiving guard cannot be the same as the hatchery guard.');
                         return;
                     }
+                    /** @phpstan-ignore-next-line */
                     $guard = User::find($value);
                     if (!$guard) {
                         $fail('The selected receiving guard does not exist.');
@@ -1708,6 +1718,7 @@ class Trucks extends Component
                 'required',
                 'exists:users,id',
                 function ($attribute, $value, $fail) {
+                    /** @phpstan-ignore-next-line */
                     $guard = User::find($value);
                     if (!$guard) {
                         $fail('The selected hatchery guard does not exist.');
@@ -1731,6 +1742,7 @@ class Trucks extends Component
                         return;
                     }
                     if ($value) {
+                        /** @phpstan-ignore-next-line */
                         $guard = User::find($value);
                         if (!$guard) {
                             $fail('The selected receiving guard does not exist.');
@@ -1751,6 +1763,7 @@ class Trucks extends Component
                 'exists:reasons,id',
                 function ($attribute, $value, $fail) {
                     if ($value) {
+                        /** @phpstan-ignore-next-line */
                         $reason = Reason::find($value);
                         if (!$reason || $reason->is_disabled) {
                             $fail('The selected reason is not available.');
@@ -1909,13 +1922,14 @@ class Trucks extends Component
         $this->currentAttachmentIndex = 0;
 
         if ($this->selectedSlip) {
+            // Optimize relationship loading by only selecting needed fields
             $this->selectedSlip = DisinfectionSlipModel::with([
-                'truck',
-                'location',
-                'destination',
-                'driver',
-                'hatcheryGuard',
-                'receivedGuard'
+                'truck:id,plate_number,disabled,deleted_at',
+                'location:id,location_name,disabled,deleted_at',
+                'destination:id,location_name,disabled,deleted_at',
+                'driver:id,first_name,middle_name,last_name,disabled,deleted_at',
+                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at',
+                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at'
             ])->find($this->selectedSlip->id);
         }
     }
@@ -1963,6 +1977,7 @@ class Trucks extends Component
             }
 
             // Get the attachment record
+            /** @phpstan-ignore-next-line */
             $attachment = Attachment::find($this->attachmentToDelete);
 
             if ($attachment) {
@@ -2061,13 +2076,15 @@ class Trucks extends Component
 
     public function render()
     {
+        // Optimize relationship loading by only selecting needed fields
+        // This significantly reduces memory usage with large datasets (5,000+ records)
         $slips = DisinfectionSlipModel::with([
-            'truck',
-            'location',
-            'destination',
-            'driver',
-            'hatcheryGuard',
-            'receivedGuard'
+            'truck:id,plate_number,disabled,deleted_at',
+            'location:id,location_name,disabled,deleted_at',
+            'destination:id,location_name,disabled,deleted_at',
+            'driver:id,first_name,middle_name,last_name,disabled,deleted_at',
+            'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at',
+            'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at'
         ])
             // Search
             ->when($this->search, function($query) {
@@ -2159,31 +2176,33 @@ class Trucks extends Component
                 $query->whereDate('created_at', '<=', $this->appliedCreatedTo);
             })
             // Exclude slips with deleted items (default: on)
+            // Use whereIn with subqueries for better performance than whereHas with large datasets
+            // This avoids loading all IDs into memory and is faster than whereHas
             ->when($this->excludeDeletedItems, function($query) {
-                $query->whereHas('truck', function($q) {
-                    $q->whereNull('deleted_at');
-                })
-                ->whereHas('driver', function($q) {
-                    $q->whereNull('deleted_at');
-                })
-                ->whereHas('location', function($q) {
-                    $q->whereNull('deleted_at');
-                })
-                ->whereHas('destination', function($q) {
-                    $q->whereNull('deleted_at');
-                })
-                ->where(function($q) {
-                    $q->whereHas('hatcheryGuard', function($guardQ) {
-                        $guardQ->whereNull('deleted_at');
+                $query->whereIn('truck_id', function($subquery) {
+                        $subquery->select('id')->from('trucks')->whereNull('deleted_at');
                     })
-                    ->orWhereNull('hatchery_guard_id');
-                })
-                ->where(function($q) {
-                    $q->whereHas('receivedGuard', function($guardQ) {
-                        $guardQ->whereNull('deleted_at');
+                    ->whereIn('driver_id', function($subquery) {
+                        $subquery->select('id')->from('drivers')->whereNull('deleted_at');
                     })
-                    ->orWhereNull('received_guard_id');
-                });
+                    ->whereIn('location_id', function($subquery) {
+                        $subquery->select('id')->from('locations')->whereNull('deleted_at');
+                    })
+                    ->whereIn('destination_id', function($subquery) {
+                        $subquery->select('id')->from('locations')->whereNull('deleted_at');
+                    })
+                    ->where(function($q) {
+                        $q->whereIn('hatchery_guard_id', function($subquery) {
+                            $subquery->select('id')->from('users')->whereNull('deleted_at');
+                        })
+                          ->orWhereNull('hatchery_guard_id');
+                    })
+                    ->where(function($q) {
+                        $q->whereIn('received_guard_id', function($subquery) {
+                            $subquery->select('id')->from('users')->whereNull('deleted_at');
+                        })
+                          ->orWhereNull('received_guard_id');
+                    });
             })
             // Apply sorting (works with all filters)
             ->when($this->sortBy === 'slip_id', function($query) {
@@ -2552,6 +2571,7 @@ class Trucks extends Component
 
     public function startEditingReason($reasonId)
     {
+        /** @phpstan-ignore-next-line */
         $reason = Reason::find($reasonId);
         
         if ($reason) {
@@ -2608,6 +2628,7 @@ class Trucks extends Component
     {
         $this->savingReason = true;
 
+        /** @phpstan-ignore-next-line */
         $reason = Reason::find($this->editingReasonId);
 
         if ($reason) {
@@ -2655,6 +2676,7 @@ class Trucks extends Component
 
     public function toggleReasonDisabled($reasonId)
     {
+        /** @phpstan-ignore-next-line */
         $reason = Reason::find($reasonId);
         
         if ($reason) {

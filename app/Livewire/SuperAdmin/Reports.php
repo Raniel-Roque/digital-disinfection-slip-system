@@ -1464,20 +1464,22 @@ class Reports extends Component
     
     private function getFilteredReportsQuery()
     {
+        // Optimize relationship loading by only selecting needed fields
+        // This significantly reduces memory usage with large datasets (5,000+ records)
         $query = $this->showDeleted
             ? Report::onlyTrashed()->with([
-                'user' => function($q) {
+                'user:id,first_name,middle_name,last_name,username,deleted_at' => function($q) {
                     $q->withTrashed();
                 },
-                'slip' => function($q) {
+                'slip:id,slip_id,truck_id,location_id,destination_id,driver_id,status,completed_at,deleted_at' => function($q) {
                     $q->withTrashed();
                 }
             ])
             : Report::with([
-                'user' => function($q) {
+                'user:id,first_name,middle_name,last_name,username,deleted_at' => function($q) {
                     $q->withTrashed();
                 },
-                'slip' => function($q) {
+                'slip:id,slip_id,truck_id,location_id,destination_id,driver_id,status,completed_at,deleted_at' => function($q) {
                     $q->withTrashed();
                 }
             ])->whereNull('deleted_at');
@@ -1542,20 +1544,18 @@ class Reports extends Component
         // Exclude deleted items filter
         if ($this->excludeDeletedItems && !$this->showDeleted) {
             // Exclude reports where related user or slip has been deleted
-            $query->whereHas('user', function ($q) {
-                $q->whereNull('deleted_at');
-            })
-            ->whereHas('slip', function ($q) {
-                $q->whereNull('deleted_at');
-            }, '>', 0);  // Reports can be slip-less (miscellaneous), but if they have a slip, it must not be deleted
-            
-            // Or if slip_id is null, that's fine (miscellaneous reports)
-            $query->where(function ($q) {
-                $q->whereNull('slip_id')
-                  ->orWhereHas('slip', function ($subQ) {
-                      $subQ->whereNull('deleted_at');
-                  });
-            });
+            // Use whereIn with subqueries for better performance than whereHas with large datasets
+            $query->whereIn('user_id', function($subquery) {
+                    $subquery->select('id')->from('users')->whereNull('deleted_at');
+                })
+                ->where(function ($q) {
+                    // Either the report has no slip (miscellaneous), or the slip exists and is not deleted
+                    // Note: slip_id in reports table references disinfection_slips.id (primary key)
+                    $q->whereNull('slip_id')
+                      ->orWhereIn('slip_id', function($subquery) {
+                          $subquery->select('id')->from('disinfection_slips')->whereNull('deleted_at');
+                      });
+                });
         }
         
         // Sorting

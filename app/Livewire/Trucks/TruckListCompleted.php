@@ -259,23 +259,25 @@ class TruckListCompleted extends Component
 
         $location = Session::get('location_id');
 
+        // Optimize relationship loading by only selecting needed fields
+        // This significantly reduces memory usage with large datasets (5,000+ records)
         $query = DisinfectionSlip::with([
-            'truck' => function($q) {
+            'truck:id,plate_number,disabled,deleted_at' => function($q) {
                 $q->withTrashed();
             },
-            'location' => function($q) {
+            'location:id,location_name,disabled,deleted_at' => function($q) {
                 $q->withTrashed();
             },
-            'destination' => function($q) {
+            'destination:id,location_name,disabled,deleted_at' => function($q) {
                 $q->withTrashed();
             },
-            'driver' => function($q) {
+            'driver:id,first_name,middle_name,last_name,disabled,deleted_at' => function($q) {
                 $q->withTrashed();
             },
-            'hatcheryGuard' => function($q) {
+            'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) {
                 $q->withTrashed();
             },
-            'receivedGuard' => function($q) {
+            'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) {
                 $q->withTrashed();
             }
         ])

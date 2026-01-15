@@ -246,24 +246,26 @@ class DisinfectionSlip extends Component
             $this->type = $type;
         }
         
+        // Optimize relationship loading by only selecting needed fields
+        // This significantly reduces memory usage with large datasets
         $this->selectedSlip = DisinfectionSlipModel::with([
-            'truck' => function($q) {
+            'truck:id,plate_number,disabled,deleted_at' => function($q) {
                 $q->withTrashed();
             },
-            'location' => function($q) {
+            'location:id,location_name,disabled,deleted_at' => function($q) {
                 $q->withTrashed();
             },
-            'destination' => function($q) {
+            'destination:id,location_name,disabled,deleted_at' => function($q) {
                 $q->withTrashed();
             },
-            'driver' => function($q) {
+            'driver:id,first_name,middle_name,last_name,disabled,deleted_at' => function($q) {
                 $q->withTrashed();
             },
-            'reason',
-            'hatcheryGuard' => function($q) {
+            'reason:id,reason_text,is_disabled',
+            'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) {
                 $q->withTrashed();
             },
-            'receivedGuard' => function($q) {
+            'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) {
                 $q->withTrashed();
             }
         ])->find($id);

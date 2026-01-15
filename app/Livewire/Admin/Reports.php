@@ -129,20 +129,21 @@ class Reports extends Component
         
         // Reload selectedReport with trashed relations if it exists
         if ($this->selectedReport && $this->selectedReport->id) {
+            // Optimize relationship loading by only selecting needed fields
             $this->selectedReport = Report::with([
-                'user' => function($q) { $q->withTrashed(); },
+                'user:id,first_name,middle_name,last_name,username,deleted_at' => function($q) { $q->withTrashed(); },
                 'slip' => function($q) {
                     $q->withTrashed();
                     $q->with([
-                        'truck' => function($q) { $q->withTrashed(); },
-                        'location' => function($q) { $q->withTrashed(); },
-                        'destination' => function($q) { $q->withTrashed(); },
-                        'driver' => function($q) { $q->withTrashed(); },
-                        'hatcheryGuard' => function($q) { $q->withTrashed(); },
-                        'receivedGuard' => function($q) { $q->withTrashed(); }
+                        'truck:id,plate_number,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                        'location:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                        'destination:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                        'driver:id,first_name,middle_name,last_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                        'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                        'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); }
                     ]);
                 },
-                'resolvedBy' => function($q) { $q->withTrashed(); }
+                'resolvedBy:id,first_name,middle_name,last_name,username,deleted_at' => function($q) { $q->withTrashed(); }
             ])->find($this->selectedReport->id);
         }
     }
@@ -170,7 +171,7 @@ class Reports extends Component
     {
         // Only cache id and location_name to reduce memory usage with large datasets
         return Cache::remember('locations_all', 300, function() {
-            return Location::select('id', 'location_name', 'disabled', 'deleted_at')
+            return Location::select(['id', 'location_name', 'disabled', 'deleted_at'])
                 ->orderBy('location_name')
                 ->get();
         });
@@ -180,7 +181,7 @@ class Reports extends Component
     {
         // Only cache id and name fields to reduce memory usage with large datasets
         return Cache::remember('drivers_all', 300, function() {
-            return Driver::select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')
+            return Driver::select(['id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at'])
                 ->orderBy('first_name')
                 ->get();
         });
@@ -190,7 +191,7 @@ class Reports extends Component
     {
         // Only cache id and plate_number to reduce memory usage with large datasets
         return Cache::remember('trucks_all', 300, function() {
-            return Truck::select('id', 'plate_number', 'disabled', 'deleted_at')
+            return Truck::select(['id', 'plate_number', 'disabled', 'deleted_at'])
                 ->orderBy('plate_number')
                 ->get();
         });
@@ -451,16 +452,17 @@ class Reports extends Component
         // Set modal state FIRST to prevent polling from interfering
         $this->showDetailsModal = true;
         
+        // Optimize relationship loading by only selecting needed fields
         $this->selectedReport = Report::with([
-            'user' => function($q) {
+            'user:id,first_name,middle_name,last_name,username,deleted_at' => function($q) {
                 $q->withTrashed();
             },
-            'slip' => function($q) {
+            'slip:id,slip_id,truck_id,location_id,destination_id,driver_id,status,completed_at,deleted_at' => function($q) {
                 $q->withTrashed();
             },
-                'resolvedBy' => function($q) {
-                    $q->withTrashed();
-                }
+            'resolvedBy:id,first_name,middle_name,last_name,username,deleted_at' => function($q) {
+                $q->withTrashed();
+            }
         ])->find($reportId);
     }
         
@@ -679,23 +681,27 @@ class Reports extends Component
 
     private function getFilteredReportsQuery()
 {
+    // Optimize relationship loading by only selecting needed fields
+    // This significantly reduces memory usage with large datasets (5,000+ records)
     $query = Report::with([
-        'user' => function($q) { $q->withTrashed(); },
-        'slip' => function($q) { $q->withTrashed(); },
-        'resolvedBy' => function($q) { $q->withTrashed(); }
+        'user:id,first_name,middle_name,last_name,username,deleted_at' => function($q) { $q->withTrashed(); },
+        'slip:id,slip_id,truck_id,location_id,destination_id,driver_id,status,completed_at,deleted_at' => function($q) { $q->withTrashed(); },
+        'resolvedBy:id,first_name,middle_name,last_name,username,deleted_at' => function($q) { $q->withTrashed(); }
     ])->whereNull('deleted_at');
     
     // ADMIN: Exclude reports with deleted users or deleted slips
-    $query->whereHas('user', function($q) {
-        $q->whereNull('deleted_at');
-    })
-    ->where(function($q) {
-        // Either the report has no slip (miscellaneous), or the slip exists and is not deleted
-        $q->whereNull('slip_id')
-          ->orWhereHas('slip', function($slipQ) {
-              $slipQ->whereNull('deleted_at');
-          });
-    });
+    // Use whereIn with subqueries for better performance than whereHas with large datasets
+    $query->whereIn('user_id', function($subquery) {
+            $subquery->select('id')->from('users')->whereNull('deleted_at');
+        })
+        ->where(function($q) {
+            // Either the report has no slip (miscellaneous), or the slip exists and is not deleted
+            // Note: slip_id in reports table references disinfection_slips.id (primary key)
+            $q->whereNull('slip_id')
+              ->orWhereIn('slip_id', function($subquery) {
+                  $subquery->select('id')->from('disinfection_slips')->whereNull('deleted_at');
+              });
+        });
     
     // Search
     if (!empty($this->search)) {
@@ -1224,14 +1230,15 @@ class Reports extends Component
         $this->currentAttachmentIndex = 0;
 
         // Livewire re-hydrates models without trashed relations; reload for details modal
+        // Optimize relationship loading by only selecting needed fields
         if ($this->selectedSlip) {
             $this->selectedSlip = DisinfectionSlipModel::with([
-                'truck' => function($q) { $q->withTrashed(); },
-                'location' => function($q) { $q->withTrashed(); },
-                'destination' => function($q) { $q->withTrashed(); },
-                'driver' => function($q) { $q->withTrashed(); },
-                'hatcheryGuard' => function($q) { $q->withTrashed(); },
-                'receivedGuard' => function($q) { $q->withTrashed(); }
+                'truck:id,plate_number,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'location:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'destination:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'driver:id,first_name,middle_name,last_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); }
             ])->find($this->selectedSlip->id);
         }
     }
