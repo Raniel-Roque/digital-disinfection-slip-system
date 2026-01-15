@@ -199,10 +199,16 @@ class TruckList extends Component
     }
     
     // Helper methods to get cached collections
+    // Only cache id and name fields to reduce memory usage with large datasets
     private function getCachedTrucks()
     {
         return Cache::remember('trucks_all', 300, function() {
-            return Truck::withTrashed()->whereNull('deleted_at')->where('disabled', '=', false, 'and')->orderBy('plate_number', 'asc')->get();
+            return Truck::withTrashed()
+                ->whereNull('deleted_at')
+                ->where('disabled', '=', false, 'and')
+                ->select('id', 'plate_number', 'disabled', 'deleted_at')
+                ->orderBy('plate_number', 'asc')
+                ->get();
         });
     }
     
@@ -213,6 +219,7 @@ class TruckList extends Component
             return Location::where('id', '!=', $currentLocationId, 'and')
                 ->whereNull('deleted_at')
                 ->where('disabled', '=', false, 'and')
+                ->select('id', 'location_name', 'disabled', 'deleted_at')
                 ->orderBy('location_name', 'asc')
                 ->get();
         });
@@ -221,7 +228,12 @@ class TruckList extends Component
     private function getCachedDrivers()
     {
         return Cache::remember('drivers_all', 300, function() {
-            return Driver::withTrashed()->whereNull('deleted_at')->where('disabled', '=', false, 'and')->orderBy('first_name', 'asc')->get();
+            return Driver::withTrashed()
+                ->whereNull('deleted_at')
+                ->where('disabled', '=', false, 'and')
+                ->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')
+                ->orderBy('first_name', 'asc')
+                ->get();
         });
     }
     
@@ -283,8 +295,12 @@ class TruckList extends Component
     public function getReasonOptionsProperty()
     {
         // Get only non-disabled reasons for dropdown (disabled reasons cannot be selected)
+        // Only cache id and reason_text to reduce memory usage
         $reasons = Cache::remember('reasons_active', 300, function() {
-            return Reason::where('is_disabled', '=', false, 'and')->orderBy('reason_text', 'asc')->get();
+            return Reason::where('is_disabled', '=', false, 'and')
+                ->select('id', 'reason_text', 'is_disabled')
+                ->orderBy('reason_text', 'asc')
+                ->get();
         });
         $allOptions = $reasons->pluck('reason_text', 'id');
         $options = $allOptions;
@@ -1147,8 +1163,11 @@ class TruckList extends Component
     // Reason management methods (for super guards - no delete)
     private function getCachedReasons()
     {
+        // Only cache id and reason_text to reduce memory usage
         return Cache::remember('reasons_all', 300, function() {
-            return Reason::orderBy('reason_text', 'asc')->get();
+            return Reason::select('id', 'reason_text', 'is_disabled')
+                ->orderBy('reason_text', 'asc')
+                ->get();
         });
     }
     

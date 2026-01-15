@@ -57,34 +57,44 @@ class TruckListCompleted extends Component
         $this->resetPage();
     }
     
-    // Computed properties for locations, drivers, trucks, guards
+    // Computed properties for locations, drivers, trucks
+    // Only cache id and name fields to reduce memory usage with large datasets
     public function getLocationsProperty()
     {
         return Cache::remember('locations_all', 300, function() {
-            return Location::withTrashed()->get();
+            return Location::withTrashed()
+                ->select('id', 'location_name', 'disabled', 'deleted_at')
+                ->get();
         });
     }
 
     public function getDriversProperty()
     {
         return Cache::remember('drivers_all', 300, function() {
-            return Driver::withTrashed()->get();
+            return Driver::withTrashed()
+                ->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')
+                ->get();
         });
     }
 
     public function getTrucksProperty()
     {
         return Cache::remember('trucks_all', 300, function() {
-            return Truck::withTrashed()->get();
+            return Truck::withTrashed()
+                ->select('id', 'plate_number', 'disabled', 'deleted_at')
+                ->get();
         });
     }
 
     
     // Computed properties for filtered options
+    // Only cache id and name fields to reduce memory usage with large datasets
     public function getFilterTruckOptionsProperty()
     {
         $trucks = Cache::remember('trucks_all', 300, function() {
-            return Truck::withTrashed()->get();
+            return Truck::withTrashed()
+                ->select('id', 'plate_number', 'disabled', 'deleted_at')
+                ->get();
         });
         $allOptions = $trucks->pluck('plate_number', 'id');
         $options = $allOptions;
@@ -102,7 +112,9 @@ class TruckListCompleted extends Component
     public function getFilterDriverOptionsProperty()
     {
         $drivers = Cache::remember('drivers_all', 300, function() {
-            return Driver::withTrashed()->get();
+            return Driver::withTrashed()
+                ->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')
+                ->get();
         });
         $allOptions = $drivers->pluck('full_name', 'id');
         $options = $allOptions;
@@ -120,7 +132,11 @@ class TruckListCompleted extends Component
     public function getFilterDestinationOptionsProperty()
     {
         $locations = Cache::remember('locations_all', 300, function() {
-            return Location::withTrashed()->whereNull('deleted_at')->where('disabled', false)->get();
+            return Location::withTrashed()
+                ->whereNull('deleted_at')
+                ->where('disabled', false)
+                ->select('id', 'location_name', 'disabled', 'deleted_at')
+                ->get();
         });
         $allOptions = $locations->pluck('location_name', 'id');
         $options = $allOptions;

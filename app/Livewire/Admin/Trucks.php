@@ -233,44 +233,58 @@ class Trucks extends Component
     // Helper methods to get cached collections
     private function getCachedLocations()
     {
+        // Only cache id and location_name to reduce memory usage with large datasets
         return Cache::remember('locations_all', 300, function() {
-            return Location::orderBy('location_name', 'asc')->get();
+            return Location::select('id', 'location_name', 'disabled', 'deleted_at')
+                ->orderBy('location_name', 'asc')
+                ->get();
         });
     }
-    
+
     private function getCachedDrivers()
     {
+        // Only cache id and name fields to reduce memory usage with large datasets
         return Cache::remember('drivers_all', 300, function() {
-            return Driver::orderBy('first_name', 'asc')->get();
+            return Driver::select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')
+                ->orderBy('first_name', 'asc')
+                ->get();
         });
     }
-    
+
     private function getCachedTrucks()
     {
+        // Only cache id and plate_number to reduce memory usage with large datasets
         return Cache::remember('trucks_all', 300, function() {
-            return Truck::orderBy('plate_number', 'asc')->get();
+            return Truck::select('id', 'plate_number', 'disabled', 'deleted_at')
+                ->orderBy('plate_number', 'asc')
+                ->get();
         });
     }
-    
+
     private function getCachedReasons()
     {
+        // Only cache id and reason_text to reduce memory usage with large datasets
         return Cache::remember('reasons_all', 300, function() {
-            return Reason::orderBy('reason_text', 'asc')->get();
+            return Reason::select('id', 'reason_text')
+                ->orderBy('reason_text', 'asc')
+                ->get();
         });
     }
-    
+
     private function getCachedGuards()
     {
+        // Only cache id and name fields, return as array to reduce memory usage
         return Cache::remember('guards_all', 300, function() {
             return User::where('user_type', '=', 0, 'and')
                 ->where('disabled', '=', false, 'and')
+                ->select('id', 'first_name', 'middle_name', 'last_name', 'username')
                 ->orderBy('first_name', 'asc')
                 ->orderBy('last_name', 'asc')
                 ->get()
                 ->mapWithKeys(function ($user) {
-                $name = trim("{$user->first_name} {$user->middle_name} {$user->last_name}");
-                return [$user->id => "{$name} @{$user->username}"];
-            });
+                    $name = trim("{$user->first_name} {$user->middle_name} {$user->last_name}");
+                    return [$user->id => "{$name} @{$user->username}"];
+                });
         });
     }
     
@@ -587,8 +601,12 @@ class Trucks extends Component
     public function getCreateReasonOptionsProperty()
     {
         // Get only non-disabled reasons for dropdown (disabled reasons cannot be selected)
+        // Only cache id and reason_text to reduce memory usage
         $reasons = Cache::remember('reasons_active', 300, function() {
-            return Reason::where('is_disabled', '=', false, 'and')->orderBy('reason_text', 'asc')->get();
+            return Reason::where('is_disabled', '=', false, 'and')
+                ->select('id', 'reason_text', 'is_disabled')
+                ->orderBy('reason_text', 'asc')
+                ->get();
         });
         $allOptions = $reasons->pluck('reason_text', 'id');
         $options = $allOptions;
@@ -754,8 +772,12 @@ class Trucks extends Component
     public function getEditReasonOptionsProperty()
     {
         // Get only non-disabled reasons for dropdown (disabled reasons cannot be selected)
+        // Only cache id and reason_text to reduce memory usage
         $reasons = Cache::remember('reasons_active', 300, function() {
-            return Reason::where('is_disabled', '=', false, 'and')->orderBy('reason_text', 'asc')->get();
+            return Reason::where('is_disabled', '=', false, 'and')
+                ->select('id', 'reason_text', 'is_disabled')
+                ->orderBy('reason_text', 'asc')
+                ->get();
         });
         $allOptions = $reasons->pluck('reason_text', 'id');
         $options = $allOptions;

@@ -69,10 +69,16 @@ class DisinfectionSlip extends Component
     }
 
     // Computed properties for dynamic dropdown data
+    // Only cache id and name fields to reduce memory usage with large datasets
     public function getTrucksProperty()
     {
         return Cache::remember('trucks_all', 300, function() {
-            return Truck::withTrashed()->whereNull('deleted_at')->where('disabled', false)->orderBy('plate_number')->get();
+            return Truck::withTrashed()
+                ->whereNull('deleted_at')
+                ->where('disabled', false)
+                ->select('id', 'plate_number', 'disabled', 'deleted_at')
+                ->orderBy('plate_number')
+                ->get();
         });
     }
 
@@ -83,6 +89,7 @@ class DisinfectionSlip extends Component
             return Location::where('id', '!=', $currentLocationId, 'and')
                 ->whereNull('deleted_at')
                 ->where('disabled', '=', false, 'and')
+                ->select('id', 'location_name', 'disabled', 'deleted_at')
                 ->orderBy('location_name', 'asc')
                 ->get();
         });
@@ -91,7 +98,12 @@ class DisinfectionSlip extends Component
     public function getDriversProperty()
     {
         return Cache::remember('drivers_all', 300, function() {
-            return Driver::withTrashed()->whereNull('deleted_at')->where('disabled', false)->orderBy('first_name')->get();
+            return Driver::withTrashed()
+                ->whereNull('deleted_at')
+                ->where('disabled', false)
+                ->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')
+                ->orderBy('first_name')
+                ->get();
         });
     }
     
@@ -137,8 +149,14 @@ class DisinfectionSlip extends Component
     public function getLocationOptionsProperty()
     {
         $currentLocationId = Session::get('location_id');
+        // Only cache id and location_name to reduce memory usage
         $locations = Cache::remember('locations_all', 300, function() use ($currentLocationId) {
-            return Location::withTrashed()->where('id', '!=', $currentLocationId)->where('disabled', false)->orderBy('location_name')->get();
+            return Location::withTrashed()
+                ->where('id', '!=', $currentLocationId)
+                ->where('disabled', false)
+                ->select('id', 'location_name', 'disabled', 'deleted_at')
+                ->orderBy('location_name')
+                ->get();
         });
         $allOptions = $locations->pluck('location_name', 'id');
         $options = $allOptions;
@@ -157,8 +175,14 @@ class DisinfectionSlip extends Component
     
     public function getDriverOptionsProperty()
     {
+        // Only cache id and name fields to reduce memory usage
         $drivers = Cache::remember('drivers_all', 300, function() {
-            return Driver::withTrashed()->whereNull('deleted_at')->where('disabled', false)->orderBy('first_name')->get();
+            return Driver::withTrashed()
+                ->whereNull('deleted_at')
+                ->where('disabled', false)
+                ->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')
+                ->orderBy('first_name')
+                ->get();
         });
         $allOptions = $drivers->pluck('full_name', 'id');
         $options = $allOptions;
@@ -178,8 +202,12 @@ class DisinfectionSlip extends Component
     public function getReasonOptionsProperty()
     {
         // Get only non-disabled reasons for dropdown (disabled reasons cannot be selected)
+        // Only cache id and reason_text to reduce memory usage
         $reasons = Cache::remember('reasons_active', 300, function() {
-            return Reason::where('is_disabled', '=', false, 'and')->orderBy('reason_text', 'asc')->get();
+            return Reason::where('is_disabled', '=', false, 'and')
+                ->select('id', 'reason_text', 'is_disabled')
+                ->orderBy('reason_text', 'asc')
+                ->get();
         });
         $allOptions = $reasons->pluck('reason_text', 'id');
         $options = $allOptions;

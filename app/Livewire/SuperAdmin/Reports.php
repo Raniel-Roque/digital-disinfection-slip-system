@@ -455,30 +455,41 @@ class Reports extends Component
     
     private function getCachedLocations()
     {
+        // Only cache id and location_name to reduce memory usage with large datasets
         return Cache::remember('locations_all', 300, function() {
-            return Location::orderBy('location_name')->get();
+            return Location::select('id', 'location_name', 'disabled', 'deleted_at')
+                ->orderBy('location_name')
+                ->get();
         });
     }
     
     private function getCachedDrivers()
     {
+        // Only cache id and name fields to reduce memory usage with large datasets
         return Cache::remember('drivers_all', 300, function() {
-            return Driver::orderBy('first_name')->get();
+            return Driver::select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')
+                ->orderBy('first_name')
+                ->get();
         });
     }
     
     private function getCachedTrucks()
     {
+        // Only cache id and plate_number to reduce memory usage with large datasets
         return Cache::remember('trucks_all', 300, function() {
-            return Truck::orderBy('plate_number')->get();
+            return Truck::select('id', 'plate_number', 'disabled', 'deleted_at')
+                ->orderBy('plate_number')
+                ->get();
         });
     }
     
     private function getCachedGuards()
     {
+        // Only cache id and name fields, return as array to reduce memory usage
         return Cache::remember('guards_all', 300, function() {
             return User::where('user_type', 0)
                 ->where('disabled', false)
+                ->select('id', 'first_name', 'middle_name', 'last_name')
                 ->orderBy('first_name')
                 ->orderBy('last_name')
                 ->get()

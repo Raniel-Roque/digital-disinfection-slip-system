@@ -10,6 +10,7 @@ use App\Models\Reason;
 use App\Models\DisinfectionSlip;
 use App\Models\Report;
 use App\Models\Attachment;
+use App\Models\Log;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -257,6 +258,157 @@ class StressTestSeeder extends Seeder
         }
         $this->command->info('✓ Created 5,000 reports');
         
+        // Create 5,000 Audit Logs
+        $this->command->info('Creating 5,000 audit logs...');
+        
+        // Get all model IDs for creating realistic logs
+        $allUserIds = User::pluck('id')->toArray();
+        $allTruckIds = Truck::pluck('id')->toArray();
+        $allDriverIds = Driver::pluck('id')->toArray();
+        $allLocationIds = Location::pluck('id')->toArray();
+        $allSlipIds = DisinfectionSlip::pluck('id')->toArray();
+        $allReportIds = Report::pluck('id')->toArray();
+        
+        // Define model types and their corresponding IDs
+        $modelTypes = [
+            'App\Models\User' => $allUserIds,
+            'App\Models\Truck' => $allTruckIds,
+            'App\Models\Driver' => $allDriverIds,
+            'App\Models\Location' => $allLocationIds,
+            'App\Models\DisinfectionSlip' => $allSlipIds,
+            'App\Models\Report' => $allReportIds,
+        ];
+        
+        // Define actions and their probabilities
+        $actions = [
+            'create' => 40,  // 40% creates
+            'update' => 35,  // 35% updates
+            'delete' => 15,  // 15% deletes
+            'restore' => 5,  // 5% restores
+            'custom' => 5,   // 5% custom actions
+        ];
+        
+        for ($batch = 0; $batch < $totalBatches; $batch++) {
+            for ($i = 0; $i < $batchSize; $i++) {
+                // Select a random user to perform the action
+                $user = User::find(fake()->randomElement($allUserIds));
+                
+                // Select a random model type
+                $modelType = fake()->randomElement(array_keys($modelTypes));
+                $modelIds = $modelTypes[$modelType];
+                
+                if (empty($modelIds)) {
+                    continue; // Skip if no models of this type exist
+                }
+                
+                $modelId = fake()->randomElement($modelIds);
+                
+                // Select action based on probabilities
+                $actionRand = fake()->numberBetween(1, 100);
+                $action = 'create';
+                $cumulative = 0;
+                foreach ($actions as $act => $prob) {
+                    $cumulative += $prob;
+                    if ($actionRand <= $cumulative) {
+                        $action = $act;
+                        break;
+                    }
+                }
+                
+                // Generate description based on action and model type
+                $modelName = class_basename($modelType);
+                $descriptions = [
+                    'create' => "Created {$modelName}",
+                    'update' => "Updated {$modelName}",
+                    'delete' => "Deleted {$modelName}",
+                    'restore' => "Restored {$modelName}",
+                    'custom' => fake()->randomElement([
+                        "Completed disinfection for {$modelName}",
+                        "Started disinfection for {$modelName}",
+                        "Reset password for {$modelName}",
+                        "Changed status for {$modelName}",
+                    ]),
+                ];
+                $description = $descriptions[$action] ?? "Performed action on {$modelName}";
+                
+                // Generate changes JSON based on action
+                $changes = null;
+                if ($action === 'create') {
+                    $changes = [
+                        'new_values' => [
+                            'id' => $modelId,
+                            'created_at' => fake()->dateTimeBetween('-1 year', 'now')->format('Y-m-d H:i:s'),
+                        ],
+                    ];
+                } elseif ($action === 'update') {
+                    $changes = [
+                        'old_values' => [
+                            'status' => fake()->randomElement([0, 1, 2]),
+                            'disabled' => fake()->boolean(),
+                        ],
+                        'new_values' => [
+                            'status' => fake()->randomElement([0, 1, 2, 3]),
+                            'disabled' => fake()->boolean(),
+                        ],
+                        'field_changes' => [
+                            'status' => [
+                                'old' => fake()->randomElement([0, 1, 2]),
+                                'new' => fake()->randomElement([0, 1, 2, 3]),
+                            ],
+                        ],
+                    ];
+                } elseif ($action === 'delete') {
+                    $changes = [
+                        'old_values' => [
+                            'id' => $modelId,
+                            'deleted_at' => null,
+                        ],
+                    ];
+                } elseif ($action === 'restore') {
+                    $changes = [
+                        'old_values' => [
+                            'id' => $modelId,
+                            'deleted_at' => fake()->dateTimeBetween('-6 months', '-1 day')->format('Y-m-d H:i:s'),
+                        ],
+                    ];
+                }
+                
+                // Add location context if user is a guard (30% chance)
+                if ($user && $user->user_type === 0 && fake()->boolean(30)) {
+                    if ($changes === null) {
+                        $changes = [];
+                    }
+                    $changes['location_context'] = [
+                        'location_id' => fake()->randomElement($allLocationIds),
+                    ];
+                }
+                
+                // Randomize created_at across multiple years (2024-2027)
+                $createdAt = fake()->dateTimeBetween('2024-01-01', '2027-12-31');
+                
+                // Create the audit log
+                Log::create([
+                    'user_id' => $user->id,
+                    'user_first_name' => $user->first_name,
+                    'user_middle_name' => $user->middle_name,
+                    'user_last_name' => $user->last_name,
+                    'user_username' => $user->username,
+                    'user_type' => $user->user_type,
+                    'action' => $action,
+                    'model_type' => $modelType,
+                    'model_id' => $modelId,
+                    'description' => $description,
+                    'changes' => $changes,
+                    'ip_address' => fake()->ipv4(),
+                    'user_agent' => fake()->userAgent(),
+                    'created_at' => $createdAt,
+                    'updated_at' => $createdAt,
+                ]);
+            }
+            $this->command->info("  Batch " . ($batch + 1) . "/{$totalBatches} completed");
+        }
+        $this->command->info('✓ Created 5,000 audit logs');
+        
         $this->command->info('✓ Stress test seeding completed successfully!');
         $this->command->info('Total entries created:');
         $this->command->info('  - Users (guards/admins): 5,000');
@@ -267,5 +419,6 @@ class StressTestSeeder extends Seeder
         $this->command->info('  - Disinfection Slips: 5,000');
         $this->command->info('  - Attachments: 5,000');
         $this->command->info('  - Reports: 5,000');
+        $this->command->info('  - Audit Logs: 5,000');
     }
 }

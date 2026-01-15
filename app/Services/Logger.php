@@ -93,18 +93,21 @@ class Logger
         ];
 
         try {
+            // Get real client IP address, handling proxies and load balancers correctly
+            $ipAddress = self::getRealClientIp();
+            
             return Log::create(array_merge($userData, [
                 'action' => $action,
                 'model_type' => $modelType,
                 'model_id' => $modelId,
                 'description' => $description,
                 'changes' => !empty($changes) ? $changes : null,
-                'ip_address' => Request::ip(),
+                'ip_address' => $ipAddress,
                 'user_agent' => Request::userAgent(),
             ]));
         } catch (\Exception $e) {
             // Log the error to Laravel's log system but don't fail the operation
-            \Log::error('Failed to create audit log', [
+            Log::error('Failed to create audit log', [
                 'action' => $action,
                 'model_type' => $modelType,
                 'model_id' => $modelId,
@@ -154,6 +157,69 @@ class Logger
     public static function custom(string $action, string $description, ?string $modelType = null, ?int $modelId = null, ?array $additionalInfo = null): Log
     {
         return self::log($action, $modelType, $modelId, $description, null, null, $additionalInfo);
+    }
+
+    /**
+     * Get the real client IP address, handling proxies and load balancers correctly.
+     * 
+     * This method checks multiple headers in order of preference:
+     * 1. X-Forwarded-For (most common, first IP is usually the real client)
+     * 2. X-Real-IP (used by Nginx and some proxies)
+     * 3. CF-Connecting-IP (Cloudflare)
+     * 4. Laravel's Request::ip() (uses TrustProxies middleware)
+     * 5. REMOTE_ADDR (direct connection, no proxy)
+     * 
+     * @return string|null
+     */
+    private static function getRealClientIp(): ?string
+    {
+        // Check X-Forwarded-For header first (most common for proxies/load balancers)
+        $forwardedFor = Request::header('X-Forwarded-For');
+        if ($forwardedFor) {
+            // X-Forwarded-For can contain multiple IPs: "client, proxy1, proxy2"
+            // The first IP is usually the real client IP
+            $ips = array_map('trim', explode(',', $forwardedFor));
+            $ip = $ips[0];
+            
+            // Validate IP address (accept both public and private IPs)
+            if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                return $ip;
+            }
+        }
+        
+        // Check X-Real-IP header (used by some proxies like Nginx)
+        $realIp = Request::header('X-Real-IP');
+        if ($realIp) {
+            $ip = trim($realIp);
+            if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                return $ip;
+            }
+        }
+        
+        // Check CF-Connecting-IP header (Cloudflare)
+        $cfIp = Request::header('CF-Connecting-IP');
+        if ($cfIp) {
+            $ip = trim($cfIp);
+            if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                return $ip;
+            }
+        }
+        
+        // Fallback to Laravel's Request::ip() which uses TrustProxies middleware
+        // This will return the real IP if proxies are trusted, or REMOTE_ADDR otherwise
+        // The TrustProxies middleware is configured to trust all proxies and read X-Forwarded-For
+        $ip = Request::ip();
+        if ($ip && filter_var($ip, FILTER_VALIDATE_IP)) {
+            return $ip;
+        }
+        
+        // Last resort: get from $_SERVER['REMOTE_ADDR']
+        $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? null;
+        if ($remoteAddr && filter_var($remoteAddr, FILTER_VALIDATE_IP)) {
+            return $remoteAddr;
+        }
+        
+        return null;
     }
 }
 
