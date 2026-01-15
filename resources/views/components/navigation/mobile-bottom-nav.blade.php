@@ -39,7 +39,7 @@
 
 @if($isSuperGuard)
     {{-- Super Guard Bottom Navigation --}}
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-60 sm:hidden">
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40 sm:hidden">
         <div class="grid grid-cols-4 items-center h-16">
             <x-navigation.bottom-nav-item 
                 href="{{ route('user.dashboard') }}" 
@@ -134,7 +134,7 @@
     </nav>
 @elseif($userType === 0)
     {{-- Guards/User Bottom Navigation --}}
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-60 sm:hidden">
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40 sm:hidden">
         <div class="grid grid-cols-5 items-center h-16">
             <x-navigation.bottom-nav-item 
                 href="{{ route('user.dashboard') }}" 
@@ -180,7 +180,7 @@
     </nav>
 @elseif($userType === 1)
     {{-- Admin Bottom Navigation --}}
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-60 sm:hidden">
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40 sm:hidden">
         <div class="grid grid-cols-5 items-center h-16">
             <x-navigation.bottom-nav-item 
                 href="{{ route('admin.dashboard') }}" 
@@ -263,7 +263,7 @@
     </nav>
 @elseif($userType === 2)
     {{-- Superadmin Bottom Navigation --}}
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-60 sm:hidden">
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40 sm:hidden">
         <div class="grid grid-cols-6 items-center h-16">
             <x-navigation.bottom-nav-item 
                 href="{{ route('superadmin.dashboard') }}" 

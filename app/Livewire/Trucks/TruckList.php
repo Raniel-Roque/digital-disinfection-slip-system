@@ -365,13 +365,19 @@ class TruckList extends Component
     public function closeCreateModal()
     {
         // Clean up pending attachments if modal is closed without creating
-        if (!empty($this->pendingAttachmentIds)) {
-            $this->cleanupPendingAttachments();
-        }
+        $this->cleanupPendingAttachments();
         
         $this->showCreateModal = false;
         // Use dispatch to reset form after modal animation completes
         $this->dispatch('modal-closed');
+    }
+
+    public function updatedShowCreateModal($value)
+    {
+        // When modal is closed (set to false) and there are pending attachments, clean them up
+        if ($value === false && !empty($this->pendingAttachmentIds)) {
+            $this->cleanupPendingAttachments();
+        }
     }
 
     public function cancelCreate()
@@ -391,8 +397,14 @@ class TruckList extends Component
             return;
         }
         
+        // Store IDs to clean up before clearing the array
+        $attachmentIdsToCleanup = $this->pendingAttachmentIds;
+        
+        // Clear the array immediately to prevent double cleanup
+        $this->pendingAttachmentIds = [];
+        
         // Optimize: Fetch all attachments in one query instead of N queries
-        $attachments = Attachment::whereIn('id', $this->pendingAttachmentIds, 'and', false)->get();
+        $attachments = Attachment::whereIn('id', $attachmentIdsToCleanup, 'and', false)->get();
         
         foreach ($attachments as $attachment) {
             try {
@@ -515,6 +527,9 @@ class TruckList extends Component
         );
 
         $this->dispatch('toast', message: 'Disinfection slip created successfully!', type: 'success');        
+        
+        // Clear pending attachments since they're now attached to the slip
+        $this->pendingAttachmentIds = [];
         
         // Close modal first
         $this->showCreateModal = false;

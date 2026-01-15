@@ -631,6 +631,9 @@ class DisinfectionSlip extends Component
         $slipIdForLog = $this->selectedSlip->id;
         $oldValues = $this->selectedSlip->only(['truck_id', 'destination_id', 'driver_id', 'location_id', 'status', 'slip_id']);
         
+        // Clean up attachments before soft deleting the slip
+        $this->selectedSlip->deleteAttachments();
+        
         // Soft delete the slip (sets deleted_at timestamp)
         $this->selectedSlip->delete();
         

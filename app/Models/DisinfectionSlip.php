@@ -50,6 +50,22 @@ class DisinfectionSlip extends Model
                 $slip->deleteAttachments();
             }
         });
+
+        // Clean up orphaned attachments when attachment_ids is updated
+        static::updating(function ($slip) {
+            // Only check if attachment_ids is being modified
+            if ($slip->isDirty('attachment_ids')) {
+                $oldAttachmentIds = $slip->getOriginal('attachment_ids') ?? [];
+                $newAttachmentIds = $slip->attachment_ids ?? [];
+                
+                // Find attachments that were removed (in old but not in new)
+                $removedIds = array_diff($oldAttachmentIds, $newAttachmentIds);
+                
+                if (!empty($removedIds)) {
+                    $slip->cleanupOrphanedAttachments($removedIds);
+                }
+            }
+        });
     }
 
     /**
@@ -72,14 +88,53 @@ class DisinfectionSlip extends Model
                 }
             }
             
-            // Check if attachment is used by locations (logo_attachment_id)
+            // Check if attachment is used by locations (attachment_id)
             $isUsedByLocation = DB::table('locations')
-                ->where('logo_attachment_id', $attachment->id)
+                ->where('attachment_id', $attachment->id)
                 ->exists();
             
             // Only delete attachment record if not used by locations
             if (!$isUsedByLocation) {
                 $attachment->forceDelete();
+            }
+        }
+    }
+
+    /**
+     * Clean up orphaned attachments that are no longer referenced by this slip
+     */
+    private function cleanupOrphanedAttachments(array $attachmentIds)
+    {
+        if (empty($attachmentIds)) {
+            return;
+        }
+
+        $attachments = Attachment::whereIn('id', $attachmentIds)->get();
+        
+        foreach ($attachments as $attachment) {
+            // Check if this attachment is still referenced by any other slip
+            $isStillReferenced = DisinfectionSlip::where('id', '!=', $this->id)
+                ->whereJsonContains('attachment_ids', $attachment->id)
+                ->exists();
+            
+            // Only delete if not referenced by any other slip and not used by locations
+            if (!$isStillReferenced) {
+                // Check if attachment is used by locations (attachment_id, not logo_attachment_id based on migration)
+                $isUsedByLocation = DB::table('locations')
+                    ->where('attachment_id', $attachment->id)
+                    ->exists();
+                
+                if (!$isUsedByLocation) {
+                    // Delete the file from storage (except BGC.png)
+                    if ($attachment->file_path && $attachment->file_path !== 'images/logo/BGC.png') {
+                        if (Storage::disk('public')->exists($attachment->file_path)) {
+                            Storage::disk('public')->delete($attachment->file_path);
+                        }
+                    }
+                    
+                    // Hard delete the attachment record
+                    $attachment->forceDelete();
+                }
             }
         }
     }

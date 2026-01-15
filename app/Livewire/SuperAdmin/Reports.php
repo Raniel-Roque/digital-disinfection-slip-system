@@ -688,6 +688,9 @@ class Reports extends Component
                 'status'
             ]);
             
+            // Clean up attachments before soft deleting the slip
+            $this->selectedSlip->deleteAttachments();
+            
             // Atomic delete: Only delete if not already deleted to prevent race conditions
             $deleted = DisinfectionSlipModel::where('id', $this->selectedSlip->id)
                 ->whereNull('deleted_at') // Only delete if not already deleted

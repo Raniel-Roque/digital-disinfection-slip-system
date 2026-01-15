@@ -1554,6 +1554,9 @@ class Trucks extends Component
             'hatchery_guard_id', 'received_guard_id', 'remarks_for_disinfection', 'status'
         ]);
         
+        // Clean up attachments before soft deleting the slip
+        $this->selectedSlip->deleteAttachments();
+        
         // Atomic delete: Only delete if not already deleted to prevent race conditions
         $deleted = DisinfectionSlipModel::where('id', '=', $this->selectedSlip->id, 'and')
             ->whereNull('deleted_at') // Only delete if not already deleted
