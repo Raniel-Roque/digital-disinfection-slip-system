@@ -50,7 +50,7 @@
             </div>
 
             {{-- Active Filters Display --}}
-            @if ($filtersActive || $excludeDeletedItems)
+            @if ($filtersActive)
                 <div class="mt-4 flex flex-wrap gap-2">
                         {{-- Slip Delete Confirmation (for deleting a disinfection slip from the slip-edit modal) --}}
                         <x-modals.delete-confirmation show="showSlipDeleteConfirmation" title="DELETE SLIP?"
