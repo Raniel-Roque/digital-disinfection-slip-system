@@ -625,6 +625,13 @@
             </x-modals.modal-template>
         @endif
 
+        {{-- Filter Modal --}}
+        <x-modals.filter-modal>
+            <x-slot name="filters">
+                <x-modals.filter-superadmin-reports-body :availableStatuses="$availableStatuses" :filterResolved="$filterResolved" :filterReportType="$filterReportType" :excludeDeletedItems="$excludeDeletedItems" />
+            </x-slot>
+        </x-modals.filter-modal>
+
         {{-- Slip Details Modal --}}
         @include('livewire.admin.slip-details-modal')
 

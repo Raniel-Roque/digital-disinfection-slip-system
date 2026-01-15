@@ -228,21 +228,23 @@
                             @php
                                 $guard = $guards->find($guardId);
                             @endphp
-                            <span
-                                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                <div class="flex flex-col">
-                                    <span>Hatchery Guard: <span class="text-gray-900">{{ trim("{$guard->first_name} {$guard->middle_name} {$guard->last_name}") }}</span>@if ($guard->trashed()) <span class="text-red-600 font-semibold">(Deleted)</span>@endif</span>
-                                    <span class="text-[10px] text-blue-600">@{{ $guard->username }}</span>
-                                </div>
-                                <button wire:click="removeSpecificFilter('hatcheryGuard', {{ $guardId }})"
-                                    class="ml-1.5 inline-flex items-center hover:cursor-pointer cursor-pointer">
-                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                            clip-rule="evenodd"></path>
-                                    </svg>
-                                </button>
-                            </span>
+                            @if ($guard)
+                                <span
+                                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <div class="flex flex-col">
+                                        <span>Hatchery Guard: <span class="text-gray-900">{{ trim("{$guard->first_name} {$guard->middle_name} {$guard->last_name}") }}</span>@if ($guard->trashed()) <span class="text-red-600 font-semibold">(Deleted)</span>@endif</span>
+                                        <span class="text-[10px] text-blue-600">@{{ $guard->username }}</span>
+                                    </div>
+                                    <button wire:click="removeSpecificFilter('hatcheryGuard', {{ $guardId }})"
+                                        class="ml-1.5 inline-flex items-center hover:cursor-pointer cursor-pointer">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd"
+                                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                                clip-rule="evenodd"></path>
+                                        </svg>
+                                    </button>
+                                </span>
+                            @endif
                         @endforeach
                     @endif
 
@@ -251,21 +253,23 @@
                             @php
                                 $guard = $guards->find($guardId);
                             @endphp
-                            <span
-                                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                <div class="flex flex-col">
-                                    <span>Received Guard: <span class="text-gray-900">{{ trim("{$guard->first_name} {$guard->middle_name} {$guard->last_name}") }}</span>@if ($guard->trashed()) <span class="text-red-600 font-semibold">(Deleted)</span>@endif</span>
-                                    <span class="text-[10px] text-blue-600">@{{ $guard->username }}</span>
-                                </div>
-                                <button wire:click="removeSpecificFilter('receivedGuard', {{ $guardId }})"
-                                    class="ml-1.5 inline-flex items-center hover:cursor-pointer cursor-pointer">
-                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                            clip-rule="evenodd"></path>
-                                    </svg>
-                                </button>
-                            </span>
+                            @if ($guard)
+                                <span
+                                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <div class="flex flex-col">
+                                        <span>Received Guard: <span class="text-gray-900">{{ trim("{$guard->first_name} {$guard->middle_name} {$guard->last_name}") }}</span>@if ($guard->trashed()) <span class="text-red-600 font-semibold">(Deleted)</span>@endif</span>
+                                        <span class="text-[10px] text-blue-600">@{{ $guard->username }}</span>
+                                    </div>
+                                    <button wire:click="removeSpecificFilter('receivedGuard', {{ $guardId }})"
+                                        class="ml-1.5 inline-flex items-center hover:cursor-pointer cursor-pointer">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd"
+                                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                                clip-rule="evenodd"></path>
+                                        </svg>
+                                    </button>
+                                </span>
+                            @endif
                         @endforeach
                     @endif
 

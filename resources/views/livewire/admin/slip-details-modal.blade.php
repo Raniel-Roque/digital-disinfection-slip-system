@@ -147,7 +147,7 @@
                         <div class="font-semibold text-gray-500 mb-0.5">Hatchery Guard:</div>
                         <div>
                             @if ($selectedSlip->hatcheryGuard)
-                                <span class="text-gray-900">{{ $selectedSlip->hatcheryGuard->first_name . ' ' . $selectedSlip->hatcheryGuard->last_name }}</span>
+                                <span class="text-gray-900">{{ $selectedSlip->hatcheryGuard->first_name . ' ' . $selectedSlip->hatcheryGuard->last_name }} @{{ $selectedSlip->hatcheryGuard->username }}</span>
                                 @if ($selectedSlip->hatcheryGuard->trashed())
                                     <span class="text-red-600 font-semibold">(Deleted)</span>
                                 @endif
@@ -160,7 +160,7 @@
                         <div class="font-semibold text-gray-500 mb-0.5">Received By:</div>
                         <div>
                             @if ($selectedSlip->receivedGuard)
-                                <span class="text-gray-900">{{ $selectedSlip->receivedGuard->first_name . ' ' . $selectedSlip->receivedGuard->last_name }}</span>
+                                <span class="text-gray-900">{{ $selectedSlip->receivedGuard->first_name . ' ' . $selectedSlip->receivedGuard->last_name }} @{{ $selectedSlip->receivedGuard->username }}</span>
                                 @if ($selectedSlip->receivedGuard->trashed())
                                     <span class="text-red-600 font-semibold">(Deleted)</span>
                                 @endif

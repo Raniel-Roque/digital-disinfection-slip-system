@@ -52,10 +52,6 @@
             {{-- Active Filters Display --}}
             @if ($filtersActive)
                 <div class="mt-4 flex flex-wrap gap-2">
-                        {{-- Slip Delete Confirmation (for deleting a disinfection slip from the slip-edit modal) --}}
-                        <x-modals.delete-confirmation show="showSlipDeleteConfirmation" title="DELETE SLIP?"
-                            message="Delete this disinfection slip?" details="" warning="This action cannot be undone!" onConfirm="deleteSlip"
-                            confirmText="Yes, Delete" cancelText="Cancel" />
                     <span class="text-sm text-gray-600">Active filters:</span>
 
                     @if (!is_null($appliedResolved))
@@ -491,13 +487,19 @@
             </x-modals.modal-template>
         @endif
 
+        {{-- Filter Modal --}}
+        <x-modals.filter-modal>
+            <x-slot name="filters">
+                <x-modals.filter-reports-body :availableStatuses="$availableStatuses" :filterResolved="$filterResolved" :filterReportType="$filterReportType" />
+            </x-slot>
+        </x-modals.filter-modal>
+
         {{-- Slip Details Modal --}}
         @include('livewire.admin.slip-details-modal')
 
         {{-- Admin Edit Modal --}}
         @if ($selectedSlip && $showEditModal)
-            <x-modals.admin-slip-edit-modal :trucks="$trucks" :locations="$locations" :drivers="$drivers" :guards="$guards"
-                :slip-status="$selectedSlip->status" :edit-status="$editStatus" :selected-slip="$selectedSlip" :editing="$editing" />
+            <x-modals.admin-slip-edit-modal :slip-status="$selectedSlip->status" :edit-status="$editStatus" :selected-slip="$selectedSlip" :editing="$editing" />
         @endif
 
         {{-- Slip Delete Confirmation Modal --}}
