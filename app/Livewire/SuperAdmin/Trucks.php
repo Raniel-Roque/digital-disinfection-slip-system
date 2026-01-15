@@ -281,8 +281,8 @@ class Trucks extends Component
     private function getCachedGuards()
     {
         return Cache::remember('guards_all', 300, function() {
-            return User::where('user_type', 0)
-                ->where('disabled', false)
+            return User::where('user_type', '=', 0)
+                ->where('disabled', '=', false)
                 ->orderBy('first_name')
                 ->orderBy('last_name')->get()->mapWithKeys(function ($user) {
                     $name = trim("{$user->first_name} {$user->middle_name} {$user->last_name}");
@@ -302,7 +302,7 @@ class Trucks extends Component
     private function getFilterGuardsCollection()
     {
         if ($this->cachedFilterGuardsCollection === null) {
-            $this->cachedFilterGuardsCollection = User::where('user_type', 0)
+            $this->cachedFilterGuardsCollection = User::where('user_type', '=', 0)
                 ->orderBy('first_name')
                 ->orderBy('last_name')
                 ->get();
@@ -612,7 +612,7 @@ class Trucks extends Component
     {
         // Get only non-disabled reasons for dropdown (disabled reasons cannot be selected)
         $reasons = Cache::remember('reasons_active', 300, function() {
-            return Reason::where('is_disabled', false)->orderBy('reason_text')->get();
+            return Reason::where('is_disabled', '=', false)->orderBy('reason_text')->get();
         });
         $allOptions = $reasons->pluck('reason_text', 'id');
         $options = $allOptions;
@@ -811,7 +811,7 @@ class Trucks extends Component
     {
         // Get only non-disabled reasons for dropdown (disabled reasons cannot be selected)
         $reasons = Cache::remember('reasons_active', 300, function() {
-            return Reason::where('is_disabled', false)->orderBy('reason_text')->get();
+            return Reason::where('is_disabled', '=', false)->orderBy('reason_text')->get();
         });
         $allOptions = $reasons->pluck('reason_text', 'id');
         $options = $allOptions;
@@ -1674,7 +1674,7 @@ class Trucks extends Component
         ]);
         
         // Atomic delete: Only delete if not already deleted to prevent race conditions
-        $deleted = DisinfectionSlipModel::where('id', $this->selectedSlip->id)
+        $deleted = DisinfectionSlipModel::where('id', '=', $this->selectedSlip->id)
             ->whereNull('deleted_at') // Only delete if not already deleted
             ->update(['deleted_at' => now()]);
         

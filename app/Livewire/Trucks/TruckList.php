@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 /**
  * @method void resetPage()
@@ -651,6 +652,146 @@ class TruckList extends Component
             Log::error('Attachment upload error: ' . $e->getMessage());
             Cache::forget('disinfection_slips_all');
             $this->dispatch('toast', message: 'Failed to upload photo. Please try again.', type: 'error');
+        }
+    }
+
+    public function uploadAttachments($imagesData)
+    {
+        try {
+            // Authorization check: Only allow if location permits slip creation
+            if (!$this->canCreateSlip) {
+                $this->dispatch('toast', message: 'This location is not authorized to create slips.', type: 'error');
+                return;
+            }
+            
+            if ($this->isUserDisabled()) {
+                $this->dispatch('toast', message: 'Your account has been disabled. Please contact an administrator.', type: 'error');
+                return;
+            }
+
+            // Validate that imagesData is an array
+            if (!is_array($imagesData) || empty($imagesData)) {
+                $this->dispatch('toast', message: 'No images provided for upload.', type: 'error');
+                return;
+            }
+
+            $newAttachmentIds = [];
+            $validImages = [];
+            $errors = [];
+
+            // Process all images first to validate them
+            foreach ($imagesData as $index => $imageData) {
+                // Validate image data format
+                if (!preg_match('/^data:image\/(jpeg|jpg|png|gif|webp);base64,/', $imageData)) {
+                    $errors[] = "Image " . ($index + 1) . ": Invalid image format. Only JPEG, PNG, GIF, and WebP are allowed.";
+                    continue;
+                }
+
+                // Extract image type
+                preg_match('/^data:image\/(jpeg|jpg|png|gif|webp);base64,/', $imageData, $matches);
+                $imageType = $matches[1];
+                
+                // Normalize jpg to jpeg
+                if ($imageType === 'jpg') {
+                    $imageType = 'jpeg';
+                }
+
+                // Decode base64 image
+                $imageData = preg_replace('/^data:image\/\w+;base64,/', '', $imageData);
+                $imageData = str_replace(' ', '+', $imageData);
+                $imageDecoded = base64_decode($imageData);
+
+                // Validate base64 decode success
+                if ($imageDecoded === false) {
+                    $errors[] = "Image " . ($index + 1) . ": Failed to decode image data.";
+                    continue;
+                }
+
+                // Validate file size (15MB max)
+                $fileSizeInMB = strlen($imageDecoded) / 1024 / 1024;
+                if ($fileSizeInMB > 15) {
+                    $errors[] = "Image " . ($index + 1) . ": Image size exceeds 15MB limit.";
+                    continue;
+                }
+
+                // Validate image using getimagesizefromstring
+                $imageInfo = @getimagesizefromstring($imageDecoded);
+                if ($imageInfo === false) {
+                    $errors[] = "Image " . ($index + 1) . ": Invalid image file. Please capture a valid image.";
+                    continue;
+                }
+
+                // Validate MIME type
+                $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                if (!in_array($imageInfo['mime'], $allowedMimeTypes)) {
+                    $errors[] = "Image " . ($index + 1) . ": Invalid image type. Only JPEG, PNG, GIF, and WebP are allowed.";
+                    continue;
+                }
+
+                // Store valid image data for processing
+                $validImages[] = [
+                    'decoded' => $imageDecoded,
+                    'type' => $imageType,
+                ];
+            }
+
+            // If there are validation errors, show them and return
+            if (!empty($errors)) {
+                $errorMessage = implode(' ', $errors);
+                $this->dispatch('toast', message: $errorMessage, type: 'error');
+                return;
+            }
+
+            // If no valid images, return
+            if (empty($validImages)) {
+                $this->dispatch('toast', message: 'No valid images to upload.', type: 'error');
+                return;
+            }
+
+            // Process all valid images in a single transaction
+            DB::beginTransaction();
+            try {
+                foreach ($validImages as $image) {
+                    // Generate unique filename with correct extension
+                    $extension = $image['type'];
+                    $filename = 'disinfection_slip_pending_' . time() . '_' . Str::random(8) . '.' . $extension;
+                    
+                    // Use Storage facade for consistency - save to public disk
+                    Storage::disk('public')->put('images/uploads/' . $filename, $image['decoded']);
+
+                    // Store relative path in database
+                    $relativePath = 'images/uploads/' . $filename;
+
+                    // Create attachment record
+                    $attachment = Attachment::create([
+                        'file_path' => $relativePath,
+                        'user_id' => Auth::id(),
+                    ]);
+
+                    // Add new attachment ID to pending array
+                    $newAttachmentIds[] = $attachment->id;
+                }
+
+                // Add all new attachment IDs to pending array
+                $this->pendingAttachmentIds = array_merge($this->pendingAttachmentIds, $newAttachmentIds);
+
+                // Commit transaction
+                DB::commit();
+
+                $totalAttachments = count($this->pendingAttachmentIds);
+                $uploadedCount = count($newAttachmentIds);
+                $this->dispatch('toast', message: "{$uploadedCount} photo(s) added ({$totalAttachments} total).", type: 'success');
+                Cache::forget('disinfection_slips_all');
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Batch attachment upload error: ' . $e->getMessage());
+            Cache::forget('disinfection_slips_all');
+            $this->dispatch('toast', message: 'Failed to upload photos. Please try again.', type: 'error');
         }
     }
 
