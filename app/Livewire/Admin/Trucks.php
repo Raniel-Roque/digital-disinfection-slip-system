@@ -267,15 +267,7 @@ class Trucks extends Component
         });
     }
 
-    private function getCachedReasons()
-    {
-        // Only cache id and reason_text to reduce memory usage with large datasets
-        return Cache::remember('reasons_all', 300, function() {
-            return Reason::select(['id', 'reason_text'])
-                ->orderBy('reason_text', 'asc')
-                ->get();
-        });
-    }
+    // Removed getCachedReasons() - now using direct database pagination in getReasonsProperty()
 
     private function getCachedGuards()
     {
@@ -2307,35 +2299,25 @@ class Trucks extends Component
 
     public function getReasonsProperty()
     {
-        $reasons = $this->getCachedReasons();
+        $query = Reason::query()
+            ->select(['id', 'reason_text', 'is_disabled'])
+            ->orderBy('reason_text', 'asc');
 
         // Filter by status if not 'all'
         if ($this->filterReasonStatus !== 'all') {
             $isDisabled = $this->filterReasonStatus === 'disabled';
-            $reasons = $reasons->filter(function($reason) use ($isDisabled) {
-                return $reason->is_disabled == $isDisabled;
-            });
+            $query->where('is_disabled', $isDisabled);
         }
 
         // Filter by search term if provided
         if (!empty($this->searchReasonSettings)) {
             $searchTerm = strtolower(trim($this->searchReasonSettings));
-            $reasons = $reasons->filter(function($reason) use ($searchTerm) {
-                return str_contains(strtolower($reason->reason_text), $searchTerm);
-            });
+            $query->whereRaw('LOWER(reason_text) LIKE ?', ['%' . $searchTerm . '%']);
         }
 
-        // Convert collection to paginated result for Livewire
-        $page = $this->reasonsPage;
+        // Use database pagination
         $perPage = 5;
-        $items = $reasons->slice(($page - 1) * $perPage, $perPage)->values();
-        return new \Illuminate\Pagination\LengthAwarePaginator(
-            $items,
-            $reasons->count(),
-            $perPage,
-            $page,
-            ['path' => request()->url(), 'query' => request()->query()]
-        );
+        return $query->paginate($perPage, ['*'], 'page', $this->reasonsPage);
     }
     
     // Separate pagination methods for reasons (don't override default pagination)
@@ -2403,10 +2385,6 @@ class Trucks extends Component
             "Added new reason: {$reason->reason_text}",
             $reason->only(['reason_text', 'is_disabled'])
         );
-        
-        // Clear cache after adding new reason
-        Cache::forget('reasons_all');
-        Cache::forget('reasons_active');
         
         $this->dispatch('toast', message: 'Reason created successfully.', type: 'success');
         
@@ -2494,10 +2472,6 @@ class Trucks extends Component
                 $reason->only(['reason_text', 'is_disabled'])
             );
 
-            // Clear cache
-            Cache::forget('reasons_all');
-            Cache::forget('reasons_active');
-
             $this->dispatch('toast', message: 'Reason updated successfully.', type: 'success');
         }
 
@@ -2538,10 +2512,6 @@ class Trucks extends Component
                 $oldValues,
                 $reason->only(['reason_text', 'is_disabled'])
             );
-            
-            // Clear cache after toggling disabled state
-            Cache::forget('reasons_all');
-            Cache::forget('reasons_active');
             
             $status = $reason->disabled ? 'disabled' : 'enabled';
             $this->dispatch('toast', message: "Reason {$status} successfully.", type: 'success');

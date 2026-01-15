@@ -263,24 +263,24 @@ class DisinfectionSlip extends Component
         // Optimize relationship loading by only selecting needed fields
         // This significantly reduces memory usage with large datasets
         $this->selectedSlip = DisinfectionSlipModel::with([
-            'truck:id,plate_number,disabled,deleted_at' => function($q) {
-                $q->withTrashed();
+            'truck' => function($q) {
+                $q->select('id', 'plate_number', 'disabled', 'deleted_at')->withTrashed();
             },
-            'location:id,location_name,disabled,deleted_at' => function($q) {
-                $q->withTrashed();
+            'location' => function($q) {
+                $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed();
             },
-            'destination:id,location_name,disabled,deleted_at' => function($q) {
-                $q->withTrashed();
+            'destination' => function($q) {
+                $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed();
             },
-            'driver:id,first_name,middle_name,last_name,disabled,deleted_at' => function($q) {
-                $q->withTrashed();
+            'driver' => function($q) {
+                $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed();
             },
             'reason:id,reason_text,is_disabled',
-            'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) {
-                $q->withTrashed();
+            'hatcheryGuard' => function($q) {
+                $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed();
             },
-            'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) {
-                $q->withTrashed();
+            'receivedGuard' => function($q) {
+                $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed();
             }
         ])->find($id);
     

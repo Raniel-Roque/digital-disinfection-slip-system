@@ -57,29 +57,12 @@ $maxHeight = $maxShown * 40 . 'px';
         async init() {
             this.localSelection = $wire.get('{{ $wireModel }}') || [];
             this.loadSelectedLabels();
-            // Eager load first 10 items for instant display
-            await this.loadInitialOptions();
-        },
-        async loadInitialOptions() {
-            try {
-                const response = await Livewire.find('{{ $this->getId() }}').call('{{ $dataMethod }}', '', 1, 10);
-                if (response && response.data) {
-                    const newItems = Object.entries(response.data).map(([id, label]) => ({
-                        id: Number(id),
-                        label: label
-                    }));
-                    this.options = newItems;
-                    this.hasMore = response.has_more;
-                    this.page = 2; // Next load starts at page 2
-                }
-            } catch (error) {
-                // Silent fail
-            }
+            // Don't eager load - wait until dropdown is opened for better performance
         },
         async loadSelectedLabels() {
             if (this.localSelection.length > 0) {
                 try {
-                    const response = await Livewire.find('{{ $this->getId() }}').call('{{ $dataMethod }}', '', 1, {{ $perPage }}, this.localSelection);
+                    const response = await Livewire.find('{{ $__livewire->getId() }}').call('{{ $dataMethod }}', '', 1, {{ $perPage }}, this.localSelection);
                     if (response && response.data) {
                         this.selectedLabels = response.data;
                     }
@@ -101,7 +84,7 @@ $maxHeight = $maxShown * 40 . 'px';
             
             this.loading = true;
             try {
-                const response = await Livewire.find('{{ $this->getId() }}').call('{{ $dataMethod }}', this.searchTerm, this.page, {{ $perPage }});
+                const response = await Livewire.find('{{ $__livewire->getId() }}').call('{{ $dataMethod }}', this.searchTerm, this.page, {{ $perPage }});
                 
                 if (response && response.data) {
                     // Convert object to array and append - maintains database order like table rows
@@ -142,21 +125,14 @@ $maxHeight = $maxShown * 40 . 'px';
         },
         closeDropdown() {
             this.open = false;
-            // If user searched, reset to initial state on next open
-            if (this.searchTerm !== '') {
-                this.searchTerm = '';
-                this.options = [];
-                this.page = 1;
-                this.hasMore = true;
-            } else {
-                // Keep first 10 items (eager loaded), reset pagination for scrolled items
-                this.options = this.options.slice(0, 10);
-                this.page = 2;
-                this.hasMore = true;
-            }
+            // Reset state on close to free memory
+            this.searchTerm = '';
+            this.options = [];
+            this.page = 1;
+            this.hasMore = true;
         },
         syncToLivewire() {
-            Livewire.find('{{ $this->getId() }}').set('{{ $wireModel }}', [...this.localSelection]);
+            Livewire.find('{{ $__livewire->getId() }}').set('{{ $wireModel }}', [...this.localSelection]);
             this.loadSelectedLabels();
         },
         updateSelection(val) {
@@ -201,30 +177,13 @@ $maxHeight = $maxShown * 40 . 'px';
         selectedLabel: '',
         async init() {
             this.loadSelectedLabel();
-            // Eager load first 10 items for instant display
-            await this.loadInitialOptions();
-        },
-        async loadInitialOptions() {
-            try {
-                const response = await Livewire.find('{{ $this->getId() }}').call('{{ $dataMethod }}', '', 1, 10);
-                if (response && response.data) {
-                    const newItems = Object.entries(response.data).map(([id, label]) => ({
-                        id: Number(id),
-                        label: label
-                    }));
-                    this.options = newItems;
-                    this.hasMore = response.has_more;
-                    this.page = 2; // Next load starts at page 2
-                }
-            } catch (error) {
-                // Silent fail
-            }
+            // Don't eager load - wait until dropdown is opened for better performance
         },
         async loadSelectedLabel() {
             try {
-                const selectedId = Livewire.find('{{ $this->getId() }}').get('{{ $wireModel }}');
+                const selectedId = Livewire.find('{{ $__livewire->getId() }}').get('{{ $wireModel }}');
                 if (selectedId) {
-                    const response = await Livewire.find('{{ $this->getId() }}').call('{{ $dataMethod }}', '', 1, {{ $perPage }}, [selectedId]);
+                    const response = await Livewire.find('{{ $__livewire->getId() }}').call('{{ $dataMethod }}', '', 1, {{ $perPage }}, [selectedId]);
                     if (response && response.data && response.data[selectedId]) {
                         this.selectedLabel = response.data[selectedId];
                     }
@@ -246,7 +205,7 @@ $maxHeight = $maxShown * 40 . 'px';
             
             this.loading = true;
             try {
-                const response = await Livewire.find('{{ $this->getId() }}').call('{{ $dataMethod }}', this.searchTerm, this.page, {{ $perPage }});
+                const response = await Livewire.find('{{ $__livewire->getId() }}').call('{{ $dataMethod }}', this.searchTerm, this.page, {{ $perPage }});
                 
                 if (response && response.data) {
                     // Convert object to array and append - maintains database order like table rows
@@ -287,28 +246,21 @@ $maxHeight = $maxShown * 40 . 'px';
         },
         closeDropdown() {
             this.open = false;
-            // If user searched, reset to initial state on next open
-            if (this.searchTerm !== '') {
-                this.searchTerm = '';
-                this.options = [];
-                this.page = 1;
-                this.hasMore = true;
-            } else {
-                // Keep first 10 items (eager loaded), reset pagination for scrolled items
-                this.options = this.options.slice(0, 10);
-                this.page = 2;
-                this.hasMore = true;
-            }
+            // Reset state on close to free memory
+            this.searchTerm = '';
+            this.options = [];
+            this.page = 1;
+            this.hasMore = true;
         },
         async selectOption(id) {
-            Livewire.find('{{ $this->getId() }}').set('{{ $wireModel }}', Number(id));
+            Livewire.find('{{ $__livewire->getId() }}').set('{{ $wireModel }}', Number(id));
             const option = this.options.find(opt => opt.id === id);
             this.selectedLabel = option ? option.label : '';
             this.closeDropdown();
         },
         getDisplayText() {
             try {
-                const selected = Livewire.find('{{ $this->getId() }}').get('{{ $wireModel }}');
+                const selected = Livewire.find('{{ $__livewire->getId() }}').get('{{ $wireModel }}');
                 if (!selected) return '{{ $placeholder }}';
                 const option = this.options.find(opt => opt.id === selected);
                 return this.selectedLabel || (option ? option.label : '') || '{{ $placeholder }}';
@@ -340,7 +292,7 @@ $maxHeight = $maxShown * 40 . 'px';
                 class="inline-flex justify-between w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer"
                 :class="{ 'ring-2 ring-blue-500': open }">
                 <span
-                    :class="{ 'text-gray-400': @if ($multiple) localSelection.length === 0 @else !(function() { try { return Livewire.find('{{ $this->getId() }}').get('{{ $wireModel }}'); } catch(e) { return false; } })() @endif }">
+                    :class="{ 'text-gray-400': @if ($multiple) localSelection.length === 0 @else !(function() { try { return Livewire.find('{{ $__livewire->getId() }}').get('{{ $wireModel }}'); } catch(e) { return false; } })() @endif }">
                     <span x-text="getDisplayText()"></span>
                 </span>
                 <svg xmlns="https://www.w3.org/2000/svg" class="w-5 h-5 ml-2 -mr-1 transition-transform"
@@ -374,28 +326,37 @@ $maxHeight = $maxShown * 40 . 'px';
                     x-on:scroll="handleScroll($event)"
                     x-on:click.stop>
                     <template x-for="option in options" :key="option.id">
-                        <a href="#"
-                            @if ($multiple) x-on:click.prevent.stop="updateSelection(option.id)"
-                        @else
-                            x-on:click.prevent.stop="selectOption(option.id)" @endif
-                            class="block px-4 py-2 text-gray-700 hover:bg-gray-100 active:bg-blue-100 cursor-pointer rounded-md transition-colors"
-                            :class="@if ($multiple) localSelection.includes(option.id) @else (function() { try { return Livewire.find('{{ $this->getId() }}').get('{{ $wireModel }}') == option.id; } catch(e) { return false; } })() @endif
-                                ? 'bg-blue-50 text-blue-700' : ''">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div x-text="option.label.split(' @')[0]"></div>
-                                    <div x-show="option.label.includes(' @')" class="text-xs text-gray-500" x-text="'@' + option.label.split(' @')[1]"></div>
-                                </div>
-                                @if ($multiple)
+                        @if ($multiple)
+                            <a href="#"
+                                x-on:click.prevent.stop="updateSelection(option.id)"
+                                class="block px-4 py-2 text-gray-700 hover:bg-gray-100 active:bg-blue-100 cursor-pointer rounded-md transition-colors"
+                                :class="localSelection.includes(option.id) ? 'bg-blue-50 text-blue-700' : ''">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div x-text="option.label.split(' @')[0]"></div>
+                                        <div x-show="option.label.includes(' @')" class="text-xs text-gray-500" x-text="'@' + option.label.split(' @')[1]"></div>
+                                    </div>
                                     <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20"
                                         x-show="localSelection.includes(option.id)" style="display: none;">
                                         <path fill-rule="evenodd"
                                             d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                                             clip-rule="evenodd"></path>
                                     </svg>
-                                @endif
-                            </div>
-                        </a>
+                                </div>
+                            </a>
+                        @else
+                            <a href="#"
+                                x-on:click.prevent.stop="selectOption(option.id)"
+                                class="block px-4 py-2 text-gray-700 hover:bg-gray-100 active:bg-blue-100 cursor-pointer rounded-md transition-colors"
+                                :class="(function() { try { return Livewire.find('{{ $__livewire->getId() }}').get('{{ $wireModel }}') == option.id; } catch(e) { return false; } })() ? 'bg-blue-50 text-blue-700' : ''">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div x-text="option.label.split(' @')[0]"></div>
+                                        <div x-show="option.label.includes(' @')" class="text-xs text-gray-500" x-text="'@' + option.label.split(' @')[1]"></div>
+                                    </div>
+                                </div>
+                            </a>
+                        @endif
                     </template>
                     
                     <!-- Loading indicator -->

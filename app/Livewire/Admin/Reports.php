@@ -132,19 +132,19 @@ class Reports extends Component
         if ($this->selectedReport && $this->selectedReport->id) {
             // Optimize relationship loading by only selecting needed fields
             $this->selectedReport = Report::with([
-                'user:id,first_name,middle_name,last_name,username,deleted_at' => function($q) { $q->withTrashed(); },
+                'user' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'deleted_at')->withTrashed(); },
                 'slip' => function($q) {
                     $q->withTrashed();
                     $q->with([
-                        'truck:id,plate_number,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                        'location:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                        'destination:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                        'driver:id,first_name,middle_name,last_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                        'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                        'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); }
+                        'truck' => function($q) { $q->select('id', 'plate_number', 'disabled', 'deleted_at')->withTrashed(); },
+                        'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                        'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                        'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
+                        'hatcheryGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); },
+                        'receivedGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); }
                     ]);
                 },
-                'resolvedBy:id,first_name,middle_name,last_name,username,deleted_at' => function($q) { $q->withTrashed(); }
+                'resolvedBy' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'deleted_at')->withTrashed(); }
             ])->find($this->selectedReport->id);
         }
     }
@@ -404,14 +404,14 @@ class Reports extends Component
         
         // Optimize relationship loading by only selecting needed fields
         $this->selectedReport = Report::with([
-            'user:id,first_name,middle_name,last_name,username,deleted_at' => function($q) {
-                $q->withTrashed();
+            'user' => function($q) {
+                $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'deleted_at')->withTrashed();
             },
-            'slip:id,slip_id,truck_id,location_id,destination_id,driver_id,status,completed_at,deleted_at' => function($q) {
-                $q->withTrashed();
+            'slip' => function($q) {
+                $q->select('id', 'slip_id', 'truck_id', 'location_id', 'destination_id', 'driver_id', 'status', 'completed_at', 'deleted_at')->withTrashed();
             },
-            'resolvedBy:id,first_name,middle_name,last_name,username,deleted_at' => function($q) {
-                $q->withTrashed();
+            'resolvedBy' => function($q) {
+                $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'deleted_at')->withTrashed();
             }
         ])->find($reportId);
     }
@@ -634,9 +634,9 @@ class Reports extends Component
     // Optimize relationship loading by only selecting needed fields
     // This significantly reduces memory usage with large datasets (5,000+ records)
     $query = Report::with([
-        'user:id,first_name,middle_name,last_name,username,deleted_at' => function($q) { $q->withTrashed(); },
-        'slip:id,slip_id,truck_id,location_id,destination_id,driver_id,status,completed_at,deleted_at' => function($q) { $q->withTrashed(); },
-        'resolvedBy:id,first_name,middle_name,last_name,username,deleted_at' => function($q) { $q->withTrashed(); }
+        'user' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'deleted_at')->withTrashed(); },
+        'slip' => function($q) { $q->select('id', 'slip_id', 'truck_id', 'location_id', 'destination_id', 'driver_id', 'status', 'completed_at', 'deleted_at')->withTrashed(); },
+        'resolvedBy' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'deleted_at')->withTrashed(); }
     ])->whereNull('deleted_at');
     
     // ADMIN: Exclude reports with deleted users or deleted slips
@@ -1178,12 +1178,12 @@ class Reports extends Component
         // Optimize relationship loading by only selecting needed fields
         if ($this->selectedSlip) {
             $this->selectedSlip = DisinfectionSlipModel::with([
-                'truck:id,plate_number,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'location:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'destination:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'driver:id,first_name,middle_name,last_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); }
+                'truck' => function($q) { $q->select('id', 'plate_number', 'disabled', 'deleted_at')->withTrashed(); },
+                'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'hatcheryGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); },
+                'receivedGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); }
             ])->find($this->selectedSlip->id);
         }
     }

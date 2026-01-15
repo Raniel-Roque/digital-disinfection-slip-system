@@ -250,13 +250,13 @@ class Trucks extends Component
         // Optimize relationship loading by only selecting needed fields
         if ($this->selectedSlip) {
             $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
-                'truck:id,plate_number,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'location:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'destination:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'driver:id,first_name,middle_name,last_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'truck' => function($q) { $q->select('id', 'plate_number', 'disabled', 'deleted_at')->withTrashed(); },
+                'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'reason:id,reason_text,is_disabled',
-                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); }
+                'hatcheryGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); },
+                'receivedGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); }
             ])->find($this->selectedSlip->id);
         }
     }
@@ -313,15 +313,7 @@ class Trucks extends Component
         });
     }
     
-    private function getCachedReasons()
-    {
-        // Only cache id and reason_text to reduce memory usage with large datasets
-        return Cache::remember('reasons_all', 300, function() {
-            return Reason::select('id', 'reason_text', 'is_disabled')
-                ->orderBy('reason_text')
-                ->get();
-        });
-    }
+    // Removed getCachedReasons() - now using direct database pagination in getReasonsProperty()
     
     // Get guards for filtering (includes disabled guards) - cached User collection
     // Only cache id and name fields to reduce memory usage
@@ -1070,13 +1062,13 @@ class Trucks extends Component
         // Optimize relationship loading by only selecting needed fields
         // This significantly reduces memory usage with large datasets
         $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
-            'truck:id,plate_number,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-            'location:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-            'destination:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-            'driver:id,first_name,middle_name,last_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+            'truck' => function($q) { $q->select('id', 'plate_number', 'disabled', 'deleted_at')->withTrashed(); },
+            'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+            'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+            'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
             'reason:id,reason_text,is_disabled',
-            'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-            'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); }
+            'hatcheryGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); },
+            'receivedGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); }
         ])->find($id);
 
         $this->showDetailsModal = true;
@@ -1091,7 +1083,7 @@ class Trucks extends Component
         // Optimize attachment loading by only selecting needed fields
         return Attachment::whereIn('id', $this->selectedSlip->attachment_ids)
             ->select('id', 'file_path', 'file_name', 'file_size', 'mime_type', 'user_id', 'created_at', 'updated_at', 'deleted_at')
-            ->with(['user:id,first_name,middle_name,last_name,username,deleted_at' => function($q) { $q->withTrashed(); }])
+            ->with(['user' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'deleted_at')->withTrashed(); }])
             ->get();
     }
 
@@ -1142,13 +1134,13 @@ class Trucks extends Component
         // Optimize relationship loading by only selecting needed fields
         if ($this->selectedSlip && $this->selectedSlip->id) {
             $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
-                'truck:id,plate_number,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'location:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'destination:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'driver:id,first_name,middle_name,last_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'truck' => function($q) { $q->select('id', 'plate_number', 'disabled', 'deleted_at')->withTrashed(); },
+                'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'reason:id,reason_text,is_disabled',
-                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); }
+                'hatcheryGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); },
+                'receivedGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); }
             ])->find($this->selectedSlip->id);
         }
 
@@ -1202,13 +1194,13 @@ class Trucks extends Component
         // Optimize relationship loading by only selecting needed fields
         if ($this->selectedSlip && $this->selectedSlip->id) {
             $this->selectedSlip = DisinfectionSlipModel::with([
-                'truck:id,plate_number,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'location:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'destination:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'driver:id,first_name,middle_name,last_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'truck' => function($q) { $q->select('id', 'plate_number', 'disabled', 'deleted_at')->withTrashed(); },
+                'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'reason:id,reason_text,is_disabled',
-                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); }
+                'hatcheryGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); },
+                'receivedGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); }
             ])->find($this->selectedSlip->id);
         }
         
@@ -1227,13 +1219,13 @@ class Trucks extends Component
         // Optimize relationship loading by only selecting needed fields
         if ($this->selectedSlip && $this->selectedSlip->id) {
             $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
-                'truck:id,plate_number,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'location:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'destination:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'driver:id,first_name,middle_name,last_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'truck' => function($q) { $q->select('id', 'plate_number', 'disabled', 'deleted_at')->withTrashed(); },
+                'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'reason:id,reason_text,is_disabled',
-                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); }
+                'hatcheryGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); },
+                'receivedGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); }
             ])->find($this->selectedSlip->id);
         }
         $this->resetEditForm();
@@ -2043,13 +2035,13 @@ class Trucks extends Component
         // Optimize relationship loading by only selecting needed fields
         if ($this->selectedSlip) {
             $this->selectedSlip = DisinfectionSlipModel::with([
-                'truck:id,plate_number,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'location:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'destination:id,location_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'driver:id,first_name,middle_name,last_name,disabled,deleted_at' => function($q) { $q->withTrashed(); },
+                'truck' => function($q) { $q->select('id', 'plate_number', 'disabled', 'deleted_at')->withTrashed(); },
+                'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'reason:id,reason_text,is_disabled',
-                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); },
-                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at' => function($q) { $q->withTrashed(); }
+                'hatcheryGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); },
+                'receivedGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); }
             ])->find($this->selectedSlip->id);
         }
     }
@@ -2602,35 +2594,25 @@ class Trucks extends Component
 
     public function getReasonsProperty()
     {
-        $reasons = $this->getCachedReasons();
+        $query = Reason::query()
+            ->select(['id', 'reason_text', 'is_disabled'])
+            ->orderBy('reason_text', 'asc');
 
         // Filter by status if not 'all'
         if ($this->filterReasonStatus !== 'all') {
             $isDisabled = $this->filterReasonStatus === 'disabled';
-            $reasons = $reasons->filter(function($reason) use ($isDisabled) {
-                return $reason->is_disabled == $isDisabled;
-            });
+            $query->where('is_disabled', $isDisabled);
         }
 
         // Filter by search term if provided
         if (!empty($this->searchReasonSettings)) {
             $searchTerm = strtolower(trim($this->searchReasonSettings));
-            $reasons = $reasons->filter(function($reason) use ($searchTerm) {
-                return str_contains(strtolower($reason->reason_text), $searchTerm);
-            });
+            $query->whereRaw('LOWER(reason_text) LIKE ?', ['%' . $searchTerm . '%']);
         }
 
-        // Convert collection to paginated result for Livewire
-        $page = $this->reasonsPage;
+        // Use database pagination
         $perPage = 5;
-        $items = $reasons->slice(($page - 1) * $perPage, $perPage)->values();
-        return new \Illuminate\Pagination\LengthAwarePaginator(
-            $items,
-            $reasons->count(),
-            $perPage,
-            $page,
-            ['path' => request()->url(), 'query' => request()->query()]
-        );
+        return $query->paginate($perPage, ['*'], 'page', $this->reasonsPage);
     }
     
     // Separate pagination methods for reasons (don't override default pagination)
@@ -2703,10 +2685,6 @@ class Trucks extends Component
             "Added new reason: {$reason->reason_text}",
             $reason->only(['reason_text', 'is_disabled'])
         );
-        
-        // Clear cache after adding new reason
-        Cache::forget('reasons_all');
-        Cache::forget('reasons_active');
         
         $this->dispatch('toast', message: 'Reason created successfully.', type: 'success');
         
@@ -2792,10 +2770,6 @@ class Trucks extends Component
                 $reason->only(['reason_text', 'is_disabled'])
             );
 
-            // Clear cache
-            Cache::forget('reasons_all');
-            Cache::forget('reasons_active');
-
             $this->dispatch('toast', message: 'Reason updated successfully.', type: 'success');
         }
 
@@ -2836,10 +2810,6 @@ class Trucks extends Component
                 $reason->only(['reason_text', 'is_disabled'])
             );
             
-            // Clear cache after toggling disabled state
-            Cache::forget('reasons_all');
-            Cache::forget('reasons_active');
-            
             $status = $reason->disabled ? 'disabled' : 'enabled';
             $this->dispatch('toast', message: "Reason {$status} successfully.", type: 'success');
             
@@ -2877,10 +2847,6 @@ class Trucks extends Component
                 "Deleted reason: {$reasonText}",
                 $oldValues
             );
-            
-            // Clear cache after deleting reason
-            Cache::forget('reasons_all');
-            Cache::forget('reasons_active');
             
             $this->dispatch('toast', message: 'Reason deleted successfully.', type: 'success');
         }

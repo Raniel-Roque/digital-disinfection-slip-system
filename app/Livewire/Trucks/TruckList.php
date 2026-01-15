@@ -1189,8 +1189,8 @@ class TruckList extends Component
             // Optimize relationship loading by only selecting needed fields
             // This significantly reduces memory usage with large datasets (5,000+ records)
             ->with([
-                'truck:id,plate_number,disabled,deleted_at' => function($q) {
-                    $q->withTrashed();
+                'truck' => function($q) {
+                    $q->select('id', 'plate_number', 'disabled', 'deleted_at')->withTrashed();
                 },
                 'location:id,location_name,disabled,deleted_at',
                 'destination:id,location_name,disabled,deleted_at',
@@ -1220,40 +1220,21 @@ class TruckList extends Component
     }
     
     // Reason management methods (for super guards - no delete)
-    private function getCachedReasons()
-    {
-        // Only cache id and reason_text to reduce memory usage
-        return Cache::remember('reasons_all', 300, function() {
-            return Reason::select(['id', 'reason_text', 'is_disabled'])
-                ->orderBy('reason_text', 'asc')
-                ->get();
-        });
-    }
-    
-    
     public function getReasonsProperty()
     {
-        $reasons = $this->getCachedReasons();
+        $query = Reason::query()
+            ->select(['id', 'reason_text', 'is_disabled'])
+            ->orderBy('reason_text', 'asc');
         
         // Filter by search term if provided
         if (!empty($this->searchReasonSettings)) {
             $searchTerm = strtolower(trim($this->searchReasonSettings));
-            $reasons = $reasons->filter(function($reason) use ($searchTerm) {
-                return str_contains(strtolower($reason->reason_text), $searchTerm);
-            });
+            $query->whereRaw('LOWER(reason_text) LIKE ?', ['%' . $searchTerm . '%']);
         }
         
-        // Convert collection to paginated result for Livewire
-        $page = $this->reasonsPage;
+        // Use database pagination
         $perPage = 5;
-        $items = $reasons->slice(($page - 1) * $perPage, $perPage)->values();
-        return new \Illuminate\Pagination\LengthAwarePaginator(
-            $items,
-            $reasons->count(),
-            $perPage,
-            $page,
-            ['path' => request()->url(), 'query' => request()->query()]
-        );
+        return $query->paginate($perPage, ['*'], 'page', $this->reasonsPage);
     }
     
     // Separate pagination methods for reasons (don't override default pagination)
@@ -1327,9 +1308,6 @@ class TruckList extends Component
             "Added new reason: {$reason->reason_text}",
             $reason->only(['reason_text', 'is_disabled'])
         );
-        
-        Cache::forget('reasons_all');
-        Cache::forget('reasons_active');
         
         $this->dispatch('toast', message: 'Reason created successfully.', type: 'success');
         $this->closeCreateReasonModal();
@@ -1416,9 +1394,6 @@ class TruckList extends Component
                 $reason->only(['reason_text', 'is_disabled'])
             );
             
-            Cache::forget('reasons_all');
-            Cache::forget('reasons_active');
-            
             $this->dispatch('toast', message: 'Reason updated successfully.', type: 'success');
         }
         
@@ -1454,9 +1429,6 @@ class TruckList extends Component
                 $oldValues,
                 $reason->only(['reason_text', 'is_disabled'])
             );
-            
-            Cache::forget('reasons_all');
-            Cache::forget('reasons_active');
             
             $status = $reason->disabled ? 'disabled' : 'enabled';
             $this->dispatch('toast', message: "Reason {$status} successfully.", type: 'success');
