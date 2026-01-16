@@ -2351,7 +2351,7 @@ class Slips extends Component
             })
             ->paginate(10);
 
-        return view('livewire.super-admin.trucks', [
+        return view('livewire.super-admin.slips', [
             'slips' => $slips,
             'locations' => $this->locations,
             'drivers' => $this->drivers,
