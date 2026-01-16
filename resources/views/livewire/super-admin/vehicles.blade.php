@@ -448,7 +448,7 @@
             {{-- Normal Filter Modal - All Filters --}}
             <x-modals.filter-modal>
                 <x-slot name="filters">
-                    <x-modals.filter-plate-numbers-body :availableStatuses="$availableStatuses" />
+                    <x-modals.filter-vehicles-body :availableStatuses="$availableStatuses" />
                 </x-slot>
             </x-modals.filter-modal>
         @endif
