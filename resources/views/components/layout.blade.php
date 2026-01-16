@@ -10,7 +10,12 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ asset('storage/images/logo/BGC.png') }}">
 
-    <!-- Fonts -->
+    <!-- Fonts - Using system fonts to avoid external loading issues -->
+    {{-- <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" /> --}}
+
+    <!-- Load Instrument Sans from Bunny Fonts (reliable CDN) -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
@@ -24,7 +29,7 @@
 
                 :root,
                 :host {
-                    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+                    --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
                     --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
                     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
                     --color-red-50: oklch(.971 .013 17.38);
