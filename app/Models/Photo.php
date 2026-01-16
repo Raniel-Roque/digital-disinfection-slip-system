@@ -9,7 +9,7 @@ class Photo extends Model
 {
     use HasFactory;
     
-    protected $table = 'attachments'; // Keep existing table name
+    protected $table = 'photos'; // Match migration table name
     
     protected $fillable = [
         'file_path',
@@ -24,7 +24,7 @@ class Photo extends Model
 
     public function locations()
     {
-        return $this->hasMany(Location::class, 'logo_photo_id');
+        return $this->hasMany(Location::class, 'photo_id');
     }
 
     public function user()
