@@ -25,12 +25,7 @@ use Illuminate\Validation\ValidationException;
  * @method void dispatch(string $event, mixed ...$params)
  * @method void resetErrorBag()
  * @method array validate(array $rules)
- * @property-read \Illuminate\Database\Eloquent\Collection $trucks
- * @property-read \Illuminate\Database\Eloquent\Collection $locations
- * @property-read \Illuminate\Database\Eloquent\Collection $drivers
- * @property-read array $truckOptions
- * @property-read array $locationOptions
- * @property-read array $driverOptions
+ * NOTE: trucks, locations, drivers properties removed - using paginated methods instead
  */
 class TruckList extends Component
 {
@@ -99,6 +94,7 @@ class TruckList extends Component
     public $showDeleteReasonConfirmation = false;
     public $reasonToDelete = null;
     public $searchReasonSettings = '';
+    public $filterReasonStatus = 'all'; // Filter: 'all', 'enabled', 'disabled'
     public $reasonsPage = 1; // Page for reasons pagination
 
     protected $listeners = ['slip-created' => '$refresh'];
@@ -106,6 +102,11 @@ class TruckList extends Component
     public function updatedSearchReasonSettings()
     {
         $this->reasonsPage = 1; // Reset to first page when search changes
+    }
+
+    public function updatedFilterReasonStatus()
+    {
+        $this->reasonsPage = 1; // Reset to first page when filter changes
     }
 
     public function mount($type = 'incoming')
@@ -141,24 +142,13 @@ class TruckList extends Component
     public function isSuperGuard()
     {
         $user = Auth::user();
-        return $user && $user->super_guard && $user->user_type === 0;
+        // Allow super guards (user_type 0 with super_guard = true) OR super admins (user_type 2)
+        // This matches the EnsureSuperGuard middleware logic
+        return $user && ($user->super_guard || $user->user_type === 2);
     }
 
-    // Computed properties for dynamic dropdown data
-    public function getTrucksProperty()
-    {
-        return $this->getCachedTrucks();
-    }
-    
-    public function getLocationsProperty()
-    {
-        return $this->getCachedLocations();
-    }
-    
-    public function getDriversProperty()
-    {
-        return $this->getCachedDrivers();
-    }
+    // NOTE: Computed properties removed - now using paginated dropdowns via getPaginatedTrucks, getPaginatedLocations, getPaginatedDrivers
+    // These methods are called on-demand by the searchable-dropdown-paginated component
 
     public function getCanCreateSlipProperty()
     {
@@ -193,44 +183,8 @@ class TruckList extends Component
         return $optionsArray;
     }
     
-    // Helper methods to get cached collections
-    // Only cache id and name fields to reduce memory usage with large datasets
-    private function getCachedTrucks()
-    {
-        return Cache::remember('trucks_all', 300, function() {
-            return Vehicle::withTrashed()
-                ->whereNull('deleted_at')
-                ->where('disabled', '=', false, 'and')
-                ->select('id', 'vehicle', 'disabled', 'deleted_at')
-                ->orderBy('vehicle', 'asc')
-                ->get();
-        });
-    }
-    
-    private function getCachedLocations()
-    {
-        $currentLocationId = Session::get('location_id');
-        return Cache::remember("locations_all_{$currentLocationId}", 300, function() use ($currentLocationId) {
-            return Location::where('id', '!=', $currentLocationId, 'and')
-                ->whereNull('deleted_at')
-                ->where('disabled', '=', false, 'and')
-                ->select('id', 'location_name', 'disabled', 'deleted_at')
-                ->orderBy('location_name', 'asc')
-                ->get();
-        });
-    }
-    
-    private function getCachedDrivers()
-    {
-        return Cache::remember('drivers_all', 300, function() {
-            return Driver::withTrashed()
-                ->whereNull('deleted_at')
-                ->where('disabled', '=', false, 'and')
-                ->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')
-                ->orderBy('first_name', 'asc')
-                ->get();
-        });
-    }
+    // NOTE: Cached collection methods removed - now using paginated methods that only load data on-demand
+    // This prevents loading all records at once, improving performance with large datasets
     
     // NOTE: Old computed properties removed - now using paginated dropdowns
     
@@ -1212,10 +1166,8 @@ class TruckList extends Component
         return view('livewire.trucks.truck-list', [
             'slips' => $slips,
             'availableStatuses' => $this->availableStatuses,
-            'trucks' => $this->trucks,
-            'locations' => $this->locations,
-            'drivers' => $this->drivers,
-            // Creation modal now uses paginated dropdowns - no need to pass options
+            // NOTE: trucks, locations, drivers removed - views use searchable-dropdown-paginated component
+            // which calls getPaginatedTrucks, getPaginatedLocations, getPaginatedDrivers on-demand
         ]);
     }
     
@@ -1225,6 +1177,12 @@ class TruckList extends Component
         $query = Reason::query()
             ->select(['id', 'reason_text', 'is_disabled'])
             ->orderBy('reason_text', 'asc');
+        
+        // Filter by status if not 'all'
+        if ($this->filterReasonStatus !== 'all') {
+            $isDisabled = $this->filterReasonStatus === 'disabled';
+            $query->where('is_disabled', $isDisabled);
+        }
         
         // Filter by search term if provided
         if (!empty($this->searchReasonSettings)) {

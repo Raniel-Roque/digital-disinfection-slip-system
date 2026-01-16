@@ -268,7 +268,7 @@
 
     {{-- Reasons Settings Modal (for super guards) --}}
     @if ($this->isSuperGuard())
-        <x-modals.reason-settings :reasons="$reasons" :editing-reason-id="$editingReasonId" :editing-reason-text="$editingReasonText" :show-unsaved-changes-confirmation="$showUnsavedChangesConfirmation" :show-save-confirmation="$showSaveConfirmation" :saving-reason="$savingReason" />
+        <x-modals.reason-settings :reasons="$this->reasons" :editing-reason-id="$editingReasonId" :editing-reason-text="$editingReasonText" :show-unsaved-changes-confirmation="$showUnsavedChangesConfirmation" :show-save-confirmation="$showSaveConfirmation" :saving-reason="$savingReason" />
     @endif
 
     {{-- Disinfection Slip Details Modal --}}
