@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guards Report - {{ date('Y-m-d') }}</title>
+    <title>Guards List - {{ date('Y-m-d') }}</title>
     <style>
         @media print {
             .no-print {
@@ -113,7 +113,7 @@
     @endphp
     <div class="header">
         <img src="{{ asset('storage/' . $defaultLogo) }}" alt="Farm Logo" class="header-logo">
-        <h1>Guards Report</h1>
+        <h1>Guards List</h1>
         <p>Generated on: {{ date('F d, Y h:i A') }}</p>
         
         @if (!empty($filters) || !empty($sorting))

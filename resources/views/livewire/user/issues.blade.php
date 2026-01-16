@@ -50,7 +50,7 @@
     {{-- Filter Modal --}}
     <x-modals.filter-modal>
         <x-slot name="filters">
-            <x-modals.filter-reports-body :availableStatuses="$availableStatuses" :filterSortDirection="$filterSortDirection" />
+            <x-modals.filter-issues-body :availableStatuses="$availableStatuses" :filterSortDirection="$filterSortDirection" />
         </x-slot>
     </x-modals.filter-modal>
 

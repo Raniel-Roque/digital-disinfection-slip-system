@@ -2,8 +2,8 @@
     <div class="max-w-3xl mx-auto">
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 lg:p-8">
             <div class="mb-6">
-                <h1 class="text-2xl font-bold text-gray-900">Report an Issue</h1>
-                <p class="text-gray-600 text-sm mt-1">Report any issues or concerns you have encountered</p>
+                <h1 class="text-2xl font-bold text-gray-900">Submit an Issue</h1>
+                <p class="text-gray-600 text-sm mt-1">Submit any issues or concerns you have encountered</p>
             </div>
 
             @if ($showSuccess)
@@ -29,13 +29,13 @@
 <div>
                         <p class="text-sm font-semibold text-yellow-800 mb-1">Important</p>
                         <p class="text-sm text-yellow-700">
-                            Please provide a detailed description of the issue or concern. This report will be reviewed by administrators.
+                            Please provide a detailed description of the issue or concern. This issue will be reviewed by administrators.
                         </p>
                     </div>
                 </div>
             </div>
 
-            <form wire:submit="submitReport">
+            <form wire:submit="submitIssue">
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         Description <span class="text-red-500">*</span>

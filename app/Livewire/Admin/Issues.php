@@ -24,7 +24,7 @@ class Issues extends Component
 
     protected $listeners = [
         'deleteSlip' => 'deleteSlip',
-        'deleteReport' => 'deleteReport',
+        'deleteIssue' => 'deleteIssue',
     ];
 
     public $search = '';
@@ -35,13 +35,13 @@ class Issues extends Component
     public $sortDirection = 'desc';
     
     // Filter properties
-    public $filterReportType = null; // null = All, 'slip' = Slip, 'misc' = Miscellaneous
+    public $filterIssueType = null; // null = All, 'slip' = Slip, 'misc' = Miscellaneous
     public $filterResolved = '0'; // Default to Unresolved, null = All, 0 = Unresolved, 1 = Resolved
     public $filterCreatedFrom = '';
     public $filterCreatedTo = '';
     
     // Applied filters
-    public $appliedReportType = null;
+    public $appliedIssueType = null;
     public $appliedResolved = '0'; // Default to Unresolved
     public $appliedCreatedFrom = '';
     public $appliedCreatedTo = '';
@@ -102,7 +102,7 @@ class Issues extends Component
     public $showSlipDeleteConfirmation = false;
     // For delete confirmation modal used by admin-slip-edit-modal
     public $showDeleteConfirmation = false;
-    public $selectedReportId = null;
+    public $selectedIssueId = null;
     
     public function mount()
     {
@@ -291,12 +291,12 @@ class Issues extends Component
     
     public function applyFilters()
     {
-        $this->appliedReportType = $this->filterReportType;
+        $this->appliedIssueType = $this->filterIssueType;
         $this->appliedResolved = $this->filterResolved;
         $this->appliedCreatedFrom = $this->filterCreatedFrom;
         $this->appliedCreatedTo = $this->filterCreatedTo;
         
-        $this->filtersActive = !is_null($this->appliedReportType) ||
+        $this->filtersActive = !is_null($this->appliedIssueType) ||
                                !is_null($this->appliedResolved) || 
                                !empty($this->appliedCreatedFrom) || 
                                !empty($this->appliedCreatedTo);
@@ -308,9 +308,9 @@ class Issues extends Component
     public function removeFilter($filterName)
     {
         switch ($filterName) {
-            case 'report_type':
-                $this->appliedReportType = null;
-                $this->filterReportType = null;
+            case 'issue_type':
+                $this->appliedIssueType = null;
+                $this->filterIssueType = null;
                 break;
             case 'resolved':
                 $this->appliedResolved = null;
@@ -326,7 +326,7 @@ class Issues extends Component
                 break;
         }
         
-        $this->filtersActive = !is_null($this->appliedReportType) ||
+        $this->filtersActive = !is_null($this->appliedIssueType) ||
                                !is_null($this->appliedResolved) || 
                                !empty($this->appliedCreatedFrom) || 
                                !empty($this->appliedCreatedTo);
@@ -337,12 +337,12 @@ class Issues extends Component
     public function clearFilters()
     {
         $this->filterResolved = null;
-        $this->filterReportType = null;
+        $this->filterIssueType = null;
         $this->filterCreatedFrom = '';
         $this->filterCreatedTo = '';
         
         $this->appliedResolved = null;
-        $this->appliedReportType = null;
+        $this->appliedIssueType = null;
         $this->appliedCreatedFrom = '';
         $this->appliedCreatedTo = '';
         
@@ -350,7 +350,7 @@ class Issues extends Component
         $this->resetPage();
     }
     
-    public function openDetailsModal($reportId)
+    public function openDetailsModal($issueId)
     {
         // Set modal state FIRST to prevent polling from interfering
         $this->showDetailsModal = true;
@@ -366,7 +366,7 @@ class Issues extends Component
             'resolvedBy' => function($q) {
                 $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'deleted_at')->withTrashed();
             }
-        ])->find($reportId);
+        ])->find($issueId);
     }
         
     public function closeDetailsModal()
@@ -380,7 +380,7 @@ class Issues extends Component
     
     public function openSlipDetailsModal($slipId)
     {
-        // Close report details modal if open
+        // Close issue details modal if open
         $this->selectedIssue = null;
 
         // Set modal state FIRST to prevent polling from interfering
@@ -397,12 +397,12 @@ class Issues extends Component
         ])->find($slipId);
     }
 
-    public function confirmDeleteSlip()
+    public function confirmDeleteIssue()
     {
         $this->showDeleteConfirmation = true;
     }
     
-    public function resolveReport()
+    public function resolveIssue()
     {
         // Prevent multiple submissions
         if ($this->isResolving) {
@@ -413,7 +413,7 @@ class Issues extends Component
 
         try {
             if (!$this->selectedIssue) {
-                $this->dispatch('toast', message: 'No report selected.', type: 'error');
+                $this->dispatch('toast', message: 'No issue selected.', type: 'error');
                 return;
             }
 
@@ -433,9 +433,9 @@ class Issues extends Component
                 ]);
             
             if ($updated === 0) {
-                // Report was already resolved by another process
+                // Issue was already resolved by another process
                 $issue->refresh();
-                $this->dispatch('toast', message: 'This report was already resolved by another administrator. Please refresh the page.', type: 'error');
+                $this->dispatch('toast', message: 'This issue was already resolved by another administrator. Please refresh the page.', type: 'error');
                 $this->closeDetailsModal();
                 $this->resetPage();
                 return;
@@ -443,10 +443,10 @@ class Issues extends Component
 
             Cache::forget('issues_all');
             
-            // Refresh report to get updated data
+            // Refresh issue to get updated data
             $issue->refresh();
             
-            $reportType = $issue->slip_id ? "for slip " . ($issue->slip->slip_id ?? 'N/A') : "for misc";
+            $issueType = $issue->slip_id ? "for slip " . ($issue->slip->slip_id ?? 'N/A') : "for misc";
             $newValues = [
                 'resolved_at' => $issue->resolved_at,
                 'resolved_by' => $issue->resolved_by,
@@ -455,12 +455,12 @@ class Issues extends Component
             Logger::update(
                 Issue::class,
                 $issue->id,
-                "Resolved report {$reportType}",
+                "Resolved issue {$issueType}",
                 $oldValues,
                 $newValues
             );
             
-            $this->dispatch('toast', message: 'Report marked as resolved.', type: 'success');
+            $this->dispatch('toast', message: 'Issue marked as resolved.', type: 'success');
             $this->closeDetailsModal();
             $this->resetPage();
         } finally {
@@ -468,7 +468,7 @@ class Issues extends Component
         }
     }
 
-    public function unresolveReport()
+    public function unresolveIssue()
     {
         // Prevent multiple submissions
         if ($this->isResolving) {
@@ -479,7 +479,7 @@ class Issues extends Component
 
         try {
             if (!$this->selectedIssue) {
-                $this->dispatch('toast', message: 'No report selected.', type: 'error');
+                $this->dispatch('toast', message: 'No issue selected.', type: 'error');
                 return;
             }
 
@@ -498,9 +498,9 @@ class Issues extends Component
                 ]);
             
             if ($updated === 0) {
-                // Report was already unresolved by another process
+                // Issue was already unresolved by another process
                 $issue->refresh();
-                $this->dispatch('toast', message: 'This report was already unresolved by another administrator. Please refresh the page.', type: 'error');
+                $this->dispatch('toast', message: 'This issue was already unresolved by another administrator. Please refresh the page.', type: 'error');
                 $this->closeDetailsModal();
                 $this->resetPage();
                 return;
@@ -508,10 +508,10 @@ class Issues extends Component
             
             Cache::forget('issues_all');
 
-            // Refresh report to get updated data
+            // Refresh issue to get updated data
             $issue->refresh();
             
-            $reportType = $issue->slip_id ? "for slip " . ($issue->slip->slip_id ?? 'N/A') : "for misc";
+            $issueType = $issue->slip_id ? "for slip " . ($issue->slip->slip_id ?? 'N/A') : "for misc";
             $newValues = [
                 'resolved_at' => null,
                 'resolved_by' => null,
@@ -519,12 +519,12 @@ class Issues extends Component
             Logger::update(
                 Issue::class,
                 $issue->id,
-                "Unresolved report {$reportType}",
+                "Unresolved issue {$issueType}",
                 $oldValues,
                 $newValues
             );
             
-            $this->dispatch('toast', message: 'Report marked as unresolved.', type: 'success');
+            $this->dispatch('toast', message: 'Issue marked as unresolved.', type: 'success');
             $this->closeDetailsModal();
             $this->resetPage();
         } finally {
@@ -532,13 +532,13 @@ class Issues extends Component
         }
     }
 
-    public function openDeleteConfirmation($reportId)
+    public function openDeleteConfirmation($issueId)
     {
-        $this->selectedReportId = $reportId;
+        $this->selectedIssueId = $issueId;
         $this->showDeleteConfirmation = true;
     }
 
-    public function deleteReport()
+    public function deleteIssue()
     {
         // Prevent multiple submissions
         if ($this->isDeleting) {
@@ -548,21 +548,21 @@ class Issues extends Component
         $this->isDeleting = true;
 
         try {
-            $issue = Issue::findOrFail($this->selectedReportId);
-            $reportType = $issue->slip_id ? "for slip " . ($issue->slip->slip_id ?? 'N/A') : "for misc";
+            $issue = Issue::findOrFail($this->selectedIssueId);
+            $issueType = $issue->slip_id ? "for slip " . ($issue->slip->slip_id ?? 'N/A') : "for misc";
             $oldValues = $issue->only(['user_id', 'slip_id', 'description', 'resolved_at']);
 
             // Atomic delete: Only delete if not already deleted to prevent race conditions
-            $deleted = Issue::where('id', $this->selectedReportId)
+            $deleted = Issue::where('id', $this->selectedIssueId)
                 ->whereNull('deleted_at') // Only delete if not already deleted
                 ->update(['deleted_at' => now()]);
 
             if ($deleted === 0) {
-                // Report was already deleted by another process
+                // Issue was already deleted by another process
                 $issue->refresh();
                 $this->showDeleteConfirmation = false;
-                $this->selectedReportId = null;
-                $this->dispatch('toast', message: 'This report was already deleted by another administrator. Please refresh the page.', type: 'error');
+                $this->selectedIssueId = null;
+                $this->dispatch('toast', message: 'This issue was already deleted by another administrator. Please refresh the page.', type: 'error');
                 return;
             }
 
@@ -570,13 +570,13 @@ class Issues extends Component
             Logger::delete(
                 Issue::class,
                 $issue->id,
-                "Deleted report {$reportType}",
+                "Deleted issue {$issueType}",
                 $oldValues
             );
 
             $this->showDeleteConfirmation = false;
-            $this->selectedReportId = null;
-            $this->dispatch('toast', message: "Report #{$issue->id} has been deleted.", type: 'success');
+            $this->selectedIssueId = null;
+            $this->dispatch('toast', message: "Issue #{$issue->id} has been deleted.", type: 'success');
             $this->resetPage();
         } finally {
             $this->isDeleting = false;
@@ -620,7 +620,7 @@ class Issues extends Component
                       $userQuery->where('username', 'like', '%' . $actualSearchTerm . '%');
                   });
             } else {
-                // Regular search by name, slip, report ID, or misc
+                // Regular search by name, slip, issue ID, or misc
                 $q->whereHas('user', function ($userQuery) use ($searchTerm) {
                       $userQuery->where('first_name', 'like', '%' . $searchTerm . '%')
                                 ->orWhere('last_name', 'like', '%' . $searchTerm . '%')
@@ -629,7 +629,7 @@ class Issues extends Component
                   ->orWhereHas('slip', function ($slipQuery) use ($searchTerm) {
                       $slipQuery->where('slip_id', 'like', '%' . $searchTerm . '%');
                   })
-                  ->orWhere('id', 'like', '%' . $searchTerm . '%') // Search by report ID
+                  ->orWhere('id', 'like', '%' . $searchTerm . '%') // Search by issue ID
                   ->orWhere(function ($miscQuery) use ($searchTerm) {
                       if (stripos($searchTerm, 'miscellaneous') !== false || stripos($searchTerm, 'misc') !== false) {
                           $miscQuery->whereNull('slip_id');
@@ -640,10 +640,10 @@ class Issues extends Component
     }
     
     // Filters
-    if (!is_null($this->appliedReportType) && $this->appliedReportType !== '') {
-        if ($this->appliedReportType === 'slip') {
+    if (!is_null($this->appliedIssueType) && $this->appliedIssueType !== '') {
+        if ($this->appliedIssueType === 'slip') {
             $query->whereNotNull('slip_id');
-        } elseif ($this->appliedReportType === 'misc') {
+        } elseif ($this->appliedIssueType === 'misc') {
             $query->whereNull('slip_id');
         }
     }

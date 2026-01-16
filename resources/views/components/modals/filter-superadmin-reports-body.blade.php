@@ -1,7 +1,7 @@
 @props([
     'availableStatuses' => [],
     'filterResolved' => null,
-    'filterReportType' => null,
+    'filterIssueType' => null,
     'excludeDeletedItems' => true,
 ])
 
@@ -85,11 +85,11 @@
         </div>
     </div>
 
-    {{-- Report Type Filter --}}
+    {{-- Issue Type Filter --}}
     <div x-data="{
         open: false,
-        options: { 'slip': 'Slip Issues', 'misc': 'Miscellaneous Issues' },
-        selected: @entangle('filterReportType').live,
+        options: { 'slip': 'Slip', 'misc': 'Miscellaneous' },
+        selected: @entangle('filterIssueType').live,
         placeholder: 'Select type',
         get displayText() {
             if (this.selected === null || this.selected === undefined || this.selected === '') {
@@ -116,7 +116,7 @@
         @focusin.window="handleFocusIn($event)">
         <div class="flex items-center justify-between mb-1">
             <label class="block text-sm font-medium text-gray-700">Type</label>
-            <button type="button" wire:click="$set('filterReportType', null)"
+            <button type="button" wire:click="$set('filterIssueType', null)"
                 x-show="selected !== null && selected !== undefined && selected !== ''"
                 class="text-xs text-blue-600 hover:text-blue-800 font-medium">
                 Clear

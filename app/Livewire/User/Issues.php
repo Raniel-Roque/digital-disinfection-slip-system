@@ -12,11 +12,11 @@ class Issues extends Component
     use WithPagination;
 
     public $search = '';
-    public $filterReportType = null;
+    public $filterIssueType = null;
     public $filterResolved = null;
     public $filterCreatedFrom = null;
     public $filterCreatedTo = null;
-    public $appliedReportType = null;
+    public $appliedIssueType = null;
     public $appliedResolved = null;
     public $appliedCreatedFrom = null;
     public $appliedCreatedTo = null;
@@ -38,7 +38,7 @@ class Issues extends Component
 
     protected $queryString = ['search'];
     
-    protected $listeners = ['modal-closed' => 'clearSelectedReport'];
+    protected $listeners = ['modal-closed' => 'clearSelectedIssue'];
 
     public function mount()
     {
@@ -50,7 +50,7 @@ class Issues extends Component
 
     public function applyFilters()
     {
-        $this->appliedReportType = $this->filterReportType;
+        $this->appliedIssueType = $this->filterIssueType;
         $this->appliedResolved = $this->filterResolved;
         $this->appliedCreatedFrom = $this->filterCreatedFrom;
         $this->appliedCreatedTo = $this->filterCreatedTo;
@@ -62,9 +62,9 @@ class Issues extends Component
 
     public function removeFilter($type)
     {
-        if ($type === 'report_type') {
-            $this->filterReportType = null;
-            $this->appliedReportType = null;
+        if ($type === 'issue_type') {
+            $this->filterIssueType = null;
+            $this->appliedIssueType = null;
         } elseif ($type === 'resolved') {
             $this->filterResolved = null;
             $this->appliedResolved = null;
@@ -81,12 +81,12 @@ class Issues extends Component
 
     public function clearFilters()
     {
-        $this->filterReportType = null;
+        $this->filterIssueType = null;
         $this->filterResolved = null;
         $this->filterCreatedFrom = null;
         $this->filterCreatedTo = null;
         $this->filterSortDirection = null;
-        $this->appliedReportType = null;
+        $this->appliedIssueType = null;
         $this->appliedResolved = null;
         $this->appliedCreatedFrom = null;
         $this->appliedCreatedTo = null;
@@ -95,12 +95,12 @@ class Issues extends Component
         $this->resetPage();
     }
 
-    public function openDetailsModal($reportId)
+    public function openDetailsModal($issueId)
     {
         $this->selectedIssue = Issue::where('user_id', Auth::id())
             ->whereNull('deleted_at')
             ->with(['slip', 'resolvedBy'])
-            ->findOrFail($reportId);
+            ->findOrFail($issueId);
         $this->showDetailsModal = true;
     }
 
@@ -111,14 +111,14 @@ class Issues extends Component
         $this->dispatch('modal-closed');
     }
     
-    public function clearSelectedReport()
+    public function clearSelectedIssue()
     {
         $this->selectedIssue = null;
     }
 
     private function checkFiltersActive()
     {
-        $this->filtersActive = !is_null($this->appliedReportType) ||
+        $this->filtersActive = !is_null($this->appliedIssueType) ||
                               (!is_null($this->appliedResolved) && $this->appliedResolved !== '') ||
                               !empty($this->appliedCreatedFrom) ||
                               !empty($this->appliedCreatedTo) ||
@@ -145,11 +145,11 @@ class Issues extends Component
             });
         }
 
-        // Report Type filter
-        if (!is_null($this->appliedReportType)) {
-            if ($this->appliedReportType === 'slip') {
+        // Issue Type filter
+        if (!is_null($this->appliedIssueType)) {
+            if ($this->appliedIssueType === 'slip') {
                 $query->whereNotNull('slip_id');
-            } elseif ($this->appliedReportType === 'misc') {
+            } elseif ($this->appliedIssueType === 'misc') {
                 $query->whereNull('slip_id');
             }
         }

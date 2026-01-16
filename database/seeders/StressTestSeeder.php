@@ -324,7 +324,7 @@ class StressTestSeeder extends Seeder
         /** @phpstan-ignore-next-line */
         $allSlipIds = DisinfectionSlip::pluck('id')->toArray();
         /** @phpstan-ignore-next-line */
-        $allReportIds = Issue::pluck('id')->toArray();
+        $allIssueIds = Issue::pluck('id')->toArray();
         
         // Define model types and their corresponding IDs
         $modelTypes = [
@@ -333,7 +333,7 @@ class StressTestSeeder extends Seeder
             'App\Models\Driver' => $allDriverIds,
             'App\Models\Location' => $allLocationIds,
             'App\Models\DisinfectionSlip' => $allSlipIds,
-            'App\Models\Report' => $allReportIds,
+            'App\Models\Issue' => $allIssueIds,
         ];
         
         // Define actions and their probabilities

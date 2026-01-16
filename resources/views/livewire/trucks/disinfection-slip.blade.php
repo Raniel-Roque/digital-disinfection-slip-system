@@ -45,7 +45,7 @@
                     <div class="flex items-center">
                         <button wire:click="openIssueModal" type="button"
                             class="p-1.5 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 cursor-pointer"
-                            title="Report Issue">
+                            title="Submit Issue">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
@@ -974,8 +974,8 @@
 
     {{-- Add Photos Modal is now inline Alpine.js modal above --}}
 
-    {{-- Report Issue Modal --}}
-    <x-modals.modal-template show="showIssueModal" title="REPORT AN ISSUE" max-width="max-w-3xl"
+    {{-- Submit Issue Modal --}}
+    <x-modals.modal-template show="showIssueModal" title="SUBMIT AN ISSUE" max-width="max-w-3xl"
         header-class="border-t-4 border-t-red-500 bg-red-50">
         @if ($selectedSlip)
             {{-- Sub Header --}}
@@ -999,7 +999,7 @@
                     <div class="text-gray-900">
                         <textarea wire:model="issueDescription" rows="6"
                             class="w-full border rounded px-2 py-2 text-sm border-gray-300 focus:border-red-500 focus:ring-red-500"
-                            placeholder="Please describe the issue for reporting this slip..."></textarea>
+                            placeholder="Please describe the issue for submitting this slip..."></textarea>
                         @error('issueDescription')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -1011,10 +1011,10 @@
 
         <x-slot name="footer">
             <div class="flex flex-col gap-2 w-full -mt-8">
-                <x-buttons.submit-button wire:click.prevent="submitReport" color="red" wire:loading.attr="disabled" wire:target="submitReport"
+                    <x-buttons.submit-button wire:click.prevent="submitIssue" color="red" wire:loading.attr="disabled" wire:target="submitIssue"
                     x-bind:disabled="$wire.isSubmitting">
-                    <span wire:loading.remove wire:target="submitReport">Submit Issue</span>
-                    <span wire:loading.inline-flex wire:target="submitReport" class="inline-flex items-center gap-2">
+                    <span wire:loading.remove wire:target="submitIssue">Submit</span>
+                    <span wire:loading.inline-flex wire:target="submitIssue" class="inline-flex items-center gap-2">
                         <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -1023,7 +1023,7 @@
                     </span>
                 </x-buttons.submit-button>
 
-                <x-buttons.submit-button wire:click="closeIssueModal" color="white" wire:loading.attr="disabled" wire:target="submitReport">
+                <x-buttons.submit-button wire:click="closeIssueModal" color="white" wire:loading.attr="disabled" wire:target="submitIssue">
                     Cancel
                 </x-buttons.submit-button>
             </div>

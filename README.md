@@ -12,8 +12,8 @@ A web-based system for managing truck disinfection slips with role-based access 
 - **Settings**: Customize system settings
 - **Audit Trail**: Track all system activities
 - **Dashboard**: View statistics and system overview
-- **Issues**: View and resolve reported issues
-- **Export Data**: Export data to CSV files or print reports
+- **Issues**: View and resolve submitted issues
+- **Export Data**: Export data to CSV files or print lists
 
 ### Admin
 - **Data Management**: Manage Guards (including Super Guards), Vehicles, Locations, Reasons, and Drivers
@@ -22,7 +22,7 @@ A web-based system for managing truck disinfection slips with role-based access 
 - **Slip Management**: View and manage all disinfection slips
 - **Audit Trail**: View system activity logs
 - **Dashboard**: View statistics and system overview
-- **Issues**: View and resolve reported issues
+- **Issues**: View and resolve submitted issues
 
 ### Super Guard
 - **Data Management**: Manage Guards, Vehicles, Locations, Reasons, and Drivers
@@ -34,7 +34,7 @@ A web-based system for managing truck disinfection slips with role-based access 
 ### Guard
 - **Create Slips**: Create disinfection slips for allowed locations
 - **Complete Slips**: Complete incoming slips that are in-transit
-- **Report Issues**: Report problems or issues with slips
+- **Sumbit Issues**: Submit problems or issues with slips
 
 ## Installation
 

@@ -828,7 +828,7 @@ class DisinfectionSlip extends Component
         $this->showIssueModal = true;
     }
     
-    public function submitReport()
+    public function submitIssue()
     {
         if ($this->isSubmitting) {
             return;
@@ -843,7 +843,7 @@ class DisinfectionSlip extends Component
         $this->validate([
             'issueDescription' => 'required|string|min:10|max:1000',
         ], [
-            'issueDescription.required' => 'Please provide remarks for reporting.',
+            'issueDescription.required' => 'Please provide remarks for submitting an issue.',
             'issueDescription.min' => 'The description must be at least 10 characters.',
             'issueDescription.max' => 'The description must not exceed 1000 characters.',
         ]);
@@ -890,7 +890,7 @@ class DisinfectionSlip extends Component
         $this->resetValidation('issueDescription');
     }
     
-    public function updatedShowReportModal($value)
+    public function updatedShowIssueModal($value)
     {
         // When modal is closed (via Alpine.js backdrop/close button), reset the form
         if (!$value) {
