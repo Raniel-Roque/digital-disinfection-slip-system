@@ -3,12 +3,12 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\Attachment;
+use App\Models\Photo;
 use App\Models\User;
 
-class AttachmentFactory extends Factory
+class PhotoFactory extends Factory
 {
-    protected $model = Attachment::class;
+    protected $model = Photo::class;
 
     public function definition()
     {
@@ -37,7 +37,7 @@ class AttachmentFactory extends Factory
     }
 
     /**
-     * State for PDF attachments (if needed in future)
+     * State for PDF photos (if needed in future)
      */
     public function pdf()
     {

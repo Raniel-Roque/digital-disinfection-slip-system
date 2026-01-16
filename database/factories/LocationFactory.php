@@ -4,7 +4,7 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Location;
-use App\Models\Attachment;
+use App\Models\Photo;
 
 class LocationFactory extends Factory
 {
@@ -24,7 +24,7 @@ class LocationFactory extends Factory
 
         return [
             'location_name' => $name,
-            'attachment_id' => $this->faker->optional(0.7)->passthrough(Attachment::factory()->logo()),
+            'photo_id' => $this->faker->optional(0.7)->passthrough(Photo::factory()->logo()),
             'disabled' => false,
             'create_slip' => $this->faker->boolean(80), // 80% can create slips
         ];
@@ -49,7 +49,7 @@ class LocationFactory extends Factory
     {
         return $this->state(function (array $attributes) {
             return [
-                'attachment_id' => Attachment::factory()->logo(),
+                'photo_id' => Photo::factory()->logo(),
             ];
         });
     }

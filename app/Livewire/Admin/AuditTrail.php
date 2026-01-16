@@ -49,13 +49,13 @@ class AuditTrail extends Component
     
     public $availableModelTypes = [
         'App\\Models\\DisinfectionSlip' => 'Disinfection Slip',
-        'App\\Models\\Attachment' => 'Attachment',
+        'App\\Models\\Photo' => 'Photo',
         'App\\Models\\User' => 'User',
         'App\\Models\\Driver' => 'Driver',
         'App\\Models\\Location' => 'Location',
-        'App\\Models\\Truck' => 'Truck',
+        'App\\Models\\Vehicle' => 'Vehicle',
         'App\\Models\\Setting' => 'Setting',
-        'App\\Models\\Report' => 'Report',
+        'App\\Models\\Issue' => 'Issue',
         'App\\Models\\Reason' => 'Reason',
     ];
     
@@ -279,7 +279,7 @@ class AuditTrail extends Component
         
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'Photo; filename="' . $filename . '"',
         ];
         
         $callback = function () use ($logs) {

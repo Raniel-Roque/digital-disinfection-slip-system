@@ -4,8 +4,8 @@ namespace App\Livewire\Admin;
 
 use Livewire\Component;
 use App\Models\DisinfectionSlip as DisinfectionSlipModel;
-use App\Models\Attachment;
-use App\Models\Truck;
+use App\Models\Photo;
+use App\Models\Vehicle;
 use App\Models\Location;
 use App\Models\Driver;
 use App\Models\Reason;
@@ -116,12 +116,12 @@ class Slips extends Component
 
     public function getSelectedSlipAttachmentsProperty()
     {
-        if (!$this->selectedSlip || empty($this->selectedSlip->attachment_ids)) {
+        if (!$this->selectedSlip || empty($this->selectedSlip->photo_ids)) {
             return collect([]);
         }
         
-        // Optimize attachment loading by only selecting needed fields
-        return Attachment::whereIn('id', $this->selectedSlip->attachment_ids, 'and', false)
+        // Optimize Photo loading by only selecting needed fields
+        return Photo::whereIn('id', $this->selectedSlip->photo_ids, 'and', false)
             ->select('id', 'file_path', 'user_id', 'created_at', 'updated_at')
             ->with('user:id,first_name,middle_name,last_name,username,deleted_at')
             ->get();
@@ -262,7 +262,7 @@ class Slips extends Component
     {
         // Only cache id and plate_number to reduce memory usage with large datasets
         return Cache::remember('trucks_all', 300, function() {
-            return Truck::select(['id', 'plate_number', 'disabled', 'deleted_at'])
+            return Vehicle::select(['id', 'plate_number', 'disabled', 'deleted_at'])
                 ->orderBy('plate_number', 'asc')
                 ->get();
         });
@@ -362,7 +362,7 @@ class Slips extends Component
         }
         
         // Only fetch the trucks we actually need
-        return Truck::withTrashed()
+        return Vehicle::withTrashed()
             ->whereIn('id', $truckIds)
             ->select('id', 'plate_number', 'disabled', 'deleted_at')
             ->get()
@@ -452,7 +452,7 @@ class Slips extends Component
     #[Renderless]
     public function getPaginatedTrucks($search = '', $page = 1, $perPage = 20, $includeIds = [])
     {
-        $query = Truck::query()
+        $query = Vehicle::query()
             ->whereNull('deleted_at')
             ->where('disabled', false)
             ->select(['id', 'plate_number']);
@@ -464,7 +464,7 @@ class Slips extends Component
 
         // Include specific IDs (for selected items)
         if (!empty($includeIds)) {
-            $includedItems = Truck::whereIn('id', $includeIds)
+            $includedItems = Vehicle::whereIn('id', $includeIds)
                 ->select(['id', 'plate_number'])
                 ->get()
                 ->pluck('plate_number', 'id')
@@ -487,7 +487,7 @@ class Slips extends Component
         
         // Handle includeIds for label loading only
         if (!empty($includeIds)) {
-            $includedItems = Truck::whereIn('id', $includeIds)
+            $includedItems = Vehicle::whereIn('id', $includeIds)
                 ->select(['id', 'plate_number'])
                 ->orderBy('plate_number', 'asc')
                 ->get()
@@ -1027,7 +1027,7 @@ class Slips extends Component
             return false;
         }
 
-        $attachmentIds = $this->selectedSlip->attachment_ids ?? [];
+        $attachmentIds = $this->selectedSlip->photo_ids ?? [];
         return !empty($attachmentIds);
     }
 
@@ -1484,7 +1484,7 @@ class Slips extends Component
             'hatchery_guard_id', 'received_guard_id', 'remarks_for_disinfection', 'status'
         ]);
         
-        // Clean up attachments before soft deleting the slip
+        // Clean up photos before soft deleting the slip
         $this->selectedSlip->deleteAttachments();
         
         // Atomic delete: Only delete if not already deleted to prevent race conditions
@@ -1831,8 +1831,8 @@ class Slips extends Component
 
     public function nextAttachment()
     {
-        $attachments = $this->selectedSlipAttachments;
-        if ($this->currentAttachmentIndex < $attachments->count() - 1) {
+        $photos = $this->selectedSlipAttachments;
+        if ($this->currentAttachmentIndex < $photos->count() - 1) {
             $this->currentAttachmentIndex++;
         }
     }
@@ -1854,67 +1854,67 @@ class Slips extends Component
     {
         try {
             if (!$this->canRemoveAttachment()) {
-                $this->dispatch('toast', message: 'Cannot remove attachment from a completed slip.', type: 'error');
+                $this->dispatch('toast', message: 'Cannot remove Photo from a completed slip.', type: 'error');
                 return;
             }
 
             if (!$this->attachmentToDelete) {
-                $this->dispatch('toast', message: 'No attachment specified to remove.', type: 'error');
+                $this->dispatch('toast', message: 'No Photo specified to remove.', type: 'error');
                 return;
             }
 
-            // Get current attachment IDs
-            $attachmentIds = $this->selectedSlip->attachment_ids ?? [];
+            // Get current Photo IDs
+            $attachmentIds = $this->selectedSlip->photo_ids ?? [];
             
             if (empty($attachmentIds) || !in_array($this->attachmentToDelete, $attachmentIds)) {
-                $this->dispatch('toast', message: 'Attachment not found.', type: 'error');
+                $this->dispatch('toast', message: 'Photo not found.', type: 'error');
                 return;
             }
 
-            // Get the attachment record
+            // Get the Photo record
             /** @phpstan-ignore-next-line */
-            $attachment = Attachment::find($this->attachmentToDelete);
+            $Photo = Photo::find($this->attachmentToDelete);
 
-            if ($attachment) {
+            if ($Photo) {
                 // Delete the physical file from storage (except BGC.png logo)
-                if ($attachment->file_path !== 'images/logo/BGC.png') {
-                    if (Storage::disk('public')->exists($attachment->file_path)) {
-                        Storage::disk('public')->delete($attachment->file_path);
+                if ($Photo->file_path !== 'images/logo/BGC.png') {
+                    if (Storage::disk('public')->exists($Photo->file_path)) {
+                        Storage::disk('public')->delete($Photo->file_path);
                     }
 
-                    // Log the attachment deletion
+                    // Log the Photo deletion
                     $oldValues = [
-                        'file_path' => $attachment->file_path,
-                        'user_id' => $attachment->user_id,
+                        'file_path' => $Photo->file_path,
+                        'user_id' => $Photo->user_id,
                         'disinfection_slip_id' => $this->selectedSlip->id,
                         'slip_number' => $this->selectedSlip->slip_number,
                     ];
 
                     Logger::delete(
-                        Attachment::class,
-                        $attachment->id,
-                        "Deleted attachment/photo from disinfection slip {$this->selectedSlip->slip_number}",
+                        Photo::class,
+                        $Photo->id,
+                        "Deleted Photo/photo from disinfection slip {$this->selectedSlip->slip_number}",
                         $oldValues,
                         ['related_slip' => $this->selectedSlip->id]
                     );
 
-                    // Hard delete the attachment record
-                    $attachment->forceDelete();
+                    // Hard delete the Photo record
+                    $Photo->forceDelete();
                 }
 
-                // Remove attachment ID from array
+                // Remove Photo ID from array
                 $attachmentIds = array_values(array_filter($attachmentIds, fn($id) => $id != $this->attachmentToDelete));
 
-                // Update slip with remaining attachment IDs (or null if empty)
+                // Update slip with remaining Photo IDs (or null if empty)
                 $this->selectedSlip->update([
-                    'attachment_ids' => empty($attachmentIds) ? null : $attachmentIds,
+                    'photo_ids' => empty($attachmentIds) ? null : $attachmentIds,
                 ]);
             }
 
             // Refresh the slip
             $this->selectedSlip->refresh();
 
-            // After deletion, close the attachment modal to avoid stale client-side indices.
+            // After deletion, close the Photo modal to avoid stale client-side indices.
             $this->showAttachmentModal = false;
             $this->currentAttachmentIndex = 0;
 
@@ -1923,11 +1923,11 @@ class Slips extends Component
             $this->attachmentToDelete = null;
 
             $slipId = $this->selectedSlip->slip_id;
-            $this->dispatch('toast', message: "Attachment has been removed from {$slipId}.", type: 'success');
+            $this->dispatch('toast', message: "Photo has been removed from {$slipId}.", type: 'success');
 
         } catch (\Exception $e) {
-            FacadesLog::error('Attachment removal error: ' . $e->getMessage());
-            $this->dispatch('toast', message: 'Failed to remove attachment. Please try again.', type: 'error');
+            FacadesLog::error('Photo removal error: ' . $e->getMessage());
+            $this->dispatch('toast', message: 'Failed to remove Photo. Please try again.', type: 'error');
         }
     }
 
@@ -2230,7 +2230,7 @@ class Slips extends Component
         
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'Photo; filename="' . $filename . '"',
         ];
 
         $callback = function() use ($data) {

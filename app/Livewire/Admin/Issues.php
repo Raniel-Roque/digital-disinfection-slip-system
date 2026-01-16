@@ -2,13 +2,13 @@
 
 namespace App\Livewire\Admin;
 
-use App\Models\Report;
+use App\Models\Issue;
 use App\Models\DisinfectionSlip as DisinfectionSlipModel;
-use App\Models\Truck;
+use App\Models\Vehicle;
 use App\Models\Location;
 use App\Models\Driver;
 use App\Models\User;
-use App\Models\Attachment;
+use App\Models\Photo;
 use App\Services\Logger;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -55,7 +55,7 @@ class Issues extends Component
     
     // View Details Modal
     public $showDetailsModal = false;
-    public $selectedReport = null;
+    public $selectedIssue = null;
     
     // Slip Details Modal (reusing showDetailsModal for slip, will be set when slip is selected)
     public $selectedSlip = null;
@@ -67,11 +67,11 @@ class Issues extends Component
 
     public function getSelectedSlipAttachmentsProperty()
     {
-        if (!$this->selectedSlip || empty($this->selectedSlip->attachment_ids)) {
+        if (!$this->selectedSlip || empty($this->selectedSlip->photo_ids)) {
             return collect([]);
         }
         
-        return Attachment::whereIn('id', $this->selectedSlip->attachment_ids)
+        return Photo::whereIn('id', $this->selectedSlip->photo_ids)
             ->with(['user' => function($q) { $q->withTrashed(); }])
             ->get();
     }
@@ -129,10 +129,10 @@ class Issues extends Component
             ])->find($this->selectedSlip->id);
         }
         
-        // Reload selectedReport with trashed relations if it exists
-        if ($this->selectedReport && $this->selectedReport->id) {
+        // Reload selectedIssue with trashed relations if it exists
+        if ($this->selectedIssue && $this->selectedIssue->id) {
             // Optimize relationship loading by only selecting needed fields
-            $this->selectedReport = Report::with([
+            $this->selectedIssue = Issue::with([
                 'user' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'deleted_at')->withTrashed(); },
                 'slip' => function($q) {
                     $q->withTrashed();
@@ -146,7 +146,7 @@ class Issues extends Component
                     ]);
                 },
                 'resolvedBy' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'deleted_at')->withTrashed(); }
-            ])->find($this->selectedReport->id);
+            ])->find($this->selectedIssue->id);
         }
     }
     
@@ -192,11 +192,11 @@ class Issues extends Component
     #[Renderless]
     public function getPaginatedTrucks($search = '', $page = 1, $perPage = 20, $includeIds = [])
     {
-        $query = Truck::query()->whereNull('deleted_at')->where('disabled', false)->select(['id', 'plate_number']);
+        $query = Vehicle::query()->whereNull('deleted_at')->where('disabled', false)->select(['id', 'plate_number']);
         if (!empty($search)) $query->where('plate_number', 'like', '%' . $search . '%');
         
         if (!empty($includeIds)) {
-            return ['data' => Truck::whereIn('id', $includeIds)->orderBy('plate_number')->get()->pluck('plate_number', 'id')->toArray(), 'has_more' => false, 'total' => count($includeIds)];
+            return ['data' => Vehicle::whereIn('id', $includeIds)->orderBy('plate_number')->get()->pluck('plate_number', 'id')->toArray(), 'has_more' => false, 'total' => count($includeIds)];
         }
         
         $query->orderBy('plate_number');
@@ -356,7 +356,7 @@ class Issues extends Component
         $this->showDetailsModal = true;
         
         // Optimize relationship loading by only selecting needed fields
-        $this->selectedReport = Report::with([
+        $this->selectedIssue = Issue::with([
             'user' => function($q) {
                 $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'deleted_at')->withTrashed();
             },
@@ -372,7 +372,7 @@ class Issues extends Component
     public function closeDetailsModal()
     {
         $this->showDetailsModal = false;
-        $this->selectedReport = null;
+        $this->selectedIssue = null;
         $this->selectedSlip = null;
         $this->showAttachmentModal = false;
         $this->attachmentFile = null;
@@ -381,7 +381,7 @@ class Issues extends Component
     public function openSlipDetailsModal($slipId)
     {
         // Close report details modal if open
-        $this->selectedReport = null;
+        $this->selectedIssue = null;
 
         // Set modal state FIRST to prevent polling from interfering
         $this->showDetailsModal = true;
@@ -412,20 +412,20 @@ class Issues extends Component
         $this->isResolving = true;
 
         try {
-            if (!$this->selectedReport) {
+            if (!$this->selectedIssue) {
                 $this->dispatch('toast', message: 'No report selected.', type: 'error');
                 return;
             }
 
-            $report = Report::findOrFail($this->selectedReport->id);
+            $issue = Issue::findOrFail($this->selectedIssue->id);
             $oldValues = [
-                'resolved_at' => $report->resolved_at,
-                'resolved_by' => $report->resolved_by,
-                'description' => $report->description,
+                'resolved_at' => $issue->resolved_at,
+                'resolved_by' => $issue->resolved_by,
+                'description' => $issue->description,
             ];
             
             // Atomic update: Only resolve if not already resolved to prevent race conditions
-            $updated = Report::where('id', $this->selectedReport->id)
+            $updated = Issue::where('id', $this->selectedIssue->id)
                 ->whereNull('resolved_at') // Only update if not already resolved
                 ->update([
                     'resolved_at' => now(),
@@ -434,27 +434,27 @@ class Issues extends Component
             
             if ($updated === 0) {
                 // Report was already resolved by another process
-                $report->refresh();
+                $issue->refresh();
                 $this->dispatch('toast', message: 'This report was already resolved by another administrator. Please refresh the page.', type: 'error');
                 $this->closeDetailsModal();
                 $this->resetPage();
                 return;
             }
 
-            Cache::forget('reports_all');
+            Cache::forget('issues_all');
             
             // Refresh report to get updated data
-            $report->refresh();
+            $issue->refresh();
             
-            $reportType = $report->slip_id ? "for slip " . ($report->slip->slip_id ?? 'N/A') : "for misc";
+            $reportType = $issue->slip_id ? "for slip " . ($issue->slip->slip_id ?? 'N/A') : "for misc";
             $newValues = [
-                'resolved_at' => $report->resolved_at,
-                'resolved_by' => $report->resolved_by,
-                'description' => $report->description,
+                'resolved_at' => $issue->resolved_at,
+                'resolved_by' => $issue->resolved_by,
+                'description' => $issue->description,
             ];
             Logger::update(
-                Report::class,
-                $report->id,
+                Issue::class,
+                $issue->id,
                 "Resolved report {$reportType}",
                 $oldValues,
                 $newValues
@@ -478,19 +478,19 @@ class Issues extends Component
         $this->isResolving = true;
 
         try {
-            if (!$this->selectedReport) {
+            if (!$this->selectedIssue) {
                 $this->dispatch('toast', message: 'No report selected.', type: 'error');
                 return;
             }
 
-            $report = Report::findOrFail($this->selectedReport->id);
+            $issue = Issue::findOrFail($this->selectedIssue->id);
             $oldValues = [
-                'resolved_at' => $report->resolved_at,
-                'resolved_by' => $report->resolved_by,
+                'resolved_at' => $issue->resolved_at,
+                'resolved_by' => $issue->resolved_by,
             ];
             
             // Atomic update: Only unresolve if currently resolved to prevent race conditions
-            $updated = Report::where('id', $this->selectedReport->id)
+            $updated = Issue::where('id', $this->selectedIssue->id)
                 ->whereNotNull('resolved_at') // Only update if currently resolved
                 ->update([
                     'resolved_at' => null,
@@ -499,26 +499,26 @@ class Issues extends Component
             
             if ($updated === 0) {
                 // Report was already unresolved by another process
-                $report->refresh();
+                $issue->refresh();
                 $this->dispatch('toast', message: 'This report was already unresolved by another administrator. Please refresh the page.', type: 'error');
                 $this->closeDetailsModal();
                 $this->resetPage();
                 return;
             }
             
-            Cache::forget('reports_all');
+            Cache::forget('issues_all');
 
             // Refresh report to get updated data
-            $report->refresh();
+            $issue->refresh();
             
-            $reportType = $report->slip_id ? "for slip " . ($report->slip->slip_id ?? 'N/A') : "for misc";
+            $reportType = $issue->slip_id ? "for slip " . ($issue->slip->slip_id ?? 'N/A') : "for misc";
             $newValues = [
                 'resolved_at' => null,
                 'resolved_by' => null,
             ];
             Logger::update(
-                Report::class,
-                $report->id,
+                Issue::class,
+                $issue->id,
                 "Unresolved report {$reportType}",
                 $oldValues,
                 $newValues
@@ -548,18 +548,18 @@ class Issues extends Component
         $this->isDeleting = true;
 
         try {
-            $report = Report::findOrFail($this->selectedReportId);
-            $reportType = $report->slip_id ? "for slip " . ($report->slip->slip_id ?? 'N/A') : "for misc";
-            $oldValues = $report->only(['user_id', 'slip_id', 'description', 'resolved_at']);
+            $issue = Issue::findOrFail($this->selectedReportId);
+            $reportType = $issue->slip_id ? "for slip " . ($issue->slip->slip_id ?? 'N/A') : "for misc";
+            $oldValues = $issue->only(['user_id', 'slip_id', 'description', 'resolved_at']);
 
             // Atomic delete: Only delete if not already deleted to prevent race conditions
-            $deleted = Report::where('id', $this->selectedReportId)
+            $deleted = Issue::where('id', $this->selectedReportId)
                 ->whereNull('deleted_at') // Only delete if not already deleted
                 ->update(['deleted_at' => now()]);
 
             if ($deleted === 0) {
                 // Report was already deleted by another process
-                $report->refresh();
+                $issue->refresh();
                 $this->showDeleteConfirmation = false;
                 $this->selectedReportId = null;
                 $this->dispatch('toast', message: 'This report was already deleted by another administrator. Please refresh the page.', type: 'error');
@@ -568,39 +568,39 @@ class Issues extends Component
 
             // Log the delete action
             Logger::delete(
-                Report::class,
-                $report->id,
+                Issue::class,
+                $issue->id,
                 "Deleted report {$reportType}",
                 $oldValues
             );
 
             $this->showDeleteConfirmation = false;
             $this->selectedReportId = null;
-            $this->dispatch('toast', message: "Report #{$report->id} has been deleted.", type: 'success');
+            $this->dispatch('toast', message: "Report #{$issue->id} has been deleted.", type: 'success');
             $this->resetPage();
         } finally {
             $this->isDeleting = false;
         }
     }
 
-    private function getFilteredReportsQuery()
+    private function getFilteredIssuesQuery()
 {
     // Optimize relationship loading by only selecting needed fields
     // This significantly reduces memory usage with large datasets (5,000+ records)
-    $query = Report::with([
+    $query = Issue::with([
         'user' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'deleted_at')->withTrashed(); },
         'slip' => function($q) { $q->select('id', 'slip_id', 'truck_id', 'location_id', 'destination_id', 'driver_id', 'status', 'completed_at', 'deleted_at')->withTrashed(); },
         'resolvedBy' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'deleted_at')->withTrashed(); }
     ])->whereNull('deleted_at');
     
-    // ADMIN: Exclude reports with deleted users or deleted slips
+    // ADMIN: Exclude issues with deleted users or deleted slips
     // Use whereIn with subqueries for better performance than whereHas with large datasets
     $query->whereIn('user_id', function($subquery) {
             $subquery->select('id')->from('users')->whereNull('deleted_at');
         })
         ->where(function($q) {
-            // Either the report has no slip (miscellaneous), or the slip exists and is not deleted
-            // Note: slip_id in reports table references disinfection_slips.id (primary key)
+            // Either the issue has no slip (miscellaneous), or the slip exists and is not deleted
+            // Note: slip_id in issues table references disinfection_slips.id (primary key)
             $q->whereNull('slip_id')
               ->orWhereIn('slip_id', function($subquery) {
                   $subquery->select('id')->from('disinfection_slips')->whereNull('deleted_at');
@@ -672,10 +672,10 @@ class Issues extends Component
     
     public function render()
     {
-        $reports = $this->getFilteredReportsQuery()->paginate(15);
+        $issues = $this->getFilteredIssuesQuery()->paginate(15);
 
-        return view('livewire.admin.reports', [
-            'reports' => $reports,
+        return view('livewire.admin.issues', [
+            'issues' => $issues,
             'availableStatuses' => $this->availableStatuses,
             // Edit modal uses paginated dropdowns - no need to pass data collections
         ]);
@@ -747,7 +747,7 @@ class Issues extends Component
                 'status'
             ]);
             
-            // Clean up attachments before soft deleting the slip
+            // Clean up photos before soft deleting the slip
             $this->selectedSlip->deleteAttachments();
             
             // Atomic delete: Only delete if not already deleted to prevent race conditions
@@ -763,7 +763,7 @@ class Issues extends Component
                 return;
             }
 
-            Cache::forget('reports_all');
+            Cache::forget('issues_all');
 
             // Log the delete action
             Logger::delete(
@@ -1072,7 +1072,7 @@ class Issues extends Component
             'receivedGuard'
         ]);
 
-        Cache::forget('reports_all');
+        Cache::forget('issues_all');
 
         $slipId = $this->selectedSlip->slip_id;
         
@@ -1154,8 +1154,8 @@ class Issues extends Component
 
     public function nextAttachment()
     {
-        $attachments = $this->selectedSlipAttachments;
-        if ($this->currentAttachmentIndex < $attachments->count() - 1) {
+        $photos = $this->selectedSlipAttachments;
+        if ($this->currentAttachmentIndex < $photos->count() - 1) {
             $this->currentAttachmentIndex++;
         }
     }
@@ -1173,13 +1173,13 @@ class Issues extends Component
             return false;
         }
 
-        // Admin cannot remove attachment from completed slips (status == 2 or completed_at is set)
-        // Only SuperAdmins can remove attachments from completed slips
+        // Admin cannot remove Photo from completed slips (status == 2 or completed_at is set)
+        // Only SuperAdmins can remove photos from completed slips
         if ($this->selectedSlip->status == 2 || $this->selectedSlip->completed_at !== null) {
             return false;
         }
 
-        $attachmentIds = $this->selectedSlip->attachment_ids ?? [];
+        $attachmentIds = $this->selectedSlip->photo_ids ?? [];
         return !empty($attachmentIds);
     }
     
@@ -1193,59 +1193,59 @@ class Issues extends Component
     {
         try {
             if (!$this->canRemoveAttachment()) {
-                $this->dispatch('toast', message: 'Cannot remove attachment from a completed slip.', type: 'error');
+                $this->dispatch('toast', message: 'Cannot remove Photo from a completed slip.', type: 'error');
                 return;
             }
 
             if (!$this->attachmentToDelete) {
-                $this->dispatch('toast', message: 'No attachment specified to remove.', type: 'error');
+                $this->dispatch('toast', message: 'No Photo specified to remove.', type: 'error');
                 return;
             }
 
-            // Get current attachment IDs
-            $attachmentIds = $this->selectedSlip->attachment_ids ?? [];
+            // Get current Photo IDs
+            $attachmentIds = $this->selectedSlip->photo_ids ?? [];
             
             if (empty($attachmentIds) || !in_array($this->attachmentToDelete, $attachmentIds)) {
-                $this->dispatch('toast', message: 'Attachment not found.', type: 'error');
+                $this->dispatch('toast', message: 'Photo not found.', type: 'error');
                 return;
             }
 
-            // Get the attachment record
-            $attachment = Attachment::find($this->attachmentToDelete);
+            // Get the Photo record
+            $Photo = Photo::find($this->attachmentToDelete);
 
-            if ($attachment) {
+            if ($Photo) {
                 // Delete the physical file from storage (except BGC.png logo)
-                if ($attachment->file_path !== 'images/logo/BGC.png') {
-                    if (Storage::disk('public')->exists($attachment->file_path)) {
-                        Storage::disk('public')->delete($attachment->file_path);
+                if ($Photo->file_path !== 'images/logo/BGC.png') {
+                    if (Storage::disk('public')->exists($Photo->file_path)) {
+                        Storage::disk('public')->delete($Photo->file_path);
                     }
 
-                    // Log the attachment deletion
+                    // Log the Photo deletion
                     $oldValues = [
-                        'file_path' => $attachment->file_path,
-                        'user_id' => $attachment->user_id,
+                        'file_path' => $Photo->file_path,
+                        'user_id' => $Photo->user_id,
                         'disinfection_slip_id' => $this->selectedSlip->id,
                         'slip_number' => $this->selectedSlip->slip_id,
                     ];
 
                     Logger::delete(
-                        Attachment::class,
-                        $attachment->id,
-                        "Deleted attachment/photo from disinfection slip {$this->selectedSlip->slip_id}",
+                        Photo::class,
+                        $Photo->id,
+                        "Deleted Photo/photo from disinfection slip {$this->selectedSlip->slip_id}",
                         $oldValues,
                         ['related_slip' => $this->selectedSlip->id]
                     );
 
-                    // Hard delete the attachment record
-                    $attachment->forceDelete();
+                    // Hard delete the Photo record
+                    $Photo->forceDelete();
                 }
 
-                // Remove attachment ID from array
+                // Remove Photo ID from array
                 $attachmentIds = array_values(array_filter($attachmentIds, fn($id) => $id != $this->attachmentToDelete));
 
-                // Update slip with remaining attachment IDs (or null if empty)
+                // Update slip with remaining Photo IDs (or null if empty)
                 $this->selectedSlip->update([
-                    'attachment_ids' => empty($attachmentIds) ? null : $attachmentIds,
+                    'photo_ids' => empty($attachmentIds) ? null : $attachmentIds,
                 ]);
             }
 
@@ -1253,11 +1253,11 @@ class Issues extends Component
             $this->selectedSlip->refresh();
 
             // Adjust current index if needed
-            $attachments = $this->selectedSlipAttachments;
-            if ($this->currentAttachmentIndex >= $attachments->count() && $attachments->count() > 0) {
-                $this->currentAttachmentIndex = $attachments->count() - 1;
-            } elseif ($attachments->count() === 0) {
-                // No more attachments, close modal
+            $photos = $this->selectedSlipAttachments;
+            if ($this->currentAttachmentIndex >= $photos->count() && $photos->count() > 0) {
+                $this->currentAttachmentIndex = $photos->count() - 1;
+            } elseif ($photos->count() === 0) {
+                // No more photos, close modal
                 $this->showAttachmentModal = false;
                 $this->currentAttachmentIndex = 0;
             }
@@ -1266,14 +1266,14 @@ class Issues extends Component
             $this->showRemoveAttachmentConfirmation = false;
             $this->attachmentToDelete = null;
 
-            Cache::forget('reports_all');
+            Cache::forget('issues_all');
 
             $slipId = $this->selectedSlip->slip_id;
-            $this->dispatch('toast', message: "Attachment has been removed from {$slipId}.", type: 'success');
+            $this->dispatch('toast', message: "Photo has been removed from {$slipId}.", type: 'success');
 
         } catch (\Exception $e) {
-            Log::error('Attachment removal error: ' . $e->getMessage());
-            $this->dispatch('toast', message: 'Failed to remove attachment. Please try again.', type: 'error');
+            Log::error('Photo removal error: ' . $e->getMessage());
+            $this->dispatch('toast', message: 'Failed to remove Photo. Please try again.', type: 'error');
         }
     }
 }

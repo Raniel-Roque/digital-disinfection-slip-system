@@ -25,8 +25,8 @@
                 <div class="hidden sm:block p-5 sm:p-6">
                     <!-- Logo Section -->
                     <div class="flex justify-center items-center mb-4 sm:mb-5 h-20 sm:h-24">
-                        @if ($location->attachment_id && $location->attachment)
-                            <img src="{{ asset('storage/' . $location->attachment->file_path) }}"
+                        @if ($location->photo_id && $location->Photo)
+                            <img src="{{ asset('storage/' . $location->Photo->file_path) }}"
                                 alt="{{ $location->location_name }}"
                                 class="max-h-full w-auto object-contain filter group-hover:scale-110 transition-transform duration-300">
                         @else
@@ -70,8 +70,8 @@
                     <div class="flex items-center gap-3">
                         <!-- Logo/Image -->
                         <div class="shrink-0 w-14 h-14">
-                            @if ($location->attachment_id && $location->attachment)
-                                <img src="{{ asset('storage/' . $location->attachment->file_path) }}"
+                            @if ($location->photo_id && $location->Photo)
+                                <img src="{{ asset('storage/' . $location->Photo->file_path) }}"
                                     alt="{{ $location->location_name }}"
                                     class="w-full h-full object-contain rounded-lg group-hover:scale-110 transition-transform duration-300">
                             @else

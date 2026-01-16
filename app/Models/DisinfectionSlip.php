@@ -20,7 +20,7 @@ class DisinfectionSlip extends Model
         'driver_id',
         'reason_id',
         'remarks_for_disinfection',
-        'attachment_ids',
+        'photo_ids',
         'hatchery_guard_id',
         'received_guard_id',
         'status',
@@ -30,7 +30,7 @@ class DisinfectionSlip extends Model
     protected function casts(): array
     {
         return [
-            'attachment_ids' => 'array',
+            'photo_ids' => 'array',
         ];
     }
     protected static function boot()
@@ -43,22 +43,22 @@ class DisinfectionSlip extends Model
             }
         });
 
-        // Delete attachments when slip is force deleted
+        // Delete photos when slip is force deleted
         static::deleting(function ($slip) {
-            // Only delete attachments on force delete (hard delete), not soft delete
+            // Only delete photos on force delete (hard delete), not soft delete
             if ($slip->isForceDeleting()) {
                 $slip->deleteAttachments();
             }
         });
 
-        // Clean up orphaned attachments when attachment_ids is updated
+        // Clean up orphaned photos when photo_ids is updated
         static::updating(function ($slip) {
-            // Only check if attachment_ids is being modified
-            if ($slip->isDirty('attachment_ids')) {
-                $oldAttachmentIds = $slip->getOriginal('attachment_ids') ?? [];
-                $newAttachmentIds = $slip->attachment_ids ?? [];
+            // Only check if photo_ids is being modified
+            if ($slip->isDirty('photo_ids')) {
+                $oldAttachmentIds = $slip->getOriginal('photo_ids') ?? [];
+                $newAttachmentIds = $slip->photo_ids ?? [];
                 
-                // Find attachments that were removed (in old but not in new)
+                // Find photos that were removed (in old but not in new)
                 $removedIds = array_diff($oldAttachmentIds, $newAttachmentIds);
                 
                 if (!empty($removedIds)) {
@@ -69,39 +69,39 @@ class DisinfectionSlip extends Model
     }
 
     /**
-     * Delete all attachments associated with this slip
+     * Delete all photos associated with this slip
      */
     public function deleteAttachments()
     {
-        if (!$this->attachment_ids || empty($this->attachment_ids)) {
+        if (!$this->photo_ids || empty($this->photo_ids)) {
             return;
         }
 
-        $attachments = Attachment::whereIn('id', $this->attachment_ids)->get();
+        $photos = Photo::whereIn('id', $this->photo_ids)->get();
         
-        foreach ($attachments as $attachment) {
+        foreach ($photos as $Photo) {
             // Delete the file from storage
-            if ($attachment->file_path && Storage::disk('public')->exists($attachment->file_path)) {
+            if ($Photo->file_path && Storage::disk('public')->exists($Photo->file_path)) {
                 // Don't delete default logo (BGC.png)
-                if ($attachment->file_path !== 'images/logo/BGC.png') {
-                    Storage::disk('public')->delete($attachment->file_path);
+                if ($Photo->file_path !== 'images/logo/BGC.png') {
+                    Storage::disk('public')->delete($Photo->file_path);
                 }
             }
             
-            // Check if attachment is used by locations (attachment_id)
+            // Check if Photo is used by locations (photo_id)
             $isUsedByLocation = DB::table('locations')
-                ->where('attachment_id', $attachment->id)
+                ->where('photo_id', $Photo->id)
                 ->exists();
             
-            // Only delete attachment record if not used by locations
+            // Only delete Photo record if not used by locations
             if (!$isUsedByLocation) {
-                $attachment->forceDelete();
+                $Photo->forceDelete();
             }
         }
     }
 
     /**
-     * Clean up orphaned attachments that are no longer referenced by this slip
+     * Clean up orphaned photos that are no longer referenced by this slip
      */
     private function cleanupOrphanedAttachments(array $attachmentIds)
     {
@@ -109,31 +109,31 @@ class DisinfectionSlip extends Model
             return;
         }
 
-        $attachments = Attachment::whereIn('id', $attachmentIds)->get();
+        $photos = Photo::whereIn('id', $attachmentIds)->get();
         
-        foreach ($attachments as $attachment) {
-            // Check if this attachment is still referenced by any other slip
+        foreach ($photos as $Photo) {
+            // Check if this Photo is still referenced by any other slip
             $isStillReferenced = DisinfectionSlip::where('id', '!=', $this->id)
-                ->whereJsonContains('attachment_ids', $attachment->id)
+                ->whereJsonContains('photo_ids', $Photo->id)
                 ->exists();
             
             // Only delete if not referenced by any other slip and not used by locations
             if (!$isStillReferenced) {
-                // Check if attachment is used by locations (attachment_id, not logo_attachment_id based on migration)
+                // Check if Photo is used by locations (photo_id, not logo_attachment_id based on migration)
                 $isUsedByLocation = DB::table('locations')
-                    ->where('attachment_id', $attachment->id)
+                    ->where('photo_id', $Photo->id)
                     ->exists();
                 
                 if (!$isUsedByLocation) {
                     // Delete the file from storage (except BGC.png)
-                    if ($attachment->file_path && $attachment->file_path !== 'images/logo/BGC.png') {
-                        if (Storage::disk('public')->exists($attachment->file_path)) {
-                            Storage::disk('public')->delete($attachment->file_path);
+                    if ($Photo->file_path && $Photo->file_path !== 'images/logo/BGC.png') {
+                        if (Storage::disk('public')->exists($Photo->file_path)) {
+                            Storage::disk('public')->delete($Photo->file_path);
                         }
                     }
                     
-                    // Hard delete the attachment record
-                    $attachment->forceDelete();
+                    // Hard delete the Photo record
+                    $Photo->forceDelete();
                 }
             }
         }
@@ -165,7 +165,7 @@ class DisinfectionSlip extends Model
     // Relationships
     public function truck()
     {
-        return $this->belongsTo(Truck::class);
+        return $this->belongsTo(Vehicle::class);
     }
 
     public function location()
@@ -189,26 +189,26 @@ class DisinfectionSlip extends Model
     }
 
     /**
-     * Get a single attachment (for backward compatibility)
-     * Returns the first attachment if multiple exist
+     * Get a single Photo (for backward compatibility)
+     * Returns the first Photo if multiple exist
      */
-    public function attachment()
+    public function Photo()
     {
-        if (!$this->attachment_ids || empty($this->attachment_ids)) {
+        if (!$this->photo_ids || empty($this->photo_ids)) {
             return null;
         }
-        return Attachment::find($this->attachment_ids[0]);
+        return Photo::find($this->photo_ids[0]);
     }
 
     /**
-     * Get all attachments as a collection
+     * Get all photos as a collection
      */
-    public function attachments()
+    public function photos()
     {
-        if (!$this->attachment_ids || empty($this->attachment_ids)) {
+        if (!$this->photo_ids || empty($this->photo_ids)) {
             return collect([]);
         }
-        return Attachment::whereIn('id', $this->attachment_ids)->get();
+        return Photo::whereIn('id', $this->photo_ids)->get();
     }
 
     public function hatcheryGuard()
@@ -221,8 +221,8 @@ class DisinfectionSlip extends Model
         return $this->belongsTo(User::class, 'received_guard_id');
     }
 
-    public function reports()
+    public function issues()
     {
-        return $this->hasMany(Report::class, 'slip_id');
+        return $this->hasMany(Issue::class, 'slip_id');
     }
 }

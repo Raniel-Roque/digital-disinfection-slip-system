@@ -19,10 +19,10 @@ Schedule::command('clean:logs')
     ->at('00:00')
     ->description('Clean up old logs based on retention period');
 
-Schedule::command('clean:resolved-reports')
+Schedule::command('clean:resolved-issues')
     ->daily()
     ->at('00:00')
-    ->description('Clean up old resolved reports based on retention period');
+    ->description('Clean up old resolved issues based on retention period');
 
 Schedule::command('clean:soft-deleted')
     ->daily()

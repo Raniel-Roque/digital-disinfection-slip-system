@@ -4,11 +4,11 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\DisinfectionSlip;
-use App\Models\Truck;
+use App\Models\Vehicle;
 use App\Models\Driver;
 use App\Models\Location;
 use App\Models\User;
-use App\Models\Attachment;
+use App\Models\Photo;
 use App\Models\Reason;
 
 class DisinfectionSlipFactory extends Factory
@@ -38,13 +38,13 @@ class DisinfectionSlipFactory extends Factory
         }
         
         return [
-            'truck_id' => Truck::factory(),
+            'truck_id' => Vehicle::factory(),
             'location_id' => Location::factory(),
             'destination_id' => Location::factory(),
             'driver_id' => Driver::factory(),
             'reason_id' => $reasonId,
             'remarks_for_disinfection' => $this->faker->optional(0.7)->sentence(),
-            'attachment_ids' => $hasAttachment ? [Attachment::factory()->create()->id] : null,
+            'photo_ids' => $hasAttachment ? [Photo::factory()->create()->id] : null,
             'hatchery_guard_id' => User::factory()->guard(),
             'received_guard_id' => $hasReceivedGuard ? User::factory()->guard() : null,
             'status' => $status,

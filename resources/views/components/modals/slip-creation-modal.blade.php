@@ -607,7 +607,7 @@
     message="Are you sure you want to cancel?" warning="All unsaved changes will be lost." onConfirm="cancelCreate"
     confirmText="Discard" cancelText="Back" />
 
-{{-- Remove Pending Attachment Confirmation Modal --}}
+{{-- Remove Pending Photo Confirmation Modal --}}
 <x-modals.delete-confirmation show="showRemovePendingAttachmentConfirmation" title="DELETE PHOTO?"
     message="Are you sure you want to delete this photo?" warning="This action cannot be undone."
     onConfirm="removePendingAttachment" confirmText="Delete" cancelText="Cancel" />
@@ -638,10 +638,10 @@
                 {{-- Images Container --}}
                 <div class="flex transition-transform duration-300 ease-in-out w-full" 
                      :style="`transform: translateX(-${currentIndex * 100}%)`">
-                    @foreach ($pendingAttachments as $index => $attachment)
+                    @foreach ($pendingAttachments as $index => $Photo)
                         @php
-                            $fileUrl = \Illuminate\Support\Facades\Storage::url($attachment->file_path);
-                            $extension = strtolower(pathinfo($attachment->file_path ?? '', PATHINFO_EXTENSION));
+                            $fileUrl = \Illuminate\Support\Facades\Storage::url($Photo->file_path);
+                            $extension = strtolower(pathinfo($Photo->file_path ?? '', PATHINFO_EXTENSION));
                             $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
                             $isImage = in_array($extension, $imageExtensions);
                         @endphp
@@ -649,7 +649,7 @@
                             @if ($isImage)
                                 <img src="{{ $fileUrl }}" 
                                      class="border shadow-md max-h-[45vh] sm:max-h-[55vh] max-w-full w-auto object-contain mx-auto rounded-lg"
-                                     alt="Attachment {{ $index + 1 }}">
+                                     alt="Photo {{ $index + 1 }}">
                             @else
                                 <div class="text-center p-4 sm:p-8">
                                     <p class="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-4">
@@ -681,7 +681,7 @@
             {{-- Indicators/Dots --}}
             @if ($totalPendingAttachments > 1)
                 <div class="flex justify-center mt-3 sm:mt-4 space-x-1.5 sm:space-x-2 overflow-x-auto max-w-full px-2">
-                    @foreach ($pendingAttachments as $index => $attachment)
+                    @foreach ($pendingAttachments as $index => $Photo)
                         <button 
                             @click="$wire.openPendingAttachmentModal({{ $index }})"
                             class="w-2 h-2 rounded-full transition-all shrink-0"
@@ -717,12 +717,12 @@
             {{-- Delete Current Photo Button --}}
             @if ($totalPendingAttachments > 0)
                 @php
-                    // Create initial map of attachment IDs to user IDs for Alpine.js
+                    // Create initial map of Photo IDs to user IDs for Alpine.js
                     $attachmentsMap = $pendingAttachments->mapWithKeys(fn($a) => [$a->id => $a->user_id])->toArray();
-                    // Create a key based on attachment IDs to force Alpine re-initialization when attachments change
+                    // Create a key based on Photo IDs to force Alpine re-initialization when photos change
                     $attachmentsKey = implode(',', $pendingAttachmentIds ?? []);
                 @endphp
-                <div wire:key="pending-attachments-{{ $attachmentsKey }}" x-data="{
+                <div wire:key="pending-photos-{{ $attachmentsKey }}" x-data="{
                     initialAttachmentsMap: @js($attachmentsMap),
                     currentUserId: @js($currentUserId),
                     isAdminOrSuperAdmin: @js($isAdminOrSuperAdmin),
@@ -767,7 +767,7 @@
                     });
                     $watch(() => $wire.pendingAttachmentIds, (newIds) => {
                         this.attachmentIds = newIds || [];
-                        // Update map when attachments are deleted
+                        // Update map when photos are deleted
                         const currentIds = new Set(this.attachmentIds);
                         if (this.initialAttachmentsMap && typeof this.initialAttachmentsMap === 'object') {
                             Object.keys(this.initialAttachmentsMap).forEach(id => {

@@ -3,14 +3,14 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use App\Models\Truck;
+use App\Models\Vehicle;
 use App\Models\Driver;
 use App\Models\Location;
 use App\Models\Reason;
 use App\Models\DisinfectionSlip;
-use App\Models\Report;
+use App\Models\Issue;
 use App\Models\Log;
-use App\Models\Attachment;
+use App\Models\Photo;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -20,7 +20,7 @@ class StressTestSeeder extends Seeder
 
     /**
      * Run the stress test seeder.
-     * This seeds normal data first, then adds stress test entries (5,000 for all models including slips, reports, and attachments).
+     * This seeds normal data first, then adds stress test entries (5,000 for all models including slips, issues, and photos).
      */
     public function run(): void
     {
@@ -109,9 +109,9 @@ class StressTestSeeder extends Seeder
         $userIds = User::pluck('id')->toArray();
         
         // Create 5,000 Trucks
-        $this->command->info('Creating 5,000 trucks...');
+        $this->command->info('Creating 5,000 vehicles...');
         for ($batch = 0; $batch < $totalBatches; $batch++) {
-            Truck::factory()->count($batchSize)->create();
+            Vehicle::factory()->count($batchSize)->create();
             $this->command->info("  Batch " . ($batch + 1) . "/{$totalBatches} completed");
         }
         $this->command->info('✓ Created 5,000 trucks');
@@ -143,7 +143,7 @@ class StressTestSeeder extends Seeder
             for ($i = 0; $i < $batchSize; $i++) {
                 Location::create([
                     'location_name' => fake()->randomElement(['BGC', 'Baliwag', 'San Rafael', 'Angeles', 'Tarlac', 'Pampanga', 'Bulacan', 'Manila', 'Laguna', 'Cavite', 'Batangas', 'Quezon', 'Nueva Ecija', 'Zambales']) . ' ' . fake()->randomElement(['Hatchery', 'Farm', 'Facility', 'Processing Plant', 'Distribution Center']),
-                    'attachment_id' => null,
+                    'photo_id' => null,
                     'disabled' => false,
                     'create_slip' => fake()->boolean(80),
                 ]);
@@ -152,8 +152,8 @@ class StressTestSeeder extends Seeder
         }
         $this->command->info('✓ Created 5,000 locations');
         
-        // Create 5,000 Attachments (mix of location logos and slip uploads)
-        $this->command->info('Creating 5,000 attachments (logos and uploads)...');
+        // Create 5,000 photos (mix of location logos and slip uploads)
+        $this->command->info('Creating 5,000 photos (logos and uploads)...');
         /** @phpstan-ignore-next-line */
         $allUserIds = User::pluck('id')->toArray();
         
@@ -165,7 +165,7 @@ class StressTestSeeder extends Seeder
             for ($i = 0; $i < $batchSize; $i++) {
                 $isLogo = fake()->boolean(20); // 20% are logos, 80% are uploads
                 
-                $attachment = Attachment::create([
+                $Photo = Photo::create([
                     'file_path' => $isLogo 
                         ? 'images/logos/' . fake()->uuid() . '.png'
                         : 'images/uploads/' . fake()->uuid() . '.' . fake()->randomElement(['jpg', 'jpeg', 'png']),
@@ -173,24 +173,24 @@ class StressTestSeeder extends Seeder
                     'created_at' => fake()->dateTimeBetween('-1 year', 'now'),
                 ]);
                 
-                $attachmentIds[] = $attachment->id;
+                $attachmentIds[] = $Photo->id;
                 if ($isLogo) {
-                    $logoAttachmentIds[] = $attachment->id;
+                    $logoAttachmentIds[] = $Photo->id;
                 } else {
-                    $uploadAttachmentIds[] = $attachment->id;
+                    $uploadAttachmentIds[] = $Photo->id;
                 }
             }
             $this->command->info("  Batch " . ($batch + 1) . "/{$totalBatches} completed");
         }
-        $this->command->info('✓ Created 5,000 attachments (' . count($logoAttachmentIds) . ' logos, ' . count($uploadAttachmentIds) . ' uploads)');
+        $this->command->info('✓ Created 5,000 photos (' . count($logoAttachmentIds) . ' logos, ' . count($uploadAttachmentIds) . ' uploads)');
         
-        // Update some locations with logo attachments
+        // Update some locations with logo photos
         $this->command->info('Assigning logos to locations...');
         /** @phpstan-ignore-next-line */
         $locations = Location::inRandomOrder()->limit(min(500, count($logoAttachmentIds)))->get();
         foreach ($locations as $index => $location) {
             if ($index < count($logoAttachmentIds)) {
-                $location->update(['attachment_id' => $logoAttachmentIds[$index]]);
+                $location->update(['photo_id' => $logoAttachmentIds[$index]]);
             }
         }
         $this->command->info('✓ Assigned ' . count($locations) . ' logos to locations');
@@ -198,7 +198,7 @@ class StressTestSeeder extends Seeder
         // Get IDs only (not full models) to save memory - refresh after each batch
         $this->command->info('Loading relationship data...');
         /** @phpstan-ignore-next-line */
-        $truckIds = Truck::pluck('id')->toArray();
+        $truckIds = Vehicle::pluck('id')->toArray();
         /** @phpstan-ignore-next-line */
         $driverIds = Driver::pluck('id')->toArray();
         /** @phpstan-ignore-next-line */
@@ -252,7 +252,7 @@ class StressTestSeeder extends Seeder
                     $completedAt = fake()->dateTimeBetween($createdAt, $createdAt->format('Y-m-d H:i:s') . ' +30 days');
                 }
                 
-                // 60% of slips have 1-3 upload attachments
+                // 60% of slips have 1-3 upload photos
                 $slipAttachmentIds = null;
                 if (fake()->boolean(60) && !empty($uploadAttachmentIds)) {
                     $numAttachments = fake()->numberBetween(1, 3);
@@ -271,7 +271,7 @@ class StressTestSeeder extends Seeder
                     'received_guard_id' => fake()->boolean(80) && !empty($guardIds) ? fake()->randomElement($guardIds) : null,
                     'reason_id' => fake()->boolean(70) && !empty($reasonIds) ? fake()->randomElement($reasonIds) : null,
                     'remarks_for_disinfection' => fake()->optional(0.7)->sentence(),
-                    'attachment_ids' => $slipAttachmentIds,
+                    'photo_ids' => $slipAttachmentIds,
                     'status' => $status,
                     'completed_at' => $completedAt,
                     'created_at' => $createdAt,
@@ -282,8 +282,8 @@ class StressTestSeeder extends Seeder
         }
         $this->command->info('✓ Created 5,000 disinfection slips');
         
-        // Create 5,000 Reports
-        $this->command->info('Creating 5,000 reports...');
+        // Create 5,000 Issues
+        $this->command->info('Creating 5,000 issues...');
         /** @phpstan-ignore-next-line */
         $slipIds = DisinfectionSlip::pluck('id')->toArray();
         /** @phpstan-ignore-next-line */
@@ -296,8 +296,8 @@ class StressTestSeeder extends Seeder
                 $resolvedBy = $isResolved && !empty($adminsAndSuperAdmins) 
                     ? fake()->randomElement($adminsAndSuperAdmins) 
                     : null;
-                
-                Report::create([
+
+                Issue::create([
                     'user_id' => fake()->randomElement($userIds),
                     'slip_id' => $hasSlip && !empty($slipIds) ? fake()->randomElement($slipIds) : null,
                     'description' => fake()->paragraph(),
@@ -307,7 +307,7 @@ class StressTestSeeder extends Seeder
             }
             $this->command->info("  Batch " . ($batch + 1) . "/{$totalBatches} completed");
         }
-        $this->command->info('✓ Created 5,000 reports');
+        $this->command->info('✓ Created 5,000 issues');
         
         // Create 5,000 Audit Logs
         $this->command->info('Creating 5,000 audit logs...');
@@ -316,7 +316,7 @@ class StressTestSeeder extends Seeder
         /** @phpstan-ignore-next-line */
         $allUserIds = User::pluck('id')->toArray();
         /** @phpstan-ignore-next-line */
-        $allTruckIds = Truck::pluck('id')->toArray();
+        $allTruckIds = Vehicle::pluck('id')->toArray();
         /** @phpstan-ignore-next-line */
         $allDriverIds = Driver::pluck('id')->toArray();
         /** @phpstan-ignore-next-line */
@@ -324,7 +324,7 @@ class StressTestSeeder extends Seeder
         /** @phpstan-ignore-next-line */
         $allSlipIds = DisinfectionSlip::pluck('id')->toArray();
         /** @phpstan-ignore-next-line */
-        $allReportIds = Report::pluck('id')->toArray();
+        $allReportIds = Issue::pluck('id')->toArray();
         
         // Define model types and their corresponding IDs
         $modelTypes = [
@@ -475,9 +475,9 @@ class StressTestSeeder extends Seeder
         $this->command->info('  - Drivers: 5,000');
         $this->command->info('  - Locations: 5,000');
         $this->command->info('  - Reasons: 5,000');
-        $this->command->info('  - Attachments: 5,000 (' . count($logoAttachmentIds) . ' logos, ' . count($uploadAttachmentIds) . ' uploads)');
-        $this->command->info('  - Disinfection Slips: 5,000 (with attachments)');
-        $this->command->info('  - Reports: 5,000');
+        $this->command->info('  - photos: 5,000 (' . count($logoAttachmentIds) . ' logos, ' . count($uploadAttachmentIds) . ' uploads)');
+        $this->command->info('  - Disinfection Slips: 5,000 (with photos)');
+        $this->command->info('  - Issues: 5,000');
         $this->command->info('  - Audit Logs: 5,000');
     }
 }

@@ -43,7 +43,7 @@
                         <div class="text-gray-900 font-semibold">{{ $selectedSlip->slip_id }}</div>
             </div>
                     <div class="flex items-center">
-                        <button wire:click="openReportModal" type="button"
+                        <button wire:click="openIssueModal" type="button"
                             class="p-1.5 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 cursor-pointer"
                             title="Report Issue">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -397,8 +397,8 @@
                         }
                     }">
                             @php
-                                $attachments = $selectedSlip->attachments();
-                                $attachmentCount = $attachments->count();
+                                $photos = $selectedSlip->photos();
+                                $attachmentCount = $photos->count();
                             @endphp
                             @if ($attachmentCount > 0)
                                 {{-- Mobile Layout --}}
@@ -970,12 +970,12 @@
     </x-modals.modal-template>
 
     {{-- Photo Gallery Modal --}}
-    <x-modals.attachment show="showAttachmentModal" :selectedSlip="$selectedSlip" />
+    <x-modals.Photo show="showAttachmentModal" :selectedSlip="$selectedSlip" />
 
     {{-- Add Photos Modal is now inline Alpine.js modal above --}}
 
     {{-- Report Issue Modal --}}
-    <x-modals.modal-template show="showReportModal" title="REPORT AN ISSUE" max-width="max-w-3xl"
+    <x-modals.modal-template show="showIssueModal" title="REPORT AN ISSUE" max-width="max-w-3xl"
         header-class="border-t-4 border-t-red-500 bg-red-50">
         @if ($selectedSlip)
             {{-- Sub Header --}}
@@ -997,10 +997,10 @@
                 <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
                     <div class="font-semibold text-gray-500">Description:</div>
                     <div class="text-gray-900">
-                        <textarea wire:model="reportDescription" rows="6"
+                        <textarea wire:model="issueDescription" rows="6"
                             class="w-full border rounded px-2 py-2 text-sm border-gray-300 focus:border-red-500 focus:ring-red-500"
                             placeholder="Please describe the issue for reporting this slip..."></textarea>
-                        @error('reportDescription')
+                        @error('issueDescription')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                         <p class="mt-1 text-xs text-gray-500">Minimum 10 characters required.</p>
@@ -1023,7 +1023,7 @@
                     </span>
                 </x-buttons.submit-button>
 
-                <x-buttons.submit-button wire:click="closeReportModal" color="white" wire:loading.attr="disabled" wire:target="submitReport">
+                <x-buttons.submit-button wire:click="closeIssueModal" color="white" wire:loading.attr="disabled" wire:target="submitReport">
                     Cancel
                 </x-buttons.submit-button>
             </div>

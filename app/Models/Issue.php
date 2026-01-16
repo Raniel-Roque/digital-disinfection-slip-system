@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Services\Logger;
 
-class Report extends Model
+class Issue extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'issues'; // Keep existing table name
+    
     protected $fillable = [
         'user_id',
         'slip_id',
@@ -27,14 +29,14 @@ class Report extends Model
     {
         parent::boot();
 
-        static::created(function ($report) {
-            $slipId = $report->slip ? $report->slip->slip_id : null;
-            $reportType = $slipId ? "for slip {$slipId}" : "miscellaneous";
-            $newValues = $report->only(['user_id', 'slip_id', 'description']);
+        static::created(function ($issue) {
+            $slipId = $issue->slip ? $issue->slip->slip_id : null;
+            $issueType = $slipId ? "for slip {$slipId}" : "miscellaneous";
+            $newValues = $issue->only(['user_id', 'slip_id', 'description']);
             Logger::create(
                 self::class,
-                $report->id,
-                "Created report {$reportType}",
+                $issue->id,
+                "Created issue {$issueType}",
                 $newValues
             );
         });

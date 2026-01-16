@@ -3,7 +3,7 @@
 namespace App\Livewire\User\Data;
 
 use App\Models\Location;
-use App\Models\Attachment;
+use App\Models\Photo;
 use App\Models\Setting;
 use App\Services\Logger;
 use Livewire\Component;
@@ -173,8 +173,8 @@ class Locations extends Component
         $this->remove_logo = false;
         
         // Set current logo path for preview
-        if ($location->attachment_id && $location->attachment) {
-            $this->current_logo_path = $location->attachment->file_path;
+        if ($location->photo_id && $location->Photo) {
+            $this->current_logo_path = $location->Photo->file_path;
         } else {
             $defaultLogo = Setting::where('setting_name', 'default_location_logo')->value('value') ?? 'images/logo/BGC.png';
             $this->current_logo_path = $defaultLogo;
@@ -182,7 +182,7 @@ class Locations extends Component
         
         // Store original values for change detection
         $this->original_location_name = $location->location_name;
-        $this->original_attachment_id = $location->attachment_id;
+        $this->original_attachment_id = $location->photo_id;
         $this->original_create_slip = $location->create_slip ?? false;
         
         $this->showEditModal = true;
@@ -230,20 +230,20 @@ class Locations extends Component
         
         $location = Location::findOrFail($this->selectedLocationId);
         
-        // Handle logo update/removal first to determine new attachment_id
-        $attachmentId = $location->attachment_id;
+        // Handle logo update/removal first to determine new photo_id
+        $attachmentId = $location->photo_id;
         
         if ($this->remove_logo) {
             // Remove existing logo if it exists
             if ($attachmentId) {
-                $attachment = Attachment::find($attachmentId);
-                if ($attachment) {
+                $Photo = Photo::find($attachmentId);
+                if ($Photo) {
                     // Delete the physical file from storage
-                    if (Storage::disk('public')->exists($attachment->file_path)) {
-                        Storage::disk('public')->delete($attachment->file_path);
+                    if (Storage::disk('public')->exists($Photo->file_path)) {
+                        Storage::disk('public')->delete($Photo->file_path);
                     }
-                    // Hard delete the attachment record
-                    $attachment->forceDelete();
+                    // Hard delete the Photo record
+                    $Photo->forceDelete();
                 }
             }
             $attachmentId = null;
@@ -251,7 +251,7 @@ class Locations extends Component
             // Upload new logo
             // Delete old logo if it exists
             if ($attachmentId) {
-                $oldAttachment = Attachment::find($attachmentId);
+                $oldAttachment = Photo::find($attachmentId);
                 if ($oldAttachment) {
                     if (Storage::disk('public')->exists($oldAttachment->file_path)) {
                         Storage::disk('public')->delete($oldAttachment->file_path);
@@ -267,18 +267,18 @@ class Locations extends Component
             // Store file in images/logos/ directory
             $path = $this->edit_logo->storeAs('images/logos', $filename, 'public');
             
-            // Create attachment record
-            $attachment = Attachment::create([
+            // Create Photo record
+            $Photo = Photo::create([
                 'file_path' => $path,
                 'user_id' => Auth::id(),
             ]);
             
-            $attachmentId = $attachment->id;
+            $attachmentId = $Photo->id;
         }
         
         // Check if there are any changes
         $nameChanged = $location->location_name !== $locationName;
-        $attachmentChanged = $location->attachment_id !== $attachmentId;
+        $attachmentChanged = $location->photo_id !== $attachmentId;
         $createSlipChanged = ($location->create_slip ?? false) !== $this->create_slip;
         
         if (!$nameChanged && !$attachmentChanged && !$createSlipChanged) {
@@ -290,11 +290,11 @@ class Locations extends Component
         }
         
         // Capture old values for logging
-        $oldValues = $location->only(['location_name', 'attachment_id', 'create_slip']);
+        $oldValues = $location->only(['location_name', 'photo_id', 'create_slip']);
         
         $location->update([
             'location_name' => $locationName,
-            'attachment_id' => $attachmentId,
+            'photo_id' => $attachmentId,
             'create_slip' => $this->create_slip,
         ]);
 
@@ -318,7 +318,7 @@ class Locations extends Component
         
         // Log the update
         $location->refresh();
-        $newValues = $location->only(['location_name', 'attachment_id']);
+        $newValues = $location->only(['location_name', 'photo_id']);
         Logger::update(
             Location::class,
             $location->id,
@@ -501,19 +501,19 @@ class Locations extends Component
             // Store file in images/logos/ directory
             $path = $this->create_logo->storeAs('images/logos', $filename, 'public');
             
-            // Create attachment record
-            $attachment = Attachment::create([
+            // Create Photo record
+            $Photo = Photo::create([
                 'file_path' => $path,
                 'user_id' => Auth::id(),
             ]);
             
-            $attachmentId = $attachment->id;
+            $attachmentId = $Photo->id;
         }
 
         // Create location
         $location = Location::create([
             'location_name' => $locationName,
-            'attachment_id' => $attachmentId,
+            'photo_id' => $attachmentId,
             'disabled' => false,
             'create_slip' => $this->create_create_slip,
         ]);
@@ -521,7 +521,7 @@ class Locations extends Component
         Cache::forget('locations_all');
         
         // Log the creation
-        $newValues = $location->only(['location_name', 'attachment_id', 'disabled']);
+        $newValues = $location->only(['location_name', 'photo_id', 'disabled']);
         Logger::create(
             Location::class,
             $location->id,
@@ -537,7 +537,7 @@ class Locations extends Component
 
     public function render()
     {
-        $locations = Location::with('attachment')
+        $locations = Location::with('Photo')
             ->when($this->search, function ($query) {
                 $searchTerm = $this->search;
                 
@@ -604,7 +604,7 @@ class Locations extends Component
         // Get current location for edit modal if open
         $currentLocation = null;
         if ($this->showEditModal && $this->selectedLocationId) {
-            $currentLocation = Location::with('attachment')->find($this->selectedLocationId);
+            $currentLocation = Location::with('Photo')->find($this->selectedLocationId);
         }
 
         return view('livewire.user.data.locations', [
@@ -618,7 +618,7 @@ class Locations extends Component
 
     public function getExportData()
     {
-        return Location::with('attachment')
+        return Location::with('Photo')
             ->when($this->search, function ($query) {
                 $searchTerm = trim($this->search);
                 $searchTerm = preg_replace('/[%_]/', '', $searchTerm);
@@ -652,7 +652,7 @@ class Locations extends Component
         
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'Photo; filename="' . $filename . '"',
         ];
 
         $callback = function() use ($data) {
@@ -683,7 +683,7 @@ class Locations extends Component
         
         $headers = [
             'Content-Type' => 'application/vnd.ms-excel',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'Photo; filename="' . $filename . '"',
         ];
 
         $callback = function() use ($data) {

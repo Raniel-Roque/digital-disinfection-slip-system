@@ -3,8 +3,8 @@
 <x-modals.modal-template :show="$show" title="Photos" max-width="w-[96%] sm:max-w-4xl" backdrop-opacity="40">
 
     @php
-        $attachments = $selectedSlip?->attachments() ?? collect([]);
-        $totalAttachments = $attachments->count();
+        $photos = $selectedSlip?->photos() ?? collect([]);
+        $totalAttachments = $photos->count();
         $status = $selectedSlip?->status ?? null;
     @endphp
 
@@ -28,13 +28,13 @@
                 {{-- Images Container --}}
                 <div class="flex transition-transform duration-300 ease-in-out w-full" 
                      :style="`transform: translateX(-${currentIndex * 100}%)`">
-                    @foreach ($attachments as $index => $attachment)
+                    @foreach ($photos as $index => $Photo)
                         @php
-                            $fileUrl = Storage::url($attachment->file_path);
-                            $extension = strtolower(pathinfo($attachment->file_path ?? '', PATHINFO_EXTENSION));
+                            $fileUrl = Storage::url($Photo->file_path);
+                            $extension = strtolower(pathinfo($Photo->file_path ?? '', PATHINFO_EXTENSION));
                             $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
                             $isImage = in_array($extension, $imageExtensions);
-                            $uploader = $attachment->user;
+                            $uploader = $Photo->user;
                             $uploaderName = $uploader ? ($uploader->first_name . ' ' . $uploader->last_name) : 'Unknown';
                             $uploaderUsername = $uploader ? $uploader->username : 'N/A';
                         @endphp
@@ -87,7 +87,7 @@
             {{-- Indicators/Dots --}}
             @if ($totalAttachments > 1)
                 <div class="flex justify-center mt-3 sm:mt-4 space-x-1.5 sm:space-x-2 overflow-x-auto max-w-full px-2">
-                    @foreach ($attachments as $index => $attachment)
+                    @foreach ($photos as $index => $Photo)
                         <button 
                             @click="$wire.openAttachmentModal({{ $index }})"
                             class="w-2 h-2 rounded-full transition-all shrink-0 mouse-pointer"
@@ -136,7 +136,7 @@
 
 </x-modals.modal-template>
 
-{{-- Remove Attachment Confirmation Modal --}}
+{{-- Remove Photo Confirmation Modal --}}
 <x-modals.delete-confirmation show="showRemoveAttachmentConfirmation" title="DELETE PHOTO?"
     message="Are you sure you want to delete this photo?" warning="This action cannot be undone."
     onConfirm="removeAttachment" confirmText="Yes, Delete Photo" cancelText="Cancel" />

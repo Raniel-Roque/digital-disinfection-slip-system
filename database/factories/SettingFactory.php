@@ -29,7 +29,7 @@ class SettingFactory extends Factory
     }
 
     /**
-     * Create attachment retention setting
+     * Create Photo retention setting
      */
     public function attachmentRetention()
     {

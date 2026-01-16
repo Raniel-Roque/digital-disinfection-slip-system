@@ -215,8 +215,8 @@
     {{-- Photos Carousel Modal --}}
     @if ($showAttachmentModal && $selectedSlip)
         @php
-            $attachments = $this->selectedSlipAttachments;
-            $totalAttachments = $attachments->count();
+            $photos = $this->selectedSlipAttachments;
+            $totalAttachments = $photos->count();
             $isReceivingGuard = \Illuminate\Support\Facades\Auth::id() === $selectedSlip?->received_guard_id;
             $status = $selectedSlip?->status ?? null;
             $currentUserId = \Illuminate\Support\Facades\Auth::id();
@@ -250,13 +250,13 @@
                         {{-- Images Container --}}
                         <div class="flex transition-transform duration-300 ease-in-out w-full" 
                              :style="`transform: translateX(-${currentIndex * 100}%)`">
-                            @foreach ($attachments as $index => $attachment)
+                            @foreach ($photos as $index => $Photo)
                                 @php
-                                    $fileUrl = Storage::url($attachment->file_path);
-                                    $extension = strtolower(pathinfo($attachment->file_path ?? '', PATHINFO_EXTENSION));
+                                    $fileUrl = Storage::url($Photo->file_path);
+                                    $extension = strtolower(pathinfo($Photo->file_path ?? '', PATHINFO_EXTENSION));
                                     $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
                                     $isImage = in_array($extension, $imageExtensions);
-                                    $uploader = $attachment->user;
+                                    $uploader = $Photo->user;
                                     if ($uploader) {
                                         $uploaderName = trim($uploader->first_name . ' ' . ($uploader->middle_name ?? '') . ' ' . $uploader->last_name);
                                         $uploaderUsername = $uploader->username;
@@ -271,7 +271,7 @@
                                     @if ($isImage)
                                         <img src="{{ $fileUrl }}" 
                                              class="border shadow-md max-h-[45vh] sm:max-h-[55vh] max-w-full w-auto object-contain mx-auto rounded-lg"
-                                             alt="Attachment {{ $index + 1 }}">
+                                             alt="Photo {{ $index + 1 }}">
                                         {{-- Uploaded By Information --}}
                                         <div class="text-center mt-2 sm:mt-3 text-xs sm:text-sm text-gray-600">
                                             <span class="font-semibold">Uploaded by:</span> 
@@ -340,7 +340,7 @@
                     {{-- Indicators/Dots --}}
                     @if ($totalAttachments > 1)
                         <div class="flex justify-center mt-3 sm:mt-4 space-x-1.5 sm:space-x-2 overflow-x-auto max-w-full px-2">
-                            @foreach ($attachments as $index => $attachment)
+                            @foreach ($photos as $index => $Photo)
                                 <button 
                                     @click="$wire.openAttachmentModal({{ $index }})"
                                     class="w-2 h-2 rounded-full transition-all shrink-0"
@@ -364,7 +364,7 @@
             @endif
 
             @php
-                // Check if user can manage attachments (for outgoing editing or incoming disinfecting)
+                // Check if user can manage photos (for outgoing editing or incoming disinfecting)
                 $canManage = false;
                 if ($selectedSlip) {
                     $isReceivingGuard = \Illuminate\Support\Facades\Auth::id() === $selectedSlip->received_guard_id;
@@ -382,21 +382,21 @@
                     {{-- Delete Current Photo Button --}}
                     @if ($totalAttachments > 0)
                         @php
-                            $attachmentsData = $attachments->map(fn($a) => ['id' => $a->id, 'user_id' => $a->user_id])->values()->all();
+                            $attachmentsData = $photos->map(fn($a) => ['id' => $a->id, 'user_id' => $a->user_id])->values()->all();
                         @endphp
                         <div x-data="{
-                            attachments: @js($attachmentsData),
+                            photos: @js($attachmentsData),
                             currentUserId: @js($currentUserId),
                             isAdminOrSuperAdmin: @js($isAdminOrSuperAdmin),
                             canManage: @js($canManage),
                             status: @js($status),
                             getCurrentAttachment() {
                                 const index = $wire.get('currentAttachmentIndex');
-                                return this.attachments[index] || null;
+                                return this.photos[index] || null;
                             },
                             canShowDelete() {
-                                const attachment = this.getCurrentAttachment();
-                                if (!attachment) return false;
+                                const Photo = this.getCurrentAttachment();
+                                if (!Photo) return false;
                                 
                                 // SuperAdmin can always delete regardless of status or ownership
                                 if (this.isAdminOrSuperAdmin) return true;
@@ -408,9 +408,9 @@
                                 return false;
                             },
                             deleteCurrentPhoto() {
-                                const attachment = this.getCurrentAttachment();
-                                if (attachment) {
-                                    $wire.call('confirmRemoveAttachment', attachment.id);
+                                const Photo = this.getCurrentAttachment();
+                                if (Photo) {
+                                    $wire.call('confirmRemoveAttachment', Photo.id);
                                 }
                             }
                         }" x-init="$watch(() => $wire.currentAttachmentIndex, () => {})">

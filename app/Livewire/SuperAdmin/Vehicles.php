@@ -2,7 +2,7 @@
 
 namespace App\Livewire\SuperAdmin;
 
-use App\Models\Truck;
+use App\Models\Vehicle;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
@@ -165,7 +165,7 @@ class Vehicles extends Component
 
     public function openEditModal($truckId)
     {
-        $truck = Truck::findOrFail($truckId);
+        $truck = Vehicle::findOrFail($truckId);
         $this->selectedTruckId = $truckId;
         $this->plate_number = $truck->plate_number;
         
@@ -222,7 +222,7 @@ class Vehicles extends Component
             'plate_number' => 'Plate Number',
         ]);
 
-        $truck = Truck::findOrFail($this->selectedTruckId);
+        $truck = Vehicle::findOrFail($this->selectedTruckId);
         
         // Check if there are any changes
         if ($truck->plate_number === $plateNumber) {
@@ -239,7 +239,7 @@ class Vehicles extends Component
         
         // Log the update action
         Logger::update(
-            Truck::class,
+            Vehicle::class,
             $truck->id,
             "Updated to \"{$plateNumber}\"",
             $oldValues,
@@ -255,7 +255,7 @@ class Vehicles extends Component
 
     public function openDisableModal($truckId)
     {
-        $truck = Truck::findOrFail($truckId);
+        $truck = Vehicle::findOrFail($truckId);
         $this->selectedTruckId = $truckId;
         $this->selectedTruckDisabled = $truck->disabled;
         $this->showDisableModal = true;
@@ -277,12 +277,12 @@ class Vehicles extends Component
         }
 
         // Atomic update: Get current status and update atomically to prevent race conditions
-        $truck = Truck::findOrFail($this->selectedTruckId);
+        $truck = Vehicle::findOrFail($this->selectedTruckId);
         $wasDisabled = $truck->disabled;
         $newStatus = !$wasDisabled; // true = disabled, false = enabled
         
         // Atomic update: Only update if the current disabled status matches what we expect
-        $updated = Truck::where('id', $this->selectedTruckId)
+        $updated = Vehicle::where('id', $this->selectedTruckId)
             ->where('disabled', $wasDisabled) // Only update if status hasn't changed
             ->update(['disabled' => $newStatus]);
         
@@ -306,7 +306,7 @@ class Vehicles extends Component
 
         // Log the status change
         Logger::update(
-            Truck::class,
+            Vehicle::class,
             $truck->id,
             ucfirst(!$wasDisabled ? 'disabled' : 'enabled') . " plate number \"{$plateNumber}\"",
             ['disabled' => $wasDisabled],
@@ -325,7 +325,7 @@ class Vehicles extends Component
 
     public function openDeleteModal($truckId)
     {
-        $truck = Truck::findOrFail($truckId);
+        $truck = Vehicle::findOrFail($truckId);
         $this->selectedTruckId = $truckId;
         $this->selectedTruckName = $truck->plate_number;
         $this->showDeleteModal = true;
@@ -346,7 +346,7 @@ class Vehicles extends Component
             abort(403, 'Unauthorized action.');
         }
 
-        $truck = Truck::findOrFail($this->selectedTruckId);
+        $truck = Vehicle::findOrFail($this->selectedTruckId);
         $truckIdForLog = $truck->id;
         $plateNumber = $truck->plate_number;
         
@@ -361,7 +361,7 @@ class Vehicles extends Component
         
         // Log the delete action
         Logger::delete(
-            Truck::class,
+            Vehicle::class,
             $truckIdForLog,
             "Deleted \"{$plateNumber}\"",
             $oldValues
@@ -462,7 +462,7 @@ class Vehicles extends Component
         ]);
 
         // Create truck
-        $truck = Truck::create([
+        $truck = Vehicle::create([
             'plate_number' => $plateNumber,
             'disabled' => false,
         ]);
@@ -471,7 +471,7 @@ class Vehicles extends Component
 
         // Log the create action
         Logger::create(
-            Truck::class,
+            Vehicle::class,
             $truck->id,
             "Created \"{$plateNumber}\"",
             $truck->only(['plate_number', 'disabled'])
@@ -486,8 +486,8 @@ class Vehicles extends Component
     public function render()
     {
         $query = $this->showDeleted 
-            ? Truck::onlyTrashed()
-            : Truck::whereNull('deleted_at');
+            ? Vehicle::onlyTrashed()
+            : Vehicle::whereNull('deleted_at');
         
         $trucks = $query->when($this->search, function ($query) {
                 $searchTerm = $this->search;
@@ -564,8 +564,8 @@ class Vehicles extends Component
     public function getExportData()
     {
         $query = $this->showDeleted 
-            ? Truck::onlyTrashed()
-            : Truck::whereNull('deleted_at');
+            ? Vehicle::onlyTrashed()
+            : Vehicle::whereNull('deleted_at');
         
         return $query->when($this->search, function ($query) {
                 $searchTerm = trim($this->search);
@@ -610,7 +610,7 @@ class Vehicles extends Component
         
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'Photo; filename="' . $filename . '"',
         ];
 
         $callback = function() use ($data) {
@@ -670,7 +670,7 @@ class Vehicles extends Component
 
     public function openRestoreModal($truckId)
     {
-        $truck = Truck::onlyTrashed()->findOrFail($truckId);
+        $truck = Vehicle::onlyTrashed()->findOrFail($truckId);
         $this->selectedTruckId = $truckId;
         $this->selectedTruckName = $truck->plate_number;
         $this->showRestoreModal = true;
@@ -697,7 +697,7 @@ class Vehicles extends Component
 
         // Atomic restore: Only restore if currently deleted to prevent race conditions
         // Do the atomic update first, then load the model only if successful
-        $restored = Truck::onlyTrashed()
+        $restored = Vehicle::onlyTrashed()
             ->where('id', $this->selectedTruckId)
             ->update(['deleted_at' => null]);
         
@@ -711,11 +711,11 @@ class Vehicles extends Component
         }
         
         // Now load the restored truck
-        $truck = Truck::findOrFail($this->selectedTruckId);
+        $truck = Vehicle::findOrFail($this->selectedTruckId);
         
         // Log the restore action
         Logger::restore(
-            Truck::class,
+            Vehicle::class,
             $truck->id,
             "Restored plate number {$truck->plate_number}"
         );

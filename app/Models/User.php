@@ -141,10 +141,10 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the reports created by this user.
+     * Get the issues created by this user.
      */
-    public function reports()
+    public function issues()
     {
-        return $this->hasMany(Report::class);
+        return $this->hasMany(Issue::class);
     }
 }

@@ -30,7 +30,7 @@ class LocationCards extends Component
         // Use database pagination instead of loading all locations into memory
         // This is critical for performance with large datasets (e.g., 5,000+ locations)
         $locationsQuery = Location::where('disabled', '=', false, 'and')
-            ->with('attachment') // Only eager load attachments for current page
+            ->with('Photo') // Only eager load photos for current page
             ->orderBy('location_name', 'asc');
         
         // Apply search filter if provided

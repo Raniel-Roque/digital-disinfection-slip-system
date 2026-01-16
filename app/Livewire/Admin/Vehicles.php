@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Admin;
 
-use App\Models\Truck;
+use App\Models\Vehicle;
 use App\Services\Logger;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -153,7 +153,7 @@ class Vehicles extends Component
 
     public function openEditModal($truckId)
     {
-        $truck = Truck::findOrFail($truckId);
+        $truck = Vehicle::findOrFail($truckId);
         $this->selectedTruckId = $truckId;
         $this->plate_number = $truck->plate_number;
         
@@ -210,7 +210,7 @@ class Vehicles extends Component
             'plate_number' => 'Plate Number',
         ]);
 
-        $truck = Truck::findOrFail($this->selectedTruckId);
+        $truck = Vehicle::findOrFail($this->selectedTruckId);
         
         // Check if there are any changes
         if ($truck->plate_number === $plateNumber) {
@@ -231,7 +231,7 @@ class Vehicles extends Component
 
     public function openDisableModal($truckId)
     {
-        $truck = Truck::findOrFail($truckId);
+        $truck = Vehicle::findOrFail($truckId);
         $this->selectedTruckId = $truckId;
         $this->selectedTruckDisabled = $truck->disabled;
         $this->showDisableModal = true;
@@ -253,12 +253,12 @@ class Vehicles extends Component
         }
 
         // Atomic update: Get current status and update atomically to prevent race conditions
-        $truck = Truck::findOrFail($this->selectedTruckId);
+        $truck = Vehicle::findOrFail($this->selectedTruckId);
         $wasDisabled = $truck->disabled;
         $newStatus = !$wasDisabled; // true = disabled, false = enabled
         
         // Atomic update: Only update if the current disabled status matches what we expect
-        $updated = Truck::where('id', $this->selectedTruckId)
+        $updated = Vehicle::where('id', $this->selectedTruckId)
             ->where('disabled', $wasDisabled) // Only update if status hasn't changed
             ->update(['disabled' => $newStatus]);
         
@@ -282,7 +282,7 @@ class Vehicles extends Component
         
         // Log the status change
         Logger::update(
-            Truck::class,
+            Vehicle::class,
             $truck->id,
             ucfirst(!$wasDisabled ? 'disabled' : 'enabled') . " plate number \"{$plateNumber}\"",
             ['disabled' => $wasDisabled],
@@ -381,7 +381,7 @@ class Vehicles extends Component
         ]);
 
         // Create truck
-        $truck = Truck::create([
+        $truck = Vehicle::create([
             'plate_number' => $plateNumber,
             'disabled' => false,
         ]);
@@ -389,7 +389,7 @@ class Vehicles extends Component
         // Log the creation
         $newValues = $truck->only(['plate_number', 'disabled']);
         Logger::create(
-            Truck::class,
+            Vehicle::class,
             $truck->id,
             "Created \"{$plateNumber}\"",
             $newValues
@@ -405,7 +405,7 @@ class Vehicles extends Component
 
     public function render()
     {
-        $trucks = Truck::when($this->search, function ($query) {
+        $trucks = Vehicle::when($this->search, function ($query) {
                 $searchTerm = $this->search;
                 
                 // Sanitize search term to prevent SQL injection
@@ -476,7 +476,7 @@ class Vehicles extends Component
 
     public function getExportData()
     {
-        return Truck::when($this->search, function ($query) {
+        return Vehicle::when($this->search, function ($query) {
                 $searchTerm = trim($this->search);
                 $searchTerm = preg_replace('/[%_]/', '', $searchTerm);
                 if (empty($searchTerm)) {
@@ -509,7 +509,7 @@ class Vehicles extends Component
         
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'Photo; filename="' . $filename . '"',
         ];
 
         $callback = function() use ($data) {

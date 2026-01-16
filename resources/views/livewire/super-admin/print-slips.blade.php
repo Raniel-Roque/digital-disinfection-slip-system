@@ -140,7 +140,7 @@
                 
                 @if (!empty($filters['plate_number']) && is_array($filters['plate_number']))
                     @php
-                        $plateNumbers = \App\Models\Truck::whereIn('id', $filters['plate_number'])->pluck('plate_number')->toArray();
+                        $plateNumbers = \App\Models\Vehicle::whereIn('id', $filters['plate_number'])->pluck('plate_number')->toArray();
                     @endphp
                     <p><strong>Vehicle:</strong> {{ implode(', ', $plateNumbers) }}</p>
                 @endif

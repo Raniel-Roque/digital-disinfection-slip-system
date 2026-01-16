@@ -12,7 +12,7 @@ class Location extends Model
     
     protected $fillable = [
         'location_name',
-        'attachment_id', // updated from logo_attachment_id
+        'photo_id', // updated from logo_attachment_id
         'disabled',
         'create_slip',
     ];
@@ -25,10 +25,10 @@ class Location extends Model
         ];
     }
 
-    // Logo attachment (images/logos/)
-    public function attachment()
+    // Logo Photo (images/logos/)
+    public function Photo()
     {
-        return $this->belongsTo(Attachment::class, 'attachment_id');
+        return $this->belongsTo(Photo::class, 'photo_id');
     }
 
     // Slips originating from this location

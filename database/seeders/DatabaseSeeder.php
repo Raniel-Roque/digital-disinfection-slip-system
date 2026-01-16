@@ -82,7 +82,7 @@ class DatabaseSeeder extends Seeder
                 'value' => '3',
             ],
             [
-                'setting_name' => 'resolved_reports_retention_months',
+                'setting_name' => 'resolved_issues_retention_months',
                 'value' => '3',
             ],
             [

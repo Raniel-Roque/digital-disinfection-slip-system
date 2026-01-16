@@ -239,8 +239,8 @@
                                 <td class="px-6 py-4">
                                     <div class="flex items-center justify-center">
                                         <div class="w-28 h-20">
-                                            @if ($location->attachment_id && $location->attachment)
-                                                <img src="{{ asset('storage/' . $location->attachment->file_path) }}"
+                                            @if ($location->photo_id && $location->Photo)
+                                                <img src="{{ asset('storage/' . $location->Photo->file_path) }}"
                                                     alt="{{ $location->location_name }}"
                                                     class="max-w-full max-h-full object-contain">
                                             @else
@@ -470,10 +470,10 @@
                                                     title="{{ $this->editLogoPath }}">
                                                     Current: {{ basename($this->editLogoPath) }}
                                                 </p>
-                                                @if ($currentLocation && $currentLocation->attachment_id && $currentLocation->attachment && $currentLocation->attachment->user)
+                                                @if ($currentLocation && $currentLocation->photo_id && $currentLocation->Photo && $currentLocation->Photo->user)
                                                     <div class="text-xs text-gray-500 pt-2 border-t border-gray-200">
-                                                        <div class="font-medium text-gray-600">Uploaded by: {{ $currentLocation->attachment->user->first_name }} {{ $currentLocation->attachment->user->last_name }}</div>
-                                                        <div class="text-gray-400">({{ $currentLocation->attachment->user->username }})</div>
+                                                        <div class="font-medium text-gray-600">Uploaded by: {{ $currentLocation->Photo->user->first_name }} {{ $currentLocation->Photo->user->last_name }}</div>
+                                                        <div class="text-gray-400">({{ $currentLocation->Photo->user->username }})</div>
                                             </div>
                                                 @endif
                                             </div>

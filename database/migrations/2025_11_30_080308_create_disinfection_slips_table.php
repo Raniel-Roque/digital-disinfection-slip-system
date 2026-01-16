@@ -23,8 +23,8 @@ return new class extends Migration {
             // Remarks
             $table->text('remarks_for_disinfection')->nullable(); 
  
-            // Attachment references (stored as JSON array of attachment IDs)
-            $table->json('attachment_ids')->nullable();
+            // Photo references (stored as JSON array of Photo IDs)
+            $table->json('photo_ids')->nullable();
  
             // Guards from users table
             $table->foreignId('hatchery_guard_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();

@@ -264,7 +264,7 @@
     {{-- CREATE MODAL --}}
     <x-modals.slip-creation-modal show="showCreateModal" :is-creating="$isCreating" :pendingAttachmentIds="$pendingAttachmentIds" />
 
-    {{-- Add Attachment Modal is now inline Alpine.js modal in slip-creation-modal --}}
+    {{-- Add Photo Modal is now inline Alpine.js modal in slip-creation-modal --}}
 
     {{-- Reasons Settings Modal (for super guards) --}}
     @if ($this->isSuperGuard())

@@ -2,14 +2,14 @@
 
 namespace Database\Factories;
 
-use App\Models\Report;
+use App\Models\Issue;
 use App\Models\User;
 use App\Models\DisinfectionSlip;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class ReportFactory extends Factory
+class IssueFactory extends Factory
 {
-    protected $model = Report::class;
+    protected $model = Issue::class;
 
     public function definition()
     {

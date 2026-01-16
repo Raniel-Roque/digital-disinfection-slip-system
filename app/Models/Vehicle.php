@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Truck extends Model
+class Vehicle extends Model
 {
     use HasFactory, SoftDeletes;
+    
+    protected $table = 'trucks'; // Keep existing table name
     
     protected $fillable = [
         'plate_number',

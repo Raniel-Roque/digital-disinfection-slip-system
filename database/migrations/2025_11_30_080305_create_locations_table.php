@@ -11,10 +11,10 @@ return new class extends Migration {
             $table->id();
             $table->string('location_name');
 
-            // consistent attachment reference
-            $table->foreignId('attachment_id')
+            // consistent Photo reference
+            $table->foreignId('photo_id')
                   ->nullable()
-                  ->constrained('attachments')
+                  ->constrained('photos')
                   ->cascadeOnUpdate()
                   ->nullOnDelete();
 

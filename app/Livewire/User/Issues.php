@@ -2,7 +2,7 @@
 
 namespace App\Livewire\User;
 
-use App\Models\Report;
+use App\Models\Issue;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +22,7 @@ class Issues extends Component
     public $appliedCreatedTo = null;
     public $showFilters = false;
     public $showDetailsModal = false;
-    public $selectedReport = null;
+    public $selectedIssue = null;
     public $selectedSlip = null;
     public $showAttachmentModal = false;
     public $attachmentFile = null;
@@ -97,7 +97,7 @@ class Issues extends Component
 
     public function openDetailsModal($reportId)
     {
-        $this->selectedReport = Report::where('user_id', Auth::id())
+        $this->selectedIssue = Issue::where('user_id', Auth::id())
             ->whereNull('deleted_at')
             ->with(['slip', 'resolvedBy'])
             ->findOrFail($reportId);
@@ -107,13 +107,13 @@ class Issues extends Component
     public function closeDetailsModal()
     {
         $this->showDetailsModal = false;
-        // Use dispatch to clear selectedReport after modal animation completes
+        // Use dispatch to clear selectedIssue after modal animation completes
         $this->dispatch('modal-closed');
     }
     
     public function clearSelectedReport()
     {
-        $this->selectedReport = null;
+        $this->selectedIssue = null;
     }
 
     private function checkFiltersActive()
@@ -125,9 +125,9 @@ class Issues extends Component
                               ($this->sortDirection !== null && $this->sortDirection !== 'desc');
     }
 
-    public function getReportsProperty()
+    public function getIssuesProperty()
     {
-        $query = Report::where('user_id', Auth::id())
+        $query = Issue::where('user_id', Auth::id())
             ->whereNull('deleted_at')
             ->with(['slip']);
 
@@ -185,8 +185,8 @@ class Issues extends Component
 
     public function render()
     {
-        return view('livewire.user.reports', [
-            'reports' => $this->reports,
+        return view('livewire.user.issues', [
+            'issues' => $this->issues,
         ]);
     }
 }

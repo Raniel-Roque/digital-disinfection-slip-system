@@ -5,9 +5,9 @@ namespace App\Livewire\Admin;
 use App\Models\DisinfectionSlip;
 use App\Models\User;
 use App\Models\Driver;
-use App\Models\Truck;
+use App\Models\Vehicle;
 use App\Models\Location;
-use App\Models\Report;
+use App\Models\Issue;
 use Carbon\Carbon;
 use Livewire\Component;
 
@@ -24,7 +24,7 @@ class AdminDashboard extends Component
             'total_drivers' => $this->getDriversCount(),
             'total_plate_numbers' => $this->getPlateNumbersCount(),
             'total_locations' => $this->getLocationsCount(),
-            'unresolved_reports' => $this->getUnresolvedReportsCount(),
+            'unresolved_issues' => $this->getUnresolvedIssuesCount(),
             'total_created_slips_today' => $this->getTotalCreatedSlipsTodayCount(),
             'in_progress_slips_today' => $this->getInProgressSlipsTodayCount(),
         ];
@@ -97,7 +97,7 @@ class AdminDashboard extends Component
      */
     private function getPlateNumbersCount()
     {
-        return Truck::where('disabled', false)
+        return Vehicle::where('disabled', false)
             ->count();
     }
 
@@ -111,11 +111,11 @@ class AdminDashboard extends Component
     }
 
     /**
-     * Get count of unresolved reports
+     * Get count of unresolved issues
      */
-    private function getUnresolvedReportsCount()
+    private function getUnresolvedIssuesCount()
     {
-        return Report::whereNull('resolved_at')
+        return Issue::whereNull('resolved_at')
             ->whereNull('deleted_at')
             ->count();
     }

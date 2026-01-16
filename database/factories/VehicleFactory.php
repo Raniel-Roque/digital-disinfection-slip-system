@@ -3,11 +3,11 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\Truck;
+use App\Models\Vehicle;
 
-class TruckFactory extends Factory
+class VehicleFactory extends Factory
 {
-    protected $model = Truck::class;
+    protected $model = Vehicle::class;
 
     public function definition()
     {
@@ -16,7 +16,7 @@ class TruckFactory extends Factory
         $plateNumber = strtoupper($this->faker->bothify('???-####'));
         
         // Ensure uniqueness by checking existing plate numbers
-        while (Truck::where('plate_number', $plateNumber)->exists()) {
+        while (Vehicle::where('plate_number', $plateNumber)->exists()) {
             $plateNumber = strtoupper($this->faker->bothify('???-####'));
         }
 
@@ -27,7 +27,7 @@ class TruckFactory extends Factory
     }
 
     /**
-     * Indicate that the truck is disabled.
+     * Indicate that the vehicle is disabled.
      */
     public function disabled()
     {

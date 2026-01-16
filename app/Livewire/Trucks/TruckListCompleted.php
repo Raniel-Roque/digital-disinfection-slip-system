@@ -6,7 +6,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Renderless;
 use App\Models\DisinfectionSlip;
-use App\Models\Truck;
+use App\Models\Vehicle;
 use App\Models\Location;
 use App\Models\Driver;
 use Illuminate\Support\Facades\Session;
@@ -97,7 +97,7 @@ class TruckListCompleted extends Component
             return collect();
         }
         
-        return Truck::withTrashed()
+        return Vehicle::withTrashed()
             ->whereIn('id', $truckIds)
             ->select('id', 'plate_number', 'disabled', 'deleted_at')
             ->get()
@@ -110,7 +110,7 @@ class TruckListCompleted extends Component
     #[Renderless]
     public function getPaginatedTrucks($search = '', $page = 1, $perPage = 20, $includeIds = [])
     {
-        $query = Truck::query()
+        $query = Vehicle::query()
             ->whereNull('deleted_at')
             ->where('disabled', false)
             ->select(['id', 'plate_number']);
@@ -120,7 +120,7 @@ class TruckListCompleted extends Component
         }
 
         if (!empty($includeIds)) {
-            $includedItems = Truck::whereIn('id', $includeIds)
+            $includedItems = Vehicle::whereIn('id', $includeIds)
                 ->select(['id', 'plate_number'])
                 ->orderBy('plate_number', 'asc')
                 ->get()

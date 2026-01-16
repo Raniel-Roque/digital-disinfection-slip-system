@@ -352,7 +352,7 @@
                                                 class="text-xs font-semibold text-red-700 uppercase tracking-wide mb-0.5">
                                                 Unresolved Issues</p>
                                             <p class="text-3xl font-bold text-gray-900">
-                                                {{ number_format($this->stats['unresolved_reports']) }}</p>
+                                                {{ number_format($this->stats['unresolved_issues']) }}</p>
                                         </div>
                                     </div>
                                 </div>

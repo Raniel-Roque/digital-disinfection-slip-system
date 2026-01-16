@@ -6,10 +6,10 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Renderless;
 use App\Models\DisinfectionSlip;
-use App\Models\Truck;
+use App\Models\Vehicle;
 use App\Models\Location;
 use App\Models\Driver;
-use App\Models\Attachment;
+use App\Models\Photo;
 use App\Models\Reason;
 use App\Services\Logger;
 use Illuminate\Support\Facades\Session;
@@ -70,13 +70,13 @@ class TruckList extends Component
     public $remarks_for_disinfection;
     public $isCreating = false;
 
-    // Attachment properties for creation
+    // Photo properties for creation
     public $showAddAttachmentModal = false;
-    public $pendingAttachmentIds = []; // Store attachment IDs before slip is created
+    public $pendingAttachmentIds = []; // Store Photo IDs before slip is created
     public $showRemovePendingAttachmentConfirmation = false;
     public $pendingAttachmentToDelete = null;
     
-    // Pending Attachment Modal (for viewing pending attachments)
+    // Pending Photo Modal (for viewing pending photos)
     public $showPendingAttachmentModal = false;
     public $currentPendingAttachmentIndex = 0;
 
@@ -112,7 +112,7 @@ class TruckList extends Component
     {
         $this->type = $type;
         
-        // Clean up any orphaned pending attachments from previous session
+        // Clean up any orphaned pending photos from previous session
         // This catches cases where user uploaded but didn't create slip and navigated away
         $this->cleanupOrphanedPendingAttachments();
         
@@ -198,7 +198,7 @@ class TruckList extends Component
     private function getCachedTrucks()
     {
         return Cache::remember('trucks_all', 300, function() {
-            return Truck::withTrashed()
+            return Vehicle::withTrashed()
                 ->whereNull('deleted_at')
                 ->where('disabled', '=', false, 'and')
                 ->select('id', 'plate_number', 'disabled', 'deleted_at')
@@ -238,7 +238,7 @@ class TruckList extends Component
     #[Renderless]
     public function getPaginatedTrucks($search = '', $page = 1, $perPage = 20, $includeIds = [])
     {
-        $query = Truck::query()
+        $query = Vehicle::query()
             ->whereNull('deleted_at')
             ->where('disabled', false)
             ->select(['id', 'plate_number']);
@@ -248,7 +248,7 @@ class TruckList extends Component
         }
 
         if (!empty($includeIds)) {
-            $includedItems = Truck::whereIn('id', $includeIds)
+            $includedItems = Vehicle::whereIn('id', $includeIds)
                 ->select(['id', 'plate_number'])
                 ->orderBy('plate_number', 'asc')
                 ->get()
@@ -442,7 +442,7 @@ class TruckList extends Component
 
     public function closeCreateModal()
     {
-        // Clean up pending attachments if modal is closed without creating
+        // Clean up pending photos if modal is closed without creating
         $this->cleanupPendingAttachments();
         
         $this->showCreateModal = false;
@@ -452,7 +452,7 @@ class TruckList extends Component
 
     public function updatedShowCreateModal($value)
     {
-        // When modal is closed (set to false) and there are pending attachments, clean them up
+        // When modal is closed (set to false) and there are pending photos, clean them up
         // This catches when modal is closed via backdrop click or X button
         if ($value === false && !empty($this->pendingAttachmentIds)) {
             $this->cleanupPendingAttachments();
@@ -461,7 +461,7 @@ class TruckList extends Component
 
     public function dehydrate()
     {
-        // Clean up pending attachments when component is being dehydrated (page navigation, refresh, etc.)
+        // Clean up pending photos when component is being dehydrated (page navigation, refresh, etc.)
         // This ensures cleanup even if modal wasn't properly closed or user navigates away
         if (!empty($this->pendingAttachmentIds)) {
             // Only cleanup if modal is not open (to avoid cleanup during normal operation)
@@ -473,7 +473,7 @@ class TruckList extends Component
 
     public function cancelCreate()
     {
-        // Clean up pending attachments
+        // Clean up pending photos
         $this->cleanupPendingAttachments();
         
         // Reset all form fields and close modals
@@ -494,19 +494,19 @@ class TruckList extends Component
         // Clear the array immediately to prevent double cleanup
         $this->pendingAttachmentIds = [];
         
-        // Optimize: Fetch all attachments in one query instead of N queries
-        $attachments = Attachment::whereIn('id', $attachmentIdsToCleanup, 'and', false)->get();
+        // Optimize: Fetch all photos in one query instead of N queries
+        $photos = Photo::whereIn('id', $attachmentIdsToCleanup, 'and', false)->get();
         
-        foreach ($attachments as $attachment) {
+        foreach ($photos as $Photo) {
             try {
                 // Delete the physical file from storage
-                if (Storage::disk('public')->exists($attachment->file_path)) {
-                    Storage::disk('public')->delete($attachment->file_path);
+                if (Storage::disk('public')->exists($Photo->file_path)) {
+                    Storage::disk('public')->delete($Photo->file_path);
                 }
-                // Hard delete the attachment record
-                $attachment->forceDelete();
+                // Hard delete the Photo record
+                $Photo->forceDelete();
             } catch (\Exception $e) {
-                Log::error('Failed to cleanup attachment ' . $attachment->id . ': ' . $e->getMessage());
+                Log::error('Failed to cleanup Photo ' . $Photo->id . ': ' . $e->getMessage());
             }
         }
     }
@@ -522,7 +522,7 @@ class TruckList extends Component
         $this->searchDestination = '';
         $this->searchDriver = '';
         $this->searchReason = '';
-        // Clean up pending attachments before clearing the array
+        // Clean up pending photos before clearing the array
         $this->cleanupPendingAttachments();
         $this->showAddAttachmentModal = false;
         $this->showRemovePendingAttachmentConfirmation = false;
@@ -533,33 +533,33 @@ class TruckList extends Component
     }
 
     /**
-     * Clean up orphaned pending attachments that are not referenced by any slip
-     * This catches cases where attachments were uploaded but slip creation was cancelled
+     * Clean up orphaned pending photos that are not referenced by any slip
+     * This catches cases where photos were uploaded but slip creation was cancelled
      * and the cleanup didn't run (e.g., page refresh, navigation away)
      */
     private function cleanupOrphanedPendingAttachments()
     {
-        // Find all attachments with "pending" in filename that are not referenced by any slip
+        // Find all photos with "pending" in filename that are not referenced by any slip
         /** @phpstan-ignore-next-line */
-        $orphanedAttachments = Attachment::where('file_path', 'like', 'images/uploads/disinfection_slip_pending_%')
+        $orphanedAttachments = Photo::where('file_path', 'like', 'images/uploads/disinfection_slip_pending_%')
             ->get()
-            ->filter(function ($attachment) {
-                // Check if this attachment is referenced by any slip
+            ->filter(function ($Photo) {
+                // Check if this Photo is referenced by any slip
                 /** @phpstan-ignore-next-line */
-                $isReferenced = DisinfectionSlip::whereJsonContains('attachment_ids', $attachment->id)->exists();
+                $isReferenced = DisinfectionSlip::whereJsonContains('photo_ids', $Photo->id)->exists();
                 return !$isReferenced;
             });
 
-        foreach ($orphanedAttachments as $attachment) {
+        foreach ($orphanedAttachments as $Photo) {
             try {
                 // Delete the physical file from storage
-                if (Storage::disk('public')->exists($attachment->file_path)) {
-                    Storage::disk('public')->delete($attachment->file_path);
+                if (Storage::disk('public')->exists($Photo->file_path)) {
+                    Storage::disk('public')->delete($Photo->file_path);
                 }
-                // Hard delete the attachment record
-                $attachment->forceDelete();
+                // Hard delete the Photo record
+                $Photo->forceDelete();
             } catch (\Exception $e) {
-                Log::error('Failed to cleanup orphaned pending attachment ' . $attachment->id . ': ' . $e->getMessage());
+                Log::error('Failed to cleanup orphaned pending Photo ' . $Photo->id . ': ' . $e->getMessage());
             }
         }
     }
@@ -638,7 +638,7 @@ class TruckList extends Component
             'hatchery_guard_id' => Auth::id(),
             'status' => 0, // Pending
             'slip_id' => $this->generateSlipId(),
-            'attachment_ids' => !empty($this->pendingAttachmentIds) ? $this->pendingAttachmentIds : null,
+            'photo_ids' => !empty($this->pendingAttachmentIds) ? $this->pendingAttachmentIds : null,
         ]);
         Cache::forget('disinfection_slips_all');
 
@@ -652,7 +652,7 @@ class TruckList extends Component
 
         $this->dispatch('toast', message: 'Disinfection slip created successfully!', type: 'success');        
         
-        // Clear pending attachments since they're now attached to the slip
+        // Clear pending photos since they're now attached to the slip
         $this->pendingAttachmentIds = [];
         
         // Close modal first
@@ -775,20 +775,20 @@ class TruckList extends Component
             // Store relative path in database
             $relativePath = 'images/uploads/' . $filename;
 
-            // Create attachment record
-            $attachment = Attachment::create([
+            // Create Photo record
+            $Photo = Photo::create([
                 'file_path' => $relativePath,
                 'user_id' => Auth::id(),
             ]);
 
-            // Add new attachment ID to pending array
-            $this->pendingAttachmentIds[] = $attachment->id;
+            // Add new Photo ID to pending array
+            $this->pendingAttachmentIds[] = $Photo->id;
 
             $totalAttachments = count($this->pendingAttachmentIds);
             $this->dispatch('toast', message: "Photo added ({$totalAttachments} total).", type: 'success');
             Cache::forget('disinfection_slips_all');
         } catch (\Exception $e) {
-            Log::error('Attachment upload error: ' . $e->getMessage());
+            Log::error('Photo upload error: ' . $e->getMessage());
             Cache::forget('disinfection_slips_all');
             $this->dispatch('toast', message: 'Failed to upload photo. Please try again.', type: 'error');
         }
@@ -901,17 +901,17 @@ class TruckList extends Component
                     // Store relative path in database
                     $relativePath = 'images/uploads/' . $filename;
 
-                    // Create attachment record
-                    $attachment = Attachment::create([
+                    // Create Photo record
+                    $Photo = Photo::create([
                         'file_path' => $relativePath,
                         'user_id' => Auth::id(),
                     ]);
 
-                    // Add new attachment ID to pending array
-                    $newAttachmentIds[] = $attachment->id;
+                    // Add new Photo ID to pending array
+                    $newAttachmentIds[] = $Photo->id;
                 }
 
-                // Add all new attachment IDs to pending array
+                // Add all new Photo IDs to pending array
                 $this->pendingAttachmentIds = array_merge($this->pendingAttachmentIds, $newAttachmentIds);
 
                 // Commit transaction
@@ -928,7 +928,7 @@ class TruckList extends Component
             }
 
         } catch (\Exception $e) {
-            Log::error('Batch attachment upload error: ' . $e->getMessage());
+            Log::error('Batch Photo upload error: ' . $e->getMessage());
             Cache::forget('disinfection_slips_all');
             $this->dispatch('toast', message: 'Failed to upload photos. Please try again.', type: 'error');
         }
@@ -956,7 +956,7 @@ class TruckList extends Component
             }
             
             if (!$this->pendingAttachmentToDelete) {
-                $this->dispatch('toast', message: 'No attachment specified to remove.', type: 'error');
+                $this->dispatch('toast', message: 'No Photo specified to remove.', type: 'error');
                 $this->showRemovePendingAttachmentConfirmation = false;
                 return;
             }
@@ -966,26 +966,26 @@ class TruckList extends Component
             // Find and remove from pending array
             $key = array_search($attachmentId, $this->pendingAttachmentIds);
             if ($key !== false) {
-                // Get the attachment record before deletion
-                $attachment = Attachment::find($attachmentId, ['id', 'user_id', 'file_path']);
-                if ($attachment) {
-                    // Check if current user is the one who uploaded this attachment (unless admin/superadmin)
+                // Get the Photo record before deletion
+                $Photo = Photo::find($attachmentId, ['id', 'user_id', 'file_path']);
+                if ($Photo) {
+                    // Check if current user is the one who uploaded this Photo (unless admin/superadmin)
                     $user = Auth::user();
                     $isAdminOrSuperAdmin = in_array($user->user_type, [1, 2]); // 1 = Admin, 2 = SuperAdmin
                     
-                    if (!$isAdminOrSuperAdmin && $attachment->user_id !== Auth::id()) {
-                        $this->dispatch('toast', message: 'You can only delete attachments that you uploaded.', type: 'error');
+                    if (!$isAdminOrSuperAdmin && $Photo->user_id !== Auth::id()) {
+                        $this->dispatch('toast', message: 'You can only delete photos that you uploaded.', type: 'error');
                         $this->showRemovePendingAttachmentConfirmation = false;
                         $this->pendingAttachmentToDelete = null;
                         return;
                     }
 
                     // Delete the physical file from storage
-                    if (Storage::disk('public')->exists($attachment->file_path)) {
-                        Storage::disk('public')->delete($attachment->file_path);
+                    if (Storage::disk('public')->exists($Photo->file_path)) {
+                        Storage::disk('public')->delete($Photo->file_path);
                     }
-                    // Hard delete the attachment record
-                    $attachment->forceDelete();
+                    // Hard delete the Photo record
+                    $Photo->forceDelete();
                 }
 
                 // Remove from array and re-index
@@ -995,7 +995,7 @@ class TruckList extends Component
                 // Adjust current index after deletion
                 $totalAttachments = count($this->pendingAttachmentIds);
                 if ($totalAttachments === 0) {
-                    // No attachments left, close the modal
+                    // No photos left, close the modal
                     $this->currentPendingAttachmentIndex = 0;
                     $this->showPendingAttachmentModal = false;
                 } else {
@@ -1014,7 +1014,7 @@ class TruckList extends Component
             $this->showRemovePendingAttachmentConfirmation = false;
             $this->pendingAttachmentToDelete = null;
         } catch (\Exception $e) {
-            Log::error('Attachment removal error: ' . $e->getMessage());
+            Log::error('Photo removal error: ' . $e->getMessage());
             Cache::forget('disinfection_slips_all');
             $this->dispatch('toast', message: 'Failed to remove photo. Please try again.', type: 'error');
             $this->showRemovePendingAttachmentConfirmation = false;
@@ -1022,7 +1022,7 @@ class TruckList extends Component
         }
     }
 
-    // Pending Attachment Modal Methods
+    // Pending Photo Modal Methods
     public function openPendingAttachmentModal($index = 0)
     {
         $this->currentPendingAttachmentIndex = $index;
@@ -1060,7 +1060,7 @@ class TruckList extends Component
     }
     
     /**
-     * Get pending attachments collection
+     * Get pending photos collection
      */
     public function getPendingAttachmentsProperty()
     {
@@ -1068,11 +1068,11 @@ class TruckList extends Component
             return collect([]);
         }
         
-        return Attachment::whereIn('id', $this->pendingAttachmentIds, 'and', false)->get();
+        return Photo::whereIn('id', $this->pendingAttachmentIds, 'and', false)->get();
     }
     
     /**
-     * Get total count of pending attachments
+     * Get total count of pending photos
      */
     public function getTotalPendingAttachmentsProperty()
     {
@@ -1086,8 +1086,8 @@ class TruckList extends Component
             return false;
         }
 
-        $attachment = Attachment::find($attachmentId, ['id', 'user_id']);
-        if (!$attachment) {
+        $Photo = Photo::find($attachmentId, ['id', 'user_id']);
+        if (!$Photo) {
             return false;
         }
 
@@ -1100,7 +1100,7 @@ class TruckList extends Component
         $isOnUserRoute = str_starts_with($currentRoute, 'user');
         $isAdminOrSuperAdmin = !$isOnUserRoute && in_array($user->user_type ?? 0, [1, 2]); // 1 = Admin, 2 = SuperAdmin
         
-        return $isAdminOrSuperAdmin || $attachment->user_id === Auth::id();
+        return $isAdminOrSuperAdmin || $Photo->user_id === Auth::id();
     }
 
     /**

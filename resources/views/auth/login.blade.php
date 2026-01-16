@@ -43,8 +43,8 @@
             @if (isset($location) && $location)
                 <div class="mb-6 p-3 bg-orange-50 rounded-lg border border-orange-200">
                     <div class="flex items-center gap-2.5">
-                        @if ($location->attachment_id && $location->attachment)
-                            <img src="{{ asset('storage/' . $location->attachment->file_path) }}"
+                        @if ($location->photo_id && $location->Photo)
+                            <img src="{{ asset('storage/' . $location->Photo->file_path) }}"
                                 alt="{{ $location->location_name }}" class="h-10 w-auto object-contain">
                         @else
                             <img src="{{ asset('storage/' . $defaultLogoPath) }}"

@@ -57,35 +57,35 @@
 
     {{-- Card List --}}
     <div class="space-y-3 pb-4">
-        @forelse($reports as $report)
+        @forelse($issues as $issue)
             @php
-                $statusColor = $report->resolved_at ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50';
+                $statusColor = $issue->resolved_at ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50';
             @endphp
 
             {{-- Card (Clickable) --}}
-            <div wire:click="openDetailsModal({{ $report->id }})"
+            <div wire:click="openDetailsModal({{ $issue->id }})"
                 class="flex justify-between items-center p-2.5 border-l-4 rounded-lg shadow-sm transition hover:shadow-md cursor-pointer {{ $statusColor }}">
 
                 <div class="flex-1">
                     {{-- Slip No/Type - Prominent --}}
                     <div class="mb-1">
                         <div class="text-[10px] font-medium text-gray-500 uppercase tracking-wide mb-0.5">
-                            @if ($report->slip_id)
+                            @if ($issue->slip_id)
                                 Slip No
                             @else
                                 Type
                             @endif
                         </div>
                         <div class="text-base font-bold text-gray-900">
-                            @if ($report->slip_id)
-                                @if ($report->slip && !(method_exists($report->slip, 'trashed') && $report->slip->trashed()))
-                                    <button wire:click="openDetailsModal({{ $report->id }})" class="text-gray-900 hover:text-gray-700 hover:underline transition-colors duration-150 hover:cursor-pointer cursor-pointer">
-                                        {{ $report->slip->slip_id ?? 'N/A' }}
+                            @if ($issue->slip_id)
+                                @if ($issue->slip && !(method_exists($issue->slip, 'trashed') && $issue->slip->trashed()))
+                                    <button wire:click="openDetailsModal({{ $issue->id }})" class="text-gray-900 hover:text-gray-700 hover:underline transition-colors duration-150 hover:cursor-pointer cursor-pointer">
+                                        {{ $issue->slip->slip_id ?? 'N/A' }}
                                     </button>
-                                @elseif ($report->slip)
-                                    <span class="text-gray-900">{{ $report->slip->slip_id ?? $report->slip_id }}</span><span class="text-red-600"> (Deleted)</span>
+                                @elseif ($issue->slip)
+                                    <span class="text-gray-900">{{ $issue->slip->slip_id ?? $issue->slip_id }}</span><span class="text-red-600"> (Deleted)</span>
                                 @else
-                                    <span class="text-gray-900">{{ $report->slip_id }}</span><span class="text-red-600"> (Deleted)</span>
+                                    <span class="text-gray-900">{{ $issue->slip_id }}</span><span class="text-red-600"> (Deleted)</span>
                                 @endif
                             @else
                                 <span class="italic font-normal">Miscellaneous</span>
@@ -95,7 +95,7 @@
 
                     {{-- Date/Time --}}
                     @php
-                        $createdDate = \Carbon\Carbon::parse($report->created_at);
+                        $createdDate = \Carbon\Carbon::parse($issue->created_at);
                         $isToday = $createdDate->isToday();
                     @endphp
                     <div class="flex items-center gap-1 text-xs">
@@ -114,7 +114,7 @@
 
                 {{-- Right Side: Status Badge --}}
                 <div class="flex flex-col items-end justify-center ml-3">
-                    @if ($report->resolved_at)
+                    @if ($issue->resolved_at)
                         <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-green-100 text-green-700 whitespace-nowrap">
                             Resolved
                         </span>
@@ -142,38 +142,38 @@
     </div>
 
     {{-- Pagination --}}
-    <x-buttons.nav-pagination :paginator="$reports" />
+    <x-buttons.nav-pagination :paginator="$issues" />
 
     {{-- Issue Details Modal --}}
     @php
-        $isResolved = $selectedReport?->resolved_at !== null;
+        $isResolved = $selectedIssue?->resolved_at !== null;
         $headerClass = $isResolved ? 'border-t-4 border-t-green-500 bg-green-50' : 'border-t-4 border-t-red-500 bg-red-50';
     @endphp
     <x-modals.modal-template show="showDetailsModal" title="ISSUE DETAILS" max-width="max-w-3xl" header-class="{{ $headerClass }}">
-        @if ($selectedReport)
+        @if ($selectedIssue)
             {{-- Sub Header --}}
             <div class="border-b border-gray-200 px-6 py-2 bg-gray-50 -mx-6 -mt-6 mb-2">
                 <div class="grid grid-cols-[1fr_1fr] gap-4 items-start text-xs">
                     <div>
                         <div class="font-semibold text-gray-500 mb-0.5">Date:</div>
-                        <div class="text-gray-900">{{ $selectedReport->created_at->format('M d, Y') }}</div>
+                        <div class="text-gray-900">{{ $selectedIssue->created_at->format('M d, Y') }}</div>
                     </div>
                     <div>
                         <div class="font-semibold text-gray-500 mb-0.5">
-                            @if ($selectedReport->slip_id)
+                            @if ($selectedIssue->slip_id)
                                 Slip No:
                             @else
                                 Type:
                             @endif
                         </div>
                         <div class="text-gray-900 font-semibold">
-                            @if ($selectedReport->slip_id)
-                                @if ($selectedReport->slip && !(method_exists($selectedReport->slip, 'trashed') && $selectedReport->slip->trashed()))
-                                    <span class="text-gray-900 font-semibold">{{ $selectedReport->slip->slip_id ?? 'N/A' }}</span>
-                                @elseif ($selectedReport->slip)
-                                    <span class="text-gray-900">{{ $selectedReport->slip->slip_id ?? $selectedReport->slip_id }}</span><span class="text-red-600"> (Deleted)</span>
+                            @if ($selectedIssue->slip_id)
+                                @if ($selectedIssue->slip && !(method_exists($selectedIssue->slip, 'trashed') && $selectedIssue->slip->trashed()))
+                                    <span class="text-gray-900 font-semibold">{{ $selectedIssue->slip->slip_id ?? 'N/A' }}</span>
+                                @elseif ($selectedIssue->slip)
+                                    <span class="text-gray-900">{{ $selectedIssue->slip->slip_id ?? $selectedIssue->slip_id }}</span><span class="text-red-600"> (Deleted)</span>
                                 @else
-                                    <span class="text-gray-900">{{ $selectedReport->slip_id }}</span><span class="text-red-600"> (Deleted)</span>
+                                    <span class="text-gray-900">{{ $selectedIssue->slip_id }}</span><span class="text-red-600"> (Deleted)</span>
                                 @endif
                             @else
                                 <span class="italic font-normal">Miscellaneous</span>
@@ -189,25 +189,25 @@
                 <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
                     <div class="font-semibold text-gray-500">Description:</div>
                     <div class="text-gray-900 wrap-break-words min-w-0" style="word-break: break-word; overflow-wrap: break-word;">
-                        <div class="whitespace-pre-wrap">{{ $selectedReport->description }}</div>
+                        <div class="whitespace-pre-wrap">{{ $selectedIssue->description }}</div>
                     </div>
                 </div>
             </div>
 
             {{-- Sub Footer --}}
-            @if ($selectedReport->resolved_at)
+            @if ($selectedIssue->resolved_at)
                 <div class="border-t border-gray-200 px-6 py-2 bg-gray-50 -mx-6 -mb-6 mt-2">
                     <div class="grid grid-cols-2 gap-4 text-xs">
                         <div>
                             <div class="font-bold text-gray-500 mb-0.5">Resolved by:</div>
                             <div class="text-gray-900">
-                                {{ $selectedReport->resolvedBy ? trim($selectedReport->resolvedBy->first_name . ' ' . ($selectedReport->resolvedBy->middle_name ?? '') . ' ' . $selectedReport->resolvedBy->last_name) : 'N/A' }}
+                                {{ $selectedIssue->resolvedBy ? trim($selectedIssue->resolvedBy->first_name . ' ' . ($selectedIssue->resolvedBy->middle_name ?? '') . ' ' . $selectedIssue->resolvedBy->last_name) : 'N/A' }}
                             </div>
                         </div>
                         <div>
                             <div class="font-bold text-gray-500 mb-0.5">Resolved on:</div>
                             <div class="text-gray-900">
-                                {{ $selectedReport->resolved_at->format('M d, Y - h:i A') }}
+                                {{ $selectedIssue->resolved_at->format('M d, Y - h:i A') }}
                             </div>
                         </div>
                     </div>
@@ -226,7 +226,7 @@
     <script>
         document.addEventListener('livewire:init', () => {
             Livewire.on('modal-closed', () => {
-                @this.set('selectedReport', null);
+                @this.set('selectedIssue', null);
             });
         });
     </script>
