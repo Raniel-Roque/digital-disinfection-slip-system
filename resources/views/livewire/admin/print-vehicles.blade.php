@@ -159,15 +159,15 @@
             </tr>
         </thead>
         <tbody>
-            @forelse($data as $truck)
+            @forelse($data as $vehicle)
                 <tr>
-                    <td>{{ $truck->vehicle ?? ($truck['vehicle'] ?? '') }}</td>
-                    <td>{{ $truck->disabled ?? ($truck['disabled'] ?? false) ? 'Disabled' : 'Enabled' }}</td>
+                    <td>{{ $vehicle->vehicle ?? ($vehicle['vehicle'] ?? '') }}</td>
+                    <td>{{ $vehicle->disabled ?? ($vehicle['disabled'] ?? false) ? 'Disabled' : 'Enabled' }}</td>
                     <td>
-                        @if (isset($truck->created_at))
-                            {{ \Carbon\Carbon::parse($truck->created_at)->format('M d, Y h:i A') }}
-                        @elseif(isset($truck['created_at']))
-                            {{ \Carbon\Carbon::parse($truck['created_at'])->format('M d, Y h:i A') }}
+                        @if (isset($vehicle->created_at))
+                            {{ \Carbon\Carbon::parse($vehicle->created_at)->format('M d, Y h:i A') }}
+                        @elseif(isset($vehicle['created_at']))
+                            {{ \Carbon\Carbon::parse($vehicle['created_at'])->format('M d, Y h:i A') }}
                         @else
                             N/A
                         @endif

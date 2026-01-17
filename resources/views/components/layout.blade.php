@@ -1568,20 +1568,20 @@
                 }
             });
 
-            // Listen for truck arrival polling events (only for guards at locations)
-            Livewire.on('truckArrivalPoll', (event) => {
+            // Listen for slip arrival polling events (only for guards at locations)
+            Livewire.on('slipArrivalPoll', (event) => {
                 const data = Array.isArray(event) ? event[0] : event;
 
-                if (data && data.truckCount && data.truckCount > 0) {
+                if (data && data.slipCount && data.slipCount > 0) {
                     // Only show to guards (user_type 0) who are at the location
                     if (this.currentUserType === 0 && this.currentLocationId !== 'null') {
                         // Update existing notification if it's already shown and persistent, otherwise create new
                         if (this.show && this.persistent) {
                             // Update existing notification with new count
-                            this.message = data.truckCount + ' truck' + (data.truckCount > 1 ? 's' : '') + ' expected to arrive';
+                            this.message = data.slipCount + ' slip' + (data.vehicleCount > 1 ? 's' : '') + ' expected to arrive';
                         } else {
                             // Create new notification
-                            this.message = data.truckCount + ' truck' + (data.truckCount > 1 ? 's' : '') + ' expected to arrive';
+                            this.message = data.vehicleCount + ' vehicle' + (data.vehicleCount > 1 ? 's' : '') + ' expected to arrive';
                             this.type = 'info';
                             this.persistent = true;
                             this.show = true;

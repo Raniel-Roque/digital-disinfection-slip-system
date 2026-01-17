@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Trucks;
+namespace App\Livewire\Vehicles;
 
 use Livewire\Component;
 use App\Models\DisinfectionSlip;
@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\Cache;
-class TruckCountCard extends Component
+class SlipCountCard extends Component
 {
     public $type; // 'incoming', 'outgoing', 'total', 'inprogress', 'completed'
 
@@ -35,7 +35,7 @@ class TruckCountCard extends Component
         // Apply filters based on type
         switch ($this->type) {
             case 'incoming':
-                // Incoming trucks today - Status 2 (In-Transit) only - unclaimed or claimed by current user
+                // Incoming slips today - Status 2 (In-Transit) only - unclaimed or claimed by current user
                 $query->whereDate('created_at', today())
                       ->where('destination_id', $locationId)
                       ->where('location_id', '!=', $locationId)
@@ -47,7 +47,7 @@ class TruckCountCard extends Component
                 break;
 
             case 'outgoing':
-                // Outgoing trucks today - Status 0, 1, 2 (Pending, Disinfecting, In-Transit) - only show slips created by the current user
+                // Outgoing slips today - Status 0, 1, 2 (Pending, Disinfecting, In-Transit) - only show slips created by the current user
                 $query->whereDate('created_at', today())
                       ->where('location_id', $locationId)
                       ->where('hatchery_guard_id', Auth::id())
@@ -90,7 +90,7 @@ class TruckCountCard extends Component
                 break;
 
             case 'pending':
-                // Pending outgoing trucks - Status 0 - created by current user
+                // Pending outgoing slips - Status 0 - created by current user
                 $query->whereDate('created_at', today())
                       ->where('location_id', $locationId)
                       ->where('hatchery_guard_id', Auth::id())
@@ -121,6 +121,6 @@ class TruckCountCard extends Component
 
     public function render()
     {
-        return view('livewire.trucks.truck-count-card');
+        return view('livewire.slips.slip-count-card');
     }
 }

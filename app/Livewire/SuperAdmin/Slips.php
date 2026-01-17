@@ -133,7 +133,7 @@ class Slips extends Component
     // Create Modal
     public $showCreateModal = false;
     public $showCancelCreateConfirmation = false;
-    public $truck_id;
+    public $vehicle_id;
     public $location_id; // Origin
     public $destination_id;
     public $driver_id;
@@ -154,14 +154,14 @@ class Slips extends Component
     // Search properties for dropdowns (create modal)
     public $searchOrigin = '';
     public $searchDestination = '';
-    public $searchTruck = '';
+    public $searchVehicle = '';
     public $searchDriver = '';
     public $searchHatcheryGuard = '';
     public $searchReceivedGuard = '';
     public $searchReason = '';
     
     // Search properties for details modal
-    public $searchDetailsTruck = '';
+    public $searchDetailsVehicle = '';
     public $searchDetailsDestination = '';
     public $searchDetailsDriver = '';
     public $searchReasonSettings = '';
@@ -182,7 +182,7 @@ class Slips extends Component
     public $showEditModal = false;
     public $showCancelEditConfirmation = false;
     public $showFinalStatusConfirmation = false;
-    public $editTruckId;
+    public $editVehicleId;
     public $editLocationId; // Origin (for status 0)
     public $editDestinationId;
     public $editDriverId;
@@ -193,7 +193,7 @@ class Slips extends Component
     public $editStatus;
     
     // Search properties for edit modal
-    public $searchEditTruck = '';
+    public $searchEditVehicle = '';
     public $searchEditOrigin = '';
     public $searchEditDestination = '';
     public $searchEditDriver = '';
@@ -251,7 +251,7 @@ class Slips extends Component
         // Optimize relationship loading by only selecting needed fields
         if ($this->selectedSlip) {
             $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
-                'truck' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
+                'vehicle' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
                 'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
@@ -286,10 +286,10 @@ class Slips extends Component
         });
     }
     
-    private function getCachedTrucks()
+    private function getCachedVehicles()
     {
         // Only cache id and vehicle to reduce memory usage with large datasets
-        return Cache::remember('trucks_all', 300, function() {
+        return Cache::remember('vehicles_all', 300, function() {
             return Vehicle::withTrashed()
                 ->select('id', 'vehicle', 'disabled', 'deleted_at')
                 ->orderBy('vehicle')
@@ -382,19 +382,19 @@ class Slips extends Component
             ->keyBy('id');
     }
 
-    // Computed property for trucks - lazy load only what's needed
-    public function getTrucksProperty()
+    // Computed property for vehicles - lazy load only what's needed
+    public function getVehiclesProperty()
     {
-        // Only load trucks that are actually used in applied filters
-        $truckIds = $this->filterVehicle ?? [];
+        // Only load vehicles that are actually used in applied filters
+        $vehicleIds = $this->filterVehicle ?? [];
         
-        if (empty($truckIds)) {
+        if (empty($vehicleIds)) {
             return collect();
         }
         
-        // Only fetch the trucks we actually need
+        // Only fetch the vehicles we actually need
         return Vehicle::withTrashed()
-            ->whereIn('id', $truckIds)
+            ->whereIn('id', $vehicleIds)
             ->select('id', 'vehicle', 'disabled', 'deleted_at')
             ->get()
             ->keyBy('id');
@@ -427,7 +427,7 @@ class Slips extends Component
     }
     
     // NOTE: Filter options removed - now using paginated dropdowns with getPaginatedX methods
-    // Old getFilterTruckOptionsProperty, getFilterDriverOptionsProperty, etc. removed
+    // Old getFilterVehicleOptionsProperty, getFilterDriverOptionsProperty, etc. removed
 
     // Computed property for guards (users) - lazy load only what's needed
     public function getGuardsProperty()
@@ -482,19 +482,19 @@ class Slips extends Component
     // NOTE: Create modal options removed - now using paginated dropdowns with getPaginatedX methods
     
     // Computed properties for details modal filtered options
-    public function getDetailsTruckOptionsProperty()
+    public function getDetailsVehicleOptionsProperty()
     {
-        $trucks = $this->getCachedTrucks()->whereNull('deleted_at');
-        $allOptions = $trucks->pluck('vehicle', 'id');
+        $vehicles = $this->getCachedVehicles()->whereNull('deleted_at');
+        $allOptions = $vehicles->pluck('vehicle', 'id');
         $options = $allOptions;
         
-        if (!empty($this->searchDetailsTruck)) {
-            $searchTerm = strtolower($this->searchDetailsTruck);
+        if (!empty($this->searchDetailsVehicle)) {
+            $searchTerm = strtolower($this->searchDetailsVehicle);
             $options = $options->filter(function ($label) use ($searchTerm) {
                 return str_contains(strtolower($label), $searchTerm);
             });
             // Ensure selected value is always included
-            $options = $this->ensureSelectedInOptions($options, $this->truck_id, $allOptions);
+            $options = $this->ensureSelectedInOptions($options, $this->vehicle_id, $allOptions);
         }
         
         return $options->toArray();
@@ -540,7 +540,7 @@ class Slips extends Component
 
     // Paginated data fetching methods for searchable dropdowns
     #[Renderless]
-    public function getPaginatedTrucks($search = '', $page = 1, $perPage = 20, $includeIds = [])
+    public function getPaginatedVehicles($search = '', $page = 1, $perPage = 20, $includeIds = [])
     {
         $query = Vehicle::query()
             ->whereNull('deleted_at')
@@ -1063,7 +1063,7 @@ class Slips extends Component
         // Optimize relationship loading by only selecting needed fields
         // This significantly reduces memory usage with large datasets
         $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
-            'truck' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
+            'vehicle' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
             'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
             'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
             'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
@@ -1103,12 +1103,12 @@ class Slips extends Component
             return false;
         }
 
-        // Cannot edit if truck is soft-deleted
-        if ($this->selectedSlip->truck && $this->selectedSlip->truck->trashed()) {
+        // Cannot edit if vehicle is soft-deleted
+        if ($this->selectedSlip->vehicle && $this->selectedSlip->vehicle->trashed()) {
             return false;
         }
 
-        // SuperAdmin can edit any slip, including completed ones (unless truck is soft-deleted)
+        // SuperAdmin can edit any slip, including completed ones (unless vehicle is soft-deleted)
         return true;
     }
 
@@ -1118,12 +1118,12 @@ class Slips extends Component
             return false;
         }
 
-        // Cannot delete if truck is soft-deleted
-        if ($this->selectedSlip->truck && $this->selectedSlip->truck->trashed()) {
+        // Cannot delete if vehicle is soft-deleted
+        if ($this->selectedSlip->vehicle && $this->selectedSlip->vehicle->trashed()) {
             return false;
         }
 
-        // SuperAdmin can delete any slip, including completed ones (unless truck is soft-deleted)
+        // SuperAdmin can delete any slip, including completed ones (unless vehicle is soft-deleted)
         return true;
     }
 
@@ -1143,7 +1143,7 @@ class Slips extends Component
         // Load the slip if ID is provided (when called from table row)
         if ($id) {
             $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
-                'truck' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
+                'vehicle' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
                 'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
@@ -1156,7 +1156,7 @@ class Slips extends Component
         // Optimize relationship loading by only selecting needed fields
         elseif ($this->selectedSlip && $this->selectedSlip->id) {
             $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
-                'truck' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
+                'vehicle' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
                 'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
@@ -1167,7 +1167,7 @@ class Slips extends Component
         }
 
         // Load slip data into edit fields
-        $this->editTruckId = $this->selectedSlip->truck_id;
+        $this->editVehicleId = $this->selectedSlip->vehicle_id;
         $this->editLocationId = $this->selectedSlip->location_id;
         $this->editDestinationId = $this->selectedSlip->destination_id;
         $this->editDriverId = $this->selectedSlip->driver_id;
@@ -1185,7 +1185,7 @@ class Slips extends Component
         $this->editStatus = $this->selectedSlip->status;
 
         // Reset search properties
-        $this->searchEditTruck = '';
+        $this->searchEditVehicle = '';
         $this->searchEditOrigin = '';
         $this->searchEditDestination = '';
         $this->searchEditDriver = '';
@@ -1216,7 +1216,7 @@ class Slips extends Component
         // Optimize relationship loading by only selecting needed fields
         if ($this->selectedSlip && $this->selectedSlip->id) {
             $this->selectedSlip = DisinfectionSlipModel::with([
-                'truck' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
+                'vehicle' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
                 'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
@@ -1241,7 +1241,7 @@ class Slips extends Component
         // Optimize relationship loading by only selecting needed fields
         if ($this->selectedSlip && $this->selectedSlip->id) {
             $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
-                'truck' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
+                'vehicle' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
                 'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
@@ -1257,7 +1257,7 @@ class Slips extends Component
 
     public function resetEditForm()
     {
-        $this->editTruckId = null;
+        $this->editVehicleId = null;
         $this->editLocationId = null;
         $this->editDestinationId = null;
         $this->editDriverId = null;
@@ -1266,7 +1266,7 @@ class Slips extends Component
         $this->editReasonId = null;
         $this->editRemarksForDisinfection = null;
         $this->editStatus = null;
-        $this->searchEditTruck = '';
+        $this->searchEditVehicle = '';
         $this->searchEditOrigin = '';
         $this->searchEditDestination = '';
         $this->searchEditDriver = '';
@@ -1282,7 +1282,7 @@ class Slips extends Component
             return false;
         }
         
-        return $this->editTruckId != $this->selectedSlip->truck_id ||
+        return $this->editVehicleId != $this->selectedSlip->vehicle_id ||
                $this->editLocationId != $this->selectedSlip->location_id ||
                $this->editDestinationId != $this->selectedSlip->destination_id ||
                $this->editDriverId != $this->selectedSlip->driver_id ||
@@ -1330,7 +1330,7 @@ class Slips extends Component
         
         // Build validation rules based on selected status
         $rules = [
-            'editTruckId' => 'required|exists:trucks,id',
+            'editVehicleId' => 'required|exists:vehicles,id',
             'editDestinationId' => [
                 'required',
                 'exists:locations,id',
@@ -1465,7 +1465,7 @@ class Slips extends Component
         }
 
         $this->validate($rules, [], [
-            'editTruckId' => 'Vehicle',
+            'editVehicleId' => 'Vehicle',
             'editLocationId' => 'Origin',
             'editDestinationId' => 'Destination',
             'editDriverId' => 'Driver',
@@ -1487,7 +1487,7 @@ class Slips extends Component
 
         // Capture old values for logging
         $oldValues = $this->selectedSlip->only([
-            'truck_id',
+            'vehicle_id',
             'location_id',
             'destination_id',
             'driver_id',
@@ -1500,7 +1500,7 @@ class Slips extends Component
 
         // Build update data based on status
         $updateData = [
-            'truck_id' => $this->editTruckId,
+            'vehicle_id' => $this->editVehicleId,
             'destination_id' => $this->editDestinationId,
             'driver_id' => $this->editDriverId,
             'reason_id' => $this->editReasonId,
@@ -1544,7 +1544,7 @@ class Slips extends Component
         // Refresh the slip with relationships (including trashed relations)
         $this->selectedSlip->refresh();
         $this->selectedSlip->load([
-            'truck' => function($q) { $q->withTrashed(); },
+            'vehicle' => function($q) { $q->withTrashed(); },
             'location' => function($q) { $q->withTrashed(); },
             'destination' => function($q) { $q->withTrashed(); },
             'driver' => function($q) { $q->withTrashed(); },
@@ -1593,7 +1593,7 @@ class Slips extends Component
         // Capture old values for logging
         $oldValues = $this->selectedSlip->only([
             'slip_id',
-            'truck_id',
+            'vehicle_id',
             'location_id',
             'destination_id',
             'driver_id',
@@ -1782,7 +1782,7 @@ class Slips extends Component
 
     public function resetCreateForm()
     {
-        $this->truck_id = null;
+        $this->vehicle_id = null;
         $this->location_id = null;
         $this->destination_id = null;
         $this->driver_id = null;
@@ -1792,7 +1792,7 @@ class Slips extends Component
         $this->remarks_for_disinfection = null;
         $this->searchOrigin = '';
         $this->searchDestination = '';
-        $this->searchTruck = '';
+        $this->searchVehicle = '';
         $this->searchDriver = '';
         $this->searchHatcheryGuard = '';
         $this->searchReceivedGuard = '';
@@ -1802,7 +1802,7 @@ class Slips extends Component
 
     public function hasUnsavedChanges()
     {
-        return !empty($this->truck_id) || 
+        return !empty($this->vehicle_id) || 
                !empty($this->location_id) || 
                !empty($this->destination_id) || 
                !empty($this->driver_id) || 
@@ -1823,7 +1823,7 @@ class Slips extends Component
 
         try {
         $this->validate([
-            'truck_id' => 'required|exists:trucks,id',
+            'vehicle_id' => 'required|exists:vehicles,id',
             'location_id' => [
                 'required',
                 'exists:locations,id',
@@ -1901,7 +1901,7 @@ class Slips extends Component
         ], [], [
             'location_id' => 'Origin',
             'destination_id' => 'Destination',
-            'truck_id' => 'Truck',
+            'vehicle_id' => 'Vehicle',
             'driver_id' => 'Driver',
             'hatchery_guard_id' => 'Hatchery Guard',
             'received_guard_id' => 'Receiving Guard',
@@ -1913,7 +1913,7 @@ class Slips extends Component
         $sanitizedRemarks = $this->sanitizeText($this->remarks_for_disinfection);
 
         $slip = DisinfectionSlipModel::create([
-            'truck_id' => $this->truck_id,
+            'vehicle_id' => $this->vehicle_id,
             'location_id' => $this->location_id,
             'destination_id' => $this->destination_id,
             'driver_id' => $this->driver_id,
@@ -1932,7 +1932,7 @@ class Slips extends Component
             $slip->id,
             "Created slip {$slipId}",
             $slip->only([
-                'truck_id',
+                'vehicle_id',
                 'location_id',
                 'destination_id',
                 'driver_id',
@@ -2043,7 +2043,7 @@ class Slips extends Component
         // Optimize relationship loading by only selecting needed fields
         if ($this->selectedSlip) {
             $this->selectedSlip = DisinfectionSlipModel::with([
-                'truck' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
+                'vehicle' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
                 'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
@@ -2199,7 +2199,7 @@ class Slips extends Component
         // This significantly reduces memory usage with large datasets (5,000+ records)
         $query = $this->showDeleted
             ? DisinfectionSlipModel::onlyTrashed()->with([
-                'truck:id,vehicle,disabled,deleted_at',
+                'vehicle:id,vehicle,disabled,deleted_at',
                 'location:id,location_name,disabled,deleted_at',
                 'destination:id,location_name,disabled,deleted_at',
                 'driver:id,first_name,middle_name,last_name,disabled,deleted_at',
@@ -2207,7 +2207,7 @@ class Slips extends Component
                 'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at'
             ])
             : DisinfectionSlipModel::with([
-                'truck:id,vehicle,disabled,deleted_at',
+                'vehicle:id,vehicle,disabled,deleted_at',
                 'location:id,location_name,disabled,deleted_at',
                 'destination:id,location_name,disabled,deleted_at',
                 'driver:id,first_name,middle_name,last_name,disabled,deleted_at',
@@ -2231,8 +2231,8 @@ class Slips extends Component
                 
                 $query->where(function($q) use ($escapedSearchTerm) {
                     $q->where('slip_id', 'like', '%' . $escapedSearchTerm . '%')
-                        ->orWhereHas('truck', function($truckQuery) use ($escapedSearchTerm) {
-                            $truckQuery->withTrashed()->where('vehicle', 'like', '%' . $escapedSearchTerm . '%');
+                        ->orWhereHas('vehicle', function($vehicleQuery) use ($escapedSearchTerm) {
+                            $vehicleQuery->withTrashed()->where('vehicle', 'like', '%' . $escapedSearchTerm . '%');
                         })
                         ->orWhereHas('driver', function($driverQuery) use ($escapedSearchTerm) {
                             $driverQuery->withTrashed()->where(function($dq) use ($escapedSearchTerm) {
@@ -2288,7 +2288,7 @@ class Slips extends Component
             })
             // Vehicle filter
             ->when($this->filtersActive && !empty($this->appliedVehicle), function($query) {
-                $query->whereIn('truck_id', $this->appliedVehicle);
+                $query->whereIn('vehicle_id', $this->appliedVehicle);
             })
             // Hatchery guard filter
             ->when(!empty($this->appliedHatcheryGuard), function($query) {
@@ -2315,8 +2315,8 @@ class Slips extends Component
             // Use whereIn with subqueries for better performance than whereHas with large datasets
             // This avoids loading all IDs into memory and is faster than whereHas
             ->when($this->excludeDeletedItems, function($query) {
-                $query->whereIn('truck_id', function($subquery) {
-                        $subquery->select('id')->from('trucks')->whereNull('deleted_at');
+                $query->whereIn('vehicle_id', function($subquery) {
+                        $subquery->select('id')->from('vehicles')->whereNull('deleted_at');
                     })
                     ->whereIn('driver_id', function($subquery) {
                         $subquery->select('id')->from('drivers')->whereNull('deleted_at');
@@ -2364,19 +2364,17 @@ class Slips extends Component
             'slips' => $slips,
             'locations' => $this->locations,
             'drivers' => $this->drivers,
-            'trucks' => $this->trucks,
+            'vehicles' => $this->vehicles,
             'guards' => $this->guards,
             'availableStatuses' => $this->availableStatuses,
-            // NOTE: Filter/Create/Edit options removed - now using paginated dropdowns
-            // NOTE: Reasons removed - loaded lazily by reason-settings modal
         ]);
     }
 
     public function getExportData()
     {
         $query = $this->showDeleted 
-            ? DisinfectionSlipModel::onlyTrashed()->with(['truck' => function($q) { $q->withTrashed(); }, 'location' => function($q) { $q->withTrashed(); }, 'destination' => function($q) { $q->withTrashed(); }, 'driver' => function($q) { $q->withTrashed(); }, 'reason', 'hatcheryGuard' => function($q) { $q->withTrashed(); }, 'receivedGuard' => function($q) { $q->withTrashed(); }])
-            : DisinfectionSlipModel::with(['truck' => function($q) { $q->withTrashed(); }, 'location' => function($q) { $q->withTrashed(); }, 'destination' => function($q) { $q->withTrashed(); }, 'driver' => function($q) { $q->withTrashed(); }, 'reason', 'hatcheryGuard' => function($q) { $q->withTrashed(); }, 'receivedGuard' => function($q) { $q->withTrashed(); }])->whereNull('deleted_at');
+            ? DisinfectionSlipModel::onlyTrashed()->with(['vehicle' => function($q) { $q->withTrashed(); }, 'location' => function($q) { $q->withTrashed(); }, 'destination' => function($q) { $q->withTrashed(); }, 'driver' => function($q) { $q->withTrashed(); }, 'reason', 'hatcheryGuard' => function($q) { $q->withTrashed(); }, 'receivedGuard' => function($q) { $q->withTrashed(); }])
+            : DisinfectionSlipModel::with(['vehicle' => function($q) { $q->withTrashed(); }, 'location' => function($q) { $q->withTrashed(); }, 'destination' => function($q) { $q->withTrashed(); }, 'driver' => function($q) { $q->withTrashed(); }, 'reason', 'hatcheryGuard' => function($q) { $q->withTrashed(); }, 'receivedGuard' => function($q) { $q->withTrashed(); }])->whereNull('deleted_at');
         
         return $query->when($this->search, function ($query) {
                 $searchTerm = trim($this->search);
@@ -2387,8 +2385,8 @@ class Slips extends Component
                 $escapedSearchTerm = str_replace(['%', '_'], ['\%', '\_'], $searchTerm);
                 $query->where(function($q) use ($escapedSearchTerm) {
                     $q->where('slip_id', 'like', '%' . $escapedSearchTerm . '%')
-                        ->orWhereHas('truck', function($truckQuery) use ($escapedSearchTerm) {
-                            $truckQuery->withTrashed()->where('vehicle', 'like', '%' . $escapedSearchTerm . '%');
+                        ->orWhereHas('vehicle', function($vehicleQuery) use ($escapedSearchTerm) {
+                            $vehicleQuery->withTrashed()->where('vehicle', 'like', '%' . $escapedSearchTerm . '%');
                         })
                         ->orWhereHas('driver', function($driverQuery) use ($escapedSearchTerm) {
                             $driverQuery->withTrashed()->where(function($dq) use ($escapedSearchTerm) {
@@ -2420,7 +2418,7 @@ class Slips extends Component
                 $query->whereIn('driver_id', $this->appliedDriver);
             })
             ->when(!empty($this->appliedVehicle), function($query) {
-                $query->whereIn('truck_id', $this->appliedVehicle);
+                $query->whereIn('vehicle_id', $this->appliedVehicle);
             })
             ->when(!empty($this->appliedHatcheryGuard), function($query) {
                 $query->whereIn('hatchery_guard_id', $this->appliedHatcheryGuard);
@@ -2447,7 +2445,7 @@ class Slips extends Component
             })
             // Exclude slips with deleted items (default: on)
             ->when($this->excludeDeletedItems, function($query) {
-                $query->whereHas('truck', function($q) {
+                $query->whereHas('vehicle', function($q) {
                     $q->whereNull('deleted_at');
                 })
                 ->whereHas('driver', function($q) {
@@ -2498,11 +2496,11 @@ class Slips extends Component
                 $receivedGuard = $slip->receivedGuard ? trim(implode(' ', array_filter([$slip->receivedGuard->first_name, $slip->receivedGuard->middle_name, $slip->receivedGuard->last_name]))) : 'N/A';
                 $driver = $slip->driver ? trim(implode(' ', array_filter([$slip->driver->first_name, $slip->driver->middle_name, $slip->driver->last_name]))) : 'N/A';
                 
-                // Format vehicle with (Deleted) tag if truck is soft-deleted
+                // Format vehicle with (Deleted) tag if vehicle is soft-deleted
                 $vehicle = 'N/A';
-                if ($slip->truck) {
-                    $vehicle = $slip->truck->vehicle;
-                    if ($slip->truck->trashed()) {
+                if ($slip->vehicle) {
+                    $vehicle = $slip->vehicle->vehicle;
+                    if ($slip->vehicle->trashed()) {
                         $vehicle .= ' (Deleted)';
                     }
                 }
@@ -2544,7 +2542,7 @@ class Slips extends Component
             
             return [
                 'slip_id' => $slip->slip_id,
-                'vehicle' => $slip->truck ? ($slip->truck->trashed() ? $slip->truck->vehicle . ' (Deleted)' : $slip->truck->vehicle) : 'N/A',
+                'vehicle' => $slip->vehicle ? ($slip->vehicle->trashed() ? $slip->vehicle->vehicle . ' (Deleted)' : $slip->vehicle->vehicle) : 'N/A',
                 'origin' => $slip->location ? ($slip->location->trashed() ? $slip->location->location_name . ' (Deleted)' : $slip->location->location_name) : 'N/A',
                 'destination' => $slip->destination ? ($slip->destination->trashed() ? $slip->destination->location_name . ' (Deleted)' : $slip->destination->location_name) : 'N/A',
                 'driver' => $slip->driver ? ($slip->driver->trashed() ?
@@ -2583,7 +2581,7 @@ class Slips extends Component
         Session::put("export_sorting_{$token}", $sorting);
         Session::put("export_data_{$token}_expires", now()->addMinutes(10));
         
-        $printUrl = route('superadmin.print.trucks', ['token' => $token]);
+        $printUrl = route('superadmin.print.vehicles', ['token' => $token]);
         
         $this->dispatch('open-print-window', ['url' => $printUrl]);
     }

@@ -9,6 +9,7 @@
             </div>
 
             <form wire:submit.prevent="updateSettings">
+                @csrf
                 <div class="p-6">
                     {{-- 2 Column Grid Layout --}}
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -270,7 +271,7 @@
                                     <div class="flex-1">
                                         <h3 class="text-lg font-semibold text-gray-800 mb-2">Soft-Deleted Records Cleanup</h3>
                                         <p class="text-sm text-gray-600 leading-relaxed">
-                                            Permanently delete soft-deleted records (users, trucks, drivers, locations, slips) older than the retention period.
+                                            Permanently delete soft-deleted records (users, vehicles, drivers, locations, slips) older than the retention period.
                                         </p>
                                         <div class="mt-3 text-xs text-gray-500">
                                             <span class="font-medium">Retention:</span> {{ $soft_deleted_retention_months }} months
@@ -334,7 +335,7 @@
             {{-- Soft-Delete Cleanup Modal --}}
             <x-modals.delete-confirmation show="showSoftDeleteCleanupModal" title="Clean Up Soft-Deleted Records"
                 message="Are you sure you want to run soft-deleted records cleanup?"
-                :details="'This will permanently delete soft-deleted records (users, trucks, drivers, locations, slips, issues) older than <strong>' . $soft_deleted_retention_months . ' months</strong>.'"
+                :details="'This will permanently delete soft-deleted records (users, vehicles, drivers, locations, slips, issues) older than <strong>' . $soft_deleted_retention_months . ' months</strong>.'"
                 onConfirm="runSoftDeleteCleanup"
                 confirmText="Run Cleanup" cancelText="Cancel" />
 

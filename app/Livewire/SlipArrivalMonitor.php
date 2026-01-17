@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Cache;
 
-class TruckArrivalMonitor extends Component
+class SlipArrivalMonitor extends Component
 {
     public $currentLocationId;
     public $notificationShown = false;
@@ -19,7 +19,7 @@ class TruckArrivalMonitor extends Component
         $this->currentLocationId = Session::get('location_id');
 
         // Get the last notification time for this user/location from cache
-        $cacheKey = 'truck_notification_' . Auth::id() . '_' . $this->currentLocationId;
+        $cacheKey = 'slip_notification_' . Auth::id() . '_' . $this->currentLocationId;
         $this->lastNotificationTime = Cache::get($cacheKey, now()->subHours(1)); // Default to 1 hour ago if no cache
 
         $this->checkForArrivals();
@@ -31,15 +31,15 @@ class TruckArrivalMonitor extends Component
             return;
         }
 
-        // Count trucks that arrived since the last notification was dismissed
-        $newTruckCount = DisinfectionSlip::where('destination_id', $this->currentLocationId)
+        // Count slips that arrived since the last notification was dismissed
+        $newSlipCount = DisinfectionSlip::where('destination_id', $this->currentLocationId)
             ->where('status', 2) // In-Transit
-            ->where('updated_at', '>', $this->lastNotificationTime) // Only trucks updated after last notification
+            ->where('updated_at', '>', $this->lastNotificationTime) // Only slips updated after last notification
             ->count();
 
-        if ($newTruckCount > 0) {
-            $this->dispatch('truckArrivalPoll', [
-                'truckCount' => $newTruckCount,
+        if ($newSlipCount > 0) {
+            $this->dispatch('slipArrivalPoll', [
+                'slipCount' => $newSlipCount,
                 'locationId' => $this->currentLocationId,
                 'isNew' => !$this->notificationShown
             ]);
@@ -54,7 +54,7 @@ class TruckArrivalMonitor extends Component
         $this->lastNotificationTime = now();
 
         // Store in cache so it persists across page refreshes
-        $cacheKey = 'truck_notification_' . Auth::id() . '_' . $this->currentLocationId;
+        $cacheKey = 'slip_notification_' . Auth::id() . '_' . $this->currentLocationId;
         Cache::put($cacheKey, $this->lastNotificationTime, now()->addHours(24)); // Cache for 24 hours
     }
 
@@ -67,6 +67,6 @@ class TruckArrivalMonitor extends Component
 
     public function render()
     {
-        return view('livewire.truck-arrival-monitor');
+        return view('livewire.slip-arrival-monitor');
     }
 }

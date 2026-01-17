@@ -77,7 +77,7 @@ class Issues extends Component
         // Reload selectedSlip with trashed relations if it exists
         if ($this->selectedSlip && $this->selectedSlip->id) {
             $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
-                'truck' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
+                'vehicle' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
                 'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
@@ -95,7 +95,7 @@ class Issues extends Component
                     'slip' => function($q) {
                         $q->withTrashed();
                         $q->with([
-                            'truck' => function($q) { $q->withTrashed(); },
+                            'vehicle' => function($q) { $q->withTrashed(); },
                             'location' => function($q) { $q->withTrashed(); },
                             'destination' => function($q) { $q->withTrashed(); },
                             'driver' => function($q) { $q->withTrashed(); },
@@ -110,7 +110,7 @@ class Issues extends Component
                     'slip' => function($q) {
                         $q->withTrashed();
                         $q->with([
-                            'truck' => function($q) { $q->withTrashed(); },
+                            'vehicle' => function($q) { $q->withTrashed(); },
                             'location' => function($q) { $q->withTrashed(); },
                             'destination' => function($q) { $q->withTrashed(); },
                             'driver' => function($q) { $q->withTrashed(); },
@@ -140,7 +140,7 @@ class Issues extends Component
         // If a slip is selected, reload it with trashed relations
         if ($this->selectedSlip) {
             $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
-                'truck' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
+                'vehicle' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
                 'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                 'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
@@ -157,7 +157,7 @@ class Issues extends Component
                     'slip' => function($q) {
                         $q->withTrashed();
                         $q->with([
-                            'truck' => function($q) { $q->withTrashed(); },
+                            'vehicle' => function($q) { $q->withTrashed(); },
                             'location' => function($q) { $q->withTrashed(); },
                             'destination' => function($q) { $q->withTrashed(); },
                             'driver' => function($q) { $q->withTrashed(); },
@@ -172,7 +172,7 @@ class Issues extends Component
                     'slip' => function($q) {
                         $q->withTrashed();
                         $q->with([
-                            'truck' => function($q) { $q->withTrashed(); },
+                            'vehicle' => function($q) { $q->withTrashed(); },
                             'location' => function($q) { $q->withTrashed(); },
                             'destination' => function($q) { $q->withTrashed(); },
                             'driver' => function($q) { $q->withTrashed(); },
@@ -216,7 +216,7 @@ class Issues extends Component
     // Edit Modal
     public $showEditModal = false;
     public $showCancelEditConfirmation = false;
-    public $editTruckId;
+    public $editVehicleId;
     public $editLocationId; // Origin (for status 0)
     public $editDestinationId;
     public $editDriverId;
@@ -226,7 +226,7 @@ class Issues extends Component
     public $editStatus;
     
     // Search properties for edit modal
-    public $searchEditTruck = '';
+    public $searchEditVehicle = '';
     public $searchEditOrigin = '';
     public $searchEditDestination = '';
     public $searchEditDriver = '';
@@ -365,7 +365,7 @@ class Issues extends Component
                 'slip' => function($q) {
                     $q->withTrashed();
                     $q->with([
-                        'truck' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
+                        'vehicle' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
                         'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                         'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                         'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
@@ -380,7 +380,7 @@ class Issues extends Component
                 'slip' => function($q) {
                     $q->withTrashed();
                     $q->with([
-                        'truck' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
+                        'vehicle' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
                         'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                         'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
                         'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
@@ -429,7 +429,7 @@ class Issues extends Component
         $this->showDetailsModal = true;
 
         $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
-            'truck' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
+            'vehicle' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
             'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
             'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
             'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
@@ -454,7 +454,7 @@ class Issues extends Component
     // Cached collections for edit modal
     private $cachedLocations = null;
     private $cachedDrivers = null;
-    private $cachedTrucks = null;
+    private $cachedVehicles = null;
     
     private function ensureSelectedInOptions($options, $selectedValue, $allOptions)
     {
@@ -472,10 +472,10 @@ class Issues extends Component
         return is_array($options) ? $optionsArray : collect($optionsArray);
     }
     
-    // NOTE: Old edit options properties removed - now using paginated dropdowns (same as Trucks/Admin Issues)
+    // NOTE: Old edit options properties removed - now using paginated dropdowns (same as Vehicles/Admin Issues)
     
     #[Renderless]
-    public function getPaginatedTrucks($search = '', $page = 1, $perPage = 20, $includeIds = [])
+    public function getPaginatedVehicles($search = '', $page = 1, $perPage = 20, $includeIds = [])
     {
         $query = Vehicle::query()->whereNull('deleted_at')->where('disabled', false)->select(['id', 'vehicle']);
         if (!empty($search)) $query->where('vehicle', 'like', '%' . $search . '%');
@@ -577,7 +577,7 @@ class Issues extends Component
             // Capture old values for logging
             $oldValues = $this->selectedSlip->only([
                 'slip_id',
-                'truck_id',
+                'vehicle_id',
                 'location_id',
                 'destination_id',
                 'driver_id',
@@ -627,7 +627,7 @@ class Issues extends Component
         }
         
         // Load slip data into edit fields
-        $this->editTruckId = $this->selectedSlip->truck_id;
+        $this->editVehicleId = $this->selectedSlip->vehicle_id;
         $this->editLocationId = $this->selectedSlip->location_id;
         $this->editDestinationId = $this->selectedSlip->destination_id;
         $this->editDriverId = $this->selectedSlip->driver_id;
@@ -637,7 +637,7 @@ class Issues extends Component
         $this->editStatus = $this->selectedSlip->status;
         
         // Reset search properties
-        $this->searchEditTruck = '';
+        $this->searchEditVehicle = '';
         $this->searchEditOrigin = '';
         $this->searchEditDestination = '';
         $this->searchEditDriver = '';
@@ -667,7 +667,7 @@ class Issues extends Component
     
     public function resetEditForm()
     {
-        $this->editTruckId = null;
+        $this->editVehicleId = null;
         $this->editLocationId = null;
         $this->editDestinationId = null;
         $this->editDriverId = null;
@@ -675,7 +675,7 @@ class Issues extends Component
         $this->editReceivedGuardId = null;
         $this->editRemarksForDisinfection = null;
         $this->editStatus = null;
-        $this->searchEditTruck = '';
+        $this->searchEditVehicle = '';
         $this->searchEditOrigin = '';
         $this->searchEditDestination = '';
         $this->searchEditDriver = '';
@@ -690,7 +690,7 @@ class Issues extends Component
             return false;
         }
         
-        return $this->editTruckId != $this->selectedSlip->truck_id ||
+        return $this->editVehicleId != $this->selectedSlip->vehicle_id ||
                $this->editLocationId != $this->selectedSlip->location_id ||
                $this->editDestinationId != $this->selectedSlip->destination_id ||
                $this->editDriverId != $this->selectedSlip->driver_id ||
@@ -725,7 +725,7 @@ class Issues extends Component
         
         // Build validation rules based on selected status
         $rules = [
-            'editTruckId' => 'required|exists:trucks,id',
+            'editVehicleId' => 'required|exists:vehicles,id',
             'editDestinationId' => [
                 'required',
                 'exists:locations,id',
@@ -849,7 +849,7 @@ class Issues extends Component
         }
 
         $this->validate($rules, [], [
-            'editTruckId' => 'Vehicle',
+            'editVehicleId' => 'Vehicle',
             'editLocationId' => 'Origin',
             'editDestinationId' => 'Destination',
             'editDriverId' => 'Driver',
@@ -870,13 +870,13 @@ class Issues extends Component
 
         // Capture old values for logging
         $oldValues = $this->selectedSlip->only([
-            'truck_id', 'location_id', 'destination_id', 'driver_id',
+            'vehicle_id', 'location_id', 'destination_id', 'driver_id',
             'hatchery_guard_id', 'received_guard_id', 'remarks_for_disinfection', 'status'
         ]);
 
         // Build update data based on status
         $updateData = [
-            'truck_id' => $this->editTruckId,
+            'vehicle_id' => $this->editVehicleId,
             'destination_id' => $this->editDestinationId,
             'driver_id' => $this->editDriverId,
             'remarks_for_disinfection' => $sanitizedRemarks,
@@ -902,20 +902,20 @@ class Issues extends Component
         // Refresh the slip with relationships (including if slip is deleted)
         $this->selectedSlip->refresh();
         $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
-            'truck' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
+            'vehicle' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
             'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
             'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
             'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
             'hatcheryGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); },
             'receivedGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); },
-            'reason'
+            'reason' => function($q) { $q->select('id', 'reason_text', 'disabled', 'deleted_at'); },
         ])->find($this->selectedSlip->id);
 
         $slipId = $this->selectedSlip->slip_id;
         
         // Log the update
         $newValues = $this->selectedSlip->only([
-            'truck_id', 'location_id', 'destination_id', 'driver_id',
+            'vehicle_id', 'location_id', 'destination_id', 'driver_id',
             'hatchery_guard_id', 'received_guard_id', 'remarks_for_disinfection', 'status'
         ]);
         Logger::update(
@@ -977,7 +977,7 @@ class Issues extends Component
         // Livewire re-hydrates models without trashed relations; reload for details modal
         if ($this->selectedSlip) {
             $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
-                'truck' => function($q) { $q->withTrashed(); },
+                'vehicle' => function($q) { $q->withTrashed(); },
                 'location' => function($q) { $q->withTrashed(); },
                 'destination' => function($q) { $q->withTrashed(); },
                 'driver' => function($q) { $q->withTrashed(); },
@@ -1362,7 +1362,7 @@ class Issues extends Component
                     $q->withTrashed()->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'deleted_at');
                 },
                 'slip' => function($q) {
-                    $q->withTrashed()->select('id', 'slip_id', 'truck_id', 'location_id', 'destination_id', 'driver_id', 'status', 'completed_at', 'deleted_at');
+                    $q->withTrashed()->select('id', 'slip_id', 'vehicle_id', 'location_id', 'destination_id', 'driver_id', 'status', 'completed_at', 'deleted_at');
                 }
             ])
             : Issue::with([
@@ -1370,7 +1370,7 @@ class Issues extends Component
                     $q->withTrashed()->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'deleted_at');
                 },
                 'slip' => function($q) {
-                    $q->withTrashed()->select('id', 'slip_id', 'truck_id', 'location_id', 'destination_id', 'driver_id', 'status', 'completed_at', 'deleted_at');
+                    $q->withTrashed()->select('id', 'slip_id', 'vehicle_id', 'location_id', 'destination_id', 'driver_id', 'status', 'completed_at', 'deleted_at');
                 }
             ])->whereNull('deleted_at');
         

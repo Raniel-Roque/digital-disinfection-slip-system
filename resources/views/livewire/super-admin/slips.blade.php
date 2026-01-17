@@ -111,7 +111,7 @@
 
                     {{-- Export Button with Create and Restore options (mobile, only when NOT in restore mode) --}}
                     @if (!($showDeleted ?? false))
-                        <x-buttons.export-button type="trucks" :showCreate="true" :showRestore="true" :showDeleted="false" />
+                        <x-buttons.export-button type="slips" :showCreate="true" :showRestore="true" :showDeleted="false" />
                     @endif
                 </div>
             </div>
@@ -204,14 +204,14 @@
                     @endif
 
                     @if (!empty($appliedVehicle))
-                        @foreach ($appliedVehicle as $truckId)
+                        @foreach ($appliedVehicle as $vehicleId)
                             @php
-                                $truck = $trucks->find($truckId);
+                                $vehicle = $vehicles->find($vehicleId);
                             @endphp
                             <span
                                 class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                Plate: @if ($truck){{ $truck->vehicle }}@if ($truck->trashed()) <span class="text-red-600 font-semibold">(Deleted)</span>@endif@else<span class="text-red-600 font-semibold">(Deleted)</span>@endif
-                                <button wire:click="removeSpecificFilter('vehicle', {{ $truckId }})"
+                                Plate: @if ($vehicle){{ $vehicle->vehicle }}@if ($vehicle->trashed()) <span class="text-red-600 font-semibold">(Deleted)</span>@endif@else<span class="text-red-600 font-semibold">(Deleted)</span>@endif
+                                <button wire:click="removeSpecificFilter('vehicle', {{ $vehicleId }})"
                                     class="ml-1.5 inline-flex items-center hover:cursor-pointer cursor-pointer">
                                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"
@@ -492,9 +492,9 @@
                                             @endif
                                         </div>
                                         <div class="text-xs text-gray-500 mt-0.5">
-                                            @if ($slip->truck)
-                                                {{ $slip->truck->vehicle }}
-                                                @if ($slip->truck->trashed())
+                                            @if ($slip->vehicle)
+                                                {{ $slip->vehicle->vehicle }}
+                                                @if ($slip->vehicle->trashed())
                                                     <span class="text-red-600 font-semibold">(Deleted)</span>
                                                 @endif
                                             @else
@@ -503,9 +503,9 @@
                                         </div>
                                     @else
                                         <div class="text-sm font-semibold text-gray-900">
-                                            @if ($slip->truck)
-                                                {{ $slip->truck->vehicle }}
-                                                @if ($slip->truck->trashed())
+                                            @if ($slip->vehicle)
+                                                {{ $slip->vehicle->vehicle }}
+                                                @if ($slip->vehicle->trashed())
                                                     <span class="text-red-600 font-semibold">(Deleted)</span>
                                                 @endif
                                             @else

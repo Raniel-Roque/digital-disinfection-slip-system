@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Trucks;
+namespace App\Livewire\Vehicles;
 
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -25,9 +25,9 @@ use Illuminate\Validation\ValidationException;
  * @method void dispatch(string $event, mixed ...$params)
  * @method void resetErrorBag()
  * @method array validate(array $rules)
- * NOTE: trucks, locations, drivers properties removed - using paginated methods instead
+ * NOTE: vehicles, locations, drivers properties removed - using paginated methods instead
  */
-class TruckList extends Component
+class SlipList extends Component
 {
     use WithPagination;
 
@@ -58,7 +58,7 @@ class TruckList extends Component
     // Create Modal
     public $showCreateModal = false;
     public $showCancelCreateConfirmation = false;
-    public $truck_id;
+    public $vehicle_id;
     public $destination_id;
     public $driver_id;
     public $reason_id;
@@ -76,7 +76,7 @@ class TruckList extends Component
     public $currentPendingAttachmentIndex = 0;
 
     // Search properties for dropdowns
-    public $searchTruck = '';
+    public $searchVehicle = '';
     public $searchDestination = '';
     public $searchDriver = '';
     public $searchReason = '';
@@ -147,7 +147,7 @@ class TruckList extends Component
         return $user && ($user->super_guard || $user->user_type === 2);
     }
 
-    // NOTE: Computed properties removed - now using paginated dropdowns via getPaginatedTrucks, getPaginatedLocations, getPaginatedDrivers
+    // NOTE: Computed properties removed - now using paginated dropdowns via getPaginatedVehicles, getPaginatedLocations, getPaginatedDrivers
     // These methods are called on-demand by the searchable-dropdown-paginated component
 
     public function getCanCreateSlipProperty()
@@ -190,7 +190,7 @@ class TruckList extends Component
     
     // Paginated data fetching methods for searchable dropdowns
     #[Renderless]
-    public function getPaginatedTrucks($search = '', $page = 1, $perPage = 20, $includeIds = [])
+    public function getPaginatedVehicles($search = '', $page = 1, $perPage = 20, $includeIds = [])
     {
         $query = Vehicle::query()
             ->whereNull('deleted_at')
@@ -467,12 +467,12 @@ class TruckList extends Component
 
     public function resetCreateForm()
     {
-        $this->truck_id = null;
+        $this->vehicle_id = null;
         $this->destination_id = null;
         $this->driver_id = null;
         $this->reason_id = null;
         $this->remarks_for_disinfection = null;
-        $this->searchTruck = '';
+        $this->searchVehicle = '';
         $this->searchDestination = '';
         $this->searchDriver = '';
         $this->searchReason = '';
@@ -553,7 +553,7 @@ class TruckList extends Component
         $currentLocationId = Session::get('location_id');
         
         $this->validate([
-            'truck_id' => 'required|exists:trucks,id',
+            'vehicle_id' => 'required|exists:vehicles,id',
             'destination_id' => [
                 'required',
                 'exists:locations,id',
@@ -583,7 +583,7 @@ class TruckList extends Component
         $sanitizedRemarks = $this->sanitizeText($this->remarks_for_disinfection);
 
         $slip = DisinfectionSlip::create([
-            'truck_id' => $this->truck_id,
+            'vehicle_id' => $this->vehicle_id,
             'destination_id' => $this->destination_id,
             'driver_id' => $this->driver_id,
             'reason_id' => $this->reason_id,
@@ -601,7 +601,7 @@ class TruckList extends Component
             DisinfectionSlip::class,
             $slip->id,
             "Created disinfection slip {$slip->slip_id}",
-            $slip->only(['truck_id', 'destination_id', 'driver_id', 'location_id', 'reason_id', 'status'])
+            $slip->only(['vehicle_id', 'destination_id', 'driver_id', 'location_id', 'reason_id', 'status'])
         );
 
         $this->dispatch('toast', message: 'Disinfection slip created successfully!', type: 'success');        
@@ -1143,7 +1143,7 @@ class TruckList extends Component
             // Optimize relationship loading by only selecting needed fields
             // This significantly reduces memory usage with large datasets (5,000+ records)
             ->with([
-                'truck' => function($q) {
+                'vehicle' => function($q) {
                     $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed();
                 },
                 'location:id,location_name,disabled,deleted_at',
@@ -1163,11 +1163,11 @@ class TruckList extends Component
             })
             ->paginate(5);
 
-        return view('livewire.trucks.truck-list', [
+        return view('livewire.vehicles.vehicle-list', [
             'slips' => $slips,
             'availableStatuses' => $this->availableStatuses,
-            // NOTE: trucks, locations, drivers removed - views use searchable-dropdown-paginated component
-            // which calls getPaginatedTrucks, getPaginatedLocations, getPaginatedDrivers on-demand
+            // NOTE: vehicles, locations, drivers removed - views use searchable-dropdown-paginated component
+            // which calls getPaginatedVehicles, getPaginatedLocations, getPaginatedDrivers on-demand
         ]);
     }
     

@@ -14,7 +14,7 @@ class DisinfectionSlip extends Model
 
     protected $fillable = [
         'slip_id',
-        'truck_id',
+        'vehicle_id',
         'location_id',
         'destination_id',
         'driver_id',
@@ -163,7 +163,7 @@ class DisinfectionSlip extends Model
     }
 
     // Relationships
-    public function truck()
+    public function vehicle()
     {
         return $this->belongsTo(Vehicle::class);
     }

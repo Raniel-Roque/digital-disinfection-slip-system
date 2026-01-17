@@ -1,6 +1,6 @@
 # Digital Disinfection Slip System
 
-A web-based system for managing truck disinfection slips with role-based access control.
+A web-based system for managing disinfection slips with role-based access control.
 
 ## Features
 

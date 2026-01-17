@@ -108,13 +108,13 @@ class StressTestSeeder extends Seeder
         /** @phpstan-ignore-next-line */
         $userIds = User::pluck('id')->toArray();
         
-        // Create 5,000 Trucks
+        // Create 5,000 Vehicles
         $this->command->info('Creating 5,000 vehicles...');
         for ($batch = 0; $batch < $totalBatches; $batch++) {
             Vehicle::factory()->count($batchSize)->create();
             $this->command->info("  Batch " . ($batch + 1) . "/{$totalBatches} completed");
         }
-        $this->command->info('✓ Created 5,000 trucks');
+        $this->command->info('✓ Created 5,000 vehicles');
         
         // Create 5,000 Drivers
         $this->command->info('Creating 5,000 drivers...');
@@ -198,7 +198,7 @@ class StressTestSeeder extends Seeder
         // Get IDs only (not full models) to save memory - refresh after each batch
         $this->command->info('Loading relationship data...');
         /** @phpstan-ignore-next-line */
-        $truckIds = Vehicle::pluck('id')->toArray();
+        $vehicleIds = Vehicle::pluck('id')->toArray();
         /** @phpstan-ignore-next-line */
         $driverIds = Driver::pluck('id')->toArray();
         /** @phpstan-ignore-next-line */
@@ -263,7 +263,7 @@ class StressTestSeeder extends Seeder
                 // Use create() directly with explicit slip_id and timestamps
                 DisinfectionSlip::create([
                     'slip_id' => $slipId,
-                    'truck_id' => fake()->randomElement($truckIds),
+                    'vehicle_id' => fake()->randomElement($vehicleIds),
                     'location_id' => fake()->randomElement($locationIds),
                     'destination_id' => fake()->randomElement($locationIds),
                     'driver_id' => fake()->randomElement($driverIds),
@@ -316,7 +316,7 @@ class StressTestSeeder extends Seeder
         /** @phpstan-ignore-next-line */
         $allUserIds = User::pluck('id')->toArray();
         /** @phpstan-ignore-next-line */
-        $allTruckIds = Vehicle::pluck('id')->toArray();
+        $allVehicleIds = Vehicle::pluck('id')->toArray();
         /** @phpstan-ignore-next-line */
         $allDriverIds = Driver::pluck('id')->toArray();
         /** @phpstan-ignore-next-line */
@@ -329,7 +329,7 @@ class StressTestSeeder extends Seeder
         // Define model types and their corresponding IDs
         $modelTypes = [
             'App\Models\User' => $allUserIds,
-            'App\Models\Truck' => $allTruckIds,
+            'App\Models\Vehicle' => $allVehicleIds,
             'App\Models\Driver' => $allDriverIds,
             'App\Models\Location' => $allLocationIds,
             'App\Models\DisinfectionSlip' => $allSlipIds,
@@ -471,7 +471,7 @@ class StressTestSeeder extends Seeder
         $this->command->info('Total entries created:');
         $this->command->info('  - Guards: 5,000 (~1,000 super guards, ~4,000 regular guards)');
         $this->command->info('  - Admins: 5,000');
-        $this->command->info('  - Trucks: 5,000');
+        $this->command->info('  - Vehicles: 5,000');
         $this->command->info('  - Drivers: 5,000');
         $this->command->info('  - Locations: 5,000');
         $this->command->info('  - Reasons: 5,000');

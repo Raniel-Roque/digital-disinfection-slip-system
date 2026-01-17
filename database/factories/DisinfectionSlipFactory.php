@@ -38,7 +38,7 @@ class DisinfectionSlipFactory extends Factory
         }
         
         return [
-            'truck_id' => Vehicle::factory(),
+            'vehicle_id' => Vehicle::factory(),
             'location_id' => Location::factory(),
             'destination_id' => Location::factory(),
             'driver_id' => Driver::factory(),

@@ -496,7 +496,7 @@
                                         <div class="w-11 h-6 rounded-full focus-within:outline-none focus-within:ring-4 focus-within:ring-blue-300 transition-colors duration-200 relative" :class="createSlip ? 'bg-blue-600' : 'bg-gray-200'">
                                             <div class="absolute top-[2px] left-[2px] bg-white border border-gray-300 rounded-full h-5 w-5 transition-transform duration-200" :class="createSlip ? 'translate-x-5' : 'translate-x-0'"></div>
                                         </div>
-                                        <span class="ml-3 text-sm text-gray-700" x-text="createSlip ? 'Enabled - Guards can create slips on outgoing trucks' : 'Disabled - Guards cannot create slips on outgoing trucks'"></span>
+                                        <span class="ml-3 text-sm text-gray-700" x-text="createSlip ? 'Enabled - Guards can create slips at this location' : 'Disabled - Guards cannot create slips at this location'"></span>
                                     </label>
                                 </div>
                             </div>
@@ -694,7 +694,7 @@
                                         <div class="w-11 h-6 rounded-full focus-within:outline-none focus-within:ring-4 focus-within:ring-blue-300 transition-colors duration-200 relative" :class="createSlip ? 'bg-blue-600' : 'bg-gray-200'">
                                             <div class="absolute top-[2px] left-[2px] bg-white border border-gray-300 rounded-full h-5 w-5 transition-transform duration-200" :class="createSlip ? 'translate-x-5' : 'translate-x-0'"></div>
                                         </div>
-                                        <span class="ml-3 text-sm text-gray-700" x-text="createSlip ? 'Enabled - Guards can create slips on outgoing trucks' : 'Disabled - Guards cannot create slips on outgoing trucks'"></span>
+                                        <span class="ml-3 text-sm text-gray-700" x-text="createSlip ? 'Enabled - Guards can create slips at this location' : 'Disabled - Guards cannot create slips at this location'"></span>
                                     </label>
                                 </div>
                             </div>

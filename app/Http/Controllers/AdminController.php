@@ -277,7 +277,7 @@ class AdminController extends Controller
                 if (now()->lt(Session::get($expiresKey))) {
                     $slipId = Session::get($sessionKey);
                     $slip = \App\Models\DisinfectionSlip::with([
-                        'truck',
+                        'vehicle',
                         'location',
                         'destination',
                         'driver',

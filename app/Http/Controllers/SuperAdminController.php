@@ -331,7 +331,7 @@ class SuperAdminController extends Controller
                 if (now()->lt(Session::get($expiresKey))) {
                     $slipId = Session::get($sessionKey);
                     $slip = \App\Models\DisinfectionSlip::with([
-                        'truck' => function($q) { $q->withTrashed(); },
+                        'vehicle' => function($q) { $q->withTrashed(); },
                         'location' => function($q) { $q->withTrashed(); },
                         'destination' => function($q) { $q->withTrashed(); },
                         'driver' => function($q) { $q->withTrashed(); },

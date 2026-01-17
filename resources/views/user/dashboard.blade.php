@@ -1,8 +1,8 @@
 <x-layout>
     <x-navigation.navbar module="Dashboard" />
 
-    <!-- Truck Arrival Monitor -->
-    <livewire:truck-arrival-monitor />
+    <!-- Slip Arrival Monitor -->
+    <livewire:slip-arrival-monitor />
 
     <div class="p-4 sm:p-6 lg:p-8 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
 
@@ -35,7 +35,7 @@
                         </div>
                         <div class="flex items-end justify-between">
                             <p class="text-4xl font-bold text-gray-800">
-                                <livewire:trucks.truck-count-card type="incoming" :key="'incoming-count'" />
+                                <livewire:slips.slip-count-card type="incoming" :key="'incoming-count'" />
                             </p>
                             <span
                                 class="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full font-medium">Active</span>
@@ -71,7 +71,7 @@
                         </div>
                         <div class="flex items-end justify-between">
                             <p class="text-4xl font-bold text-gray-800">
-                                <livewire:trucks.truck-count-card type="outgoing" :key="'outgoing-count'" />
+                                <livewire:slips.slip-count-card type="outgoing" :key="'outgoing-count'" />
                             </p>
                             <span
                                 class="text-xs text-red-600 bg-red-50 px-2 py-1 rounded-full font-medium">Active</span>
@@ -135,7 +135,7 @@
                         </div>
                         <div>
                             <p class="text-2xl font-bold text-gray-800">
-                                <livewire:trucks.truck-count-card type="total" :key="'total-count'" />
+                                <livewire:slips.slip-count-card type="total" :key="'total-count'" />
                             </p>
                             <p class="text-xs text-gray-500">Total Slips Today</p>
                         </div>
@@ -149,7 +149,7 @@
                         </div>
                         <div>
                             <p class="text-2xl font-bold text-gray-800">
-                                <livewire:trucks.truck-count-card type="pending" :key="'pending-count'" />
+                                <livewire:slips.slip-count-card type="pending" :key="'pending-count'" />
                             </p>
                             <p class="text-xs text-gray-500">Pending</p>
                         </div>
@@ -164,7 +164,7 @@
                         </div>
                         <div>
                             <p class="text-2xl font-bold text-gray-800">
-                                <livewire:trucks.truck-count-card type="inprogress" :key="'inprogress-count'" />
+                                <livewire:slips.slip-count-card type="inprogress" :key="'inprogress-count'" />
                             </p>
                             <p class="text-xs text-gray-500">Disinfecting</p>
                         </div>
@@ -179,7 +179,7 @@
                         </div>
                         <div>
                             <p class="text-2xl font-bold text-gray-800">
-                                <livewire:trucks.truck-count-card type="completed" :key="'completed-count'" />
+                                <livewire:slips.slip-count-card type="completed" :key="'completed-count'" />
                             </p>
                             <p class="text-xs text-gray-500">Completed Today</p>
                         </div>

@@ -101,11 +101,11 @@ class CleanSoftDeleted extends Command
             $this->info("  - Deleted {$issuesDeleted} issue(s)");
         }
 
-        // 3. Hard delete soft-deleted Trucks (will cascade delete related slips via foreign key)
+        // 3. Hard delete soft-deleted vehicles (will cascade delete related slips via foreign key)
         if ($this->output && method_exists($this->output, 'writeln')) {
-            $this->info("Processing Trucks...");
+            $this->info("Processing Vehicles...");
         }
-        $trucksDeleted = Vehicle::onlyTrashed()
+        $vehiclesDeleted = Vehicle::onlyTrashed()
             ->where('deleted_at', '<', $cutoffDate)
             ->count();
         
@@ -113,9 +113,9 @@ class CleanSoftDeleted extends Command
             ->where('deleted_at', '<', $cutoffDate)
             ->forceDelete();
         
-        $totalDeleted += $trucksDeleted;
+        $totalDeleted += $vehiclesDeleted;
         if ($this->output && method_exists($this->output, 'writeln')) {
-            $this->info("  - Deleted {$trucksDeleted} truck(s)");
+            $this->info("  - Deleted {$vehiclesDeleted} vehicle(s)");
         }
 
         // 4. Hard delete soft-deleted Drivers (will cascade delete related slips via foreign key)

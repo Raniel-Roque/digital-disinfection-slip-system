@@ -31,7 +31,7 @@ class AdminDashboard extends Component
     }
 
     /**
-     * Get count of disinfected trucks this week
+     * Get count of disinfected slips this week
      */
     private function getWeekDisinfectedCount()
     {
@@ -44,7 +44,7 @@ class AdminDashboard extends Component
     }
 
     /**
-     * Get count of disinfected trucks this month
+     * Get count of disinfected slips this month
      */
     private function getMonthDisinfectedCount()
     {
@@ -55,7 +55,7 @@ class AdminDashboard extends Component
     }
 
     /**
-     * Get count of disinfected trucks this year
+     * Get count of disinfected slips this year
      */
     private function getYearDisinfectedCount()
     {
@@ -65,7 +65,7 @@ class AdminDashboard extends Component
     }
 
     /**
-     * Get total count of all disinfected trucks (all-time)
+     * Get total count of all disinfected slips (all-time)
      */
     private function getTotalDisinfectedCount()
     {

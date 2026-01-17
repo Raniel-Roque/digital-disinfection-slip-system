@@ -10,7 +10,7 @@ class Vehicle extends Model
 {
     use HasFactory, SoftDeletes;
     
-    protected $table = 'trucks'; // Keep existing table name
+    protected $table = 'vehicles'; // Keep existing table name
     
     protected $fillable = [
         'vehicle',

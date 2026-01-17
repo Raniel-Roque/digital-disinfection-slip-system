@@ -124,7 +124,7 @@
                         </div>
                     </div>
 
-                    <!-- Today's Trucks Section -->
+                    <!-- Today's Slips Section -->
                     <div class="bg-white rounded-3xl shadow-lg border border-gray-200 p-6 lg:p-8">
                         <div class="flex items-center justify-between mb-6">
                             <div class="flex items-center gap-3">
@@ -136,7 +136,7 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <h2 class="text-xl font-bold text-gray-800">Today's Trucks</h2>
+                                    <h2 class="text-xl font-bold text-gray-800">Today's Slips</h2>
                                     <p class="text-sm text-gray-500">Disinfection slips created and in progress today</p>
                                 </div>
                             </div>

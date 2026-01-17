@@ -161,7 +161,7 @@
             'App\\Models\\User' => 'User',
             'App\\Models\\Driver' => 'Driver',
             'App\\Models\\Location' => 'Location',
-            'App\\Models\\Truck' => 'Truck',
+            'App\\Models\\Vehicle' => 'Vehicle',
             'App\\Models\\Setting' => 'Setting',
             'App\\Models\\Issue' => 'Issue',
         ];

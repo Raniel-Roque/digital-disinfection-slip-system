@@ -128,7 +128,7 @@
             @endif
 
             <!-- Location Cards -->
-            <livewire:trucks.location-cards />
+            <livewire:slips.location-cards />
 
         </div>
     </main>

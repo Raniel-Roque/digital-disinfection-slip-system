@@ -1,5 +1,5 @@
 @props([
-    'type' => 'dropdown', // 'dropdown' or 'trucks'
+    'type' => 'dropdown', // 'dropdown' or 'slips'
     'showCreate' => false, // Show Create option (mobile only)
     'showRestore' => false, // Show Restore option (mobile only)
     'showDeleted' => false, // State for restore button (Back to Active vs Restore)
@@ -7,14 +7,14 @@
 
 @php
     $hasMobileActions = $showCreate || ($showRestore && !$showDeleted);
-    $showThreeDotsOnMobile = $type === 'trucks' || $hasMobileActions;
+    $showThreeDotsOnMobile = $type === 'slips' || $hasMobileActions;
 @endphp
 
 <div class="relative" x-data="{ open: false }" @click.outside="open = false">
-    <button @click="open = !open" title="{{ $type === 'trucks' ? 'Options' : 'Download' }}"
+    <button @click="open = !open" title="{{ $type === 'slips' ? 'Options' : 'Download' }}"
         class="inline-flex items-center justify-center w-10 h-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hover:cursor-pointer cursor-pointer">
-        @if($type === 'trucks')
-            {{-- Three vertical dots icon (always for trucks) --}}
+        @if($type === 'slips')
+            {{-- Three vertical dots icon (always for slips) --}}
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
             </svg>
@@ -108,7 +108,7 @@
                 </div>
             </a>
 
-            @if($type === 'trucks')
+            @if($type === 'slips')
                 {{-- Divider line --}}
                 <div class="border-t border-gray-200 my-1"></div>
                 

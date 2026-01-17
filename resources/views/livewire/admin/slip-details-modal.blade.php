@@ -53,9 +53,9 @@
                 <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                     <div class="font-semibold text-gray-500">Plate No:</div>
                     <div class="text-gray-900">
-                        @if ($selectedSlip->truck)
-                            {{ $selectedSlip->truck->vehicle }}
-                            @if ($selectedSlip->truck->trashed())
+                        @if ($selectedSlip->vehicle)
+                            {{ $selectedSlip->vehicle->vehicle }}
+                            @if ($selectedSlip->vehicle->trashed())
                                 <span class="text-red-600 font-semibold">(Deleted)</span>
                             @endif
                         @else

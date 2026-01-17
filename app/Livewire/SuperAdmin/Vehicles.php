@@ -64,9 +64,9 @@ class Vehicles extends Component
         }
     }
     
-    public $selectedTruckId;
-    public $selectedTruckDisabled = false;
-    public $selectedTruckName = '';
+    public $selectedVehicleId;
+    public $selectedVehicleDisabled = false;
+    public $selectedVehicleName = '';
     public $showEditModal = false;
     public $showDisableModal = false;
     public $showCreateModal = false;
@@ -163,21 +163,21 @@ class Vehicles extends Component
 
     public $original_vehicle;
 
-    public function openEditModal($truckId)
+    public function openEditModal($vehicleId)
     {
-        $truck = Vehicle::findOrFail($truckId);
-        $this->selectedTruckId = $truckId;
-        $this->vehicle = $truck->vehicle;
+        $vehicle = Vehicle::findOrFail($vehicleId);
+        $this->selectedVehicleId = $vehicleId;
+        $this->vehicle = $vehicle->vehicle;
         
         // Store original value for change detection
-        $this->original_vehicle = $truck->vehicle;
+        $this->original_vehicle = $vehicle->vehicle;
         
         $this->showEditModal = true;
     }
 
     public function getHasChangesProperty()
     {
-        if (!$this->selectedTruckId) {
+        if (!$this->selectedVehicleId) {
             return false;
         }
 
@@ -186,16 +186,16 @@ class Vehicles extends Component
         return $this->original_vehicle !== $vehicle;
     }
 
-    public function updateTruck()
+    public function updateVehicle()
     {
         // Authorization check
         if (Auth::user()->user_type < 2) {
             abort(403, 'Unauthorized action.');
         }
 
-        // Ensure selectedTruckId is set
-        if (!$this->selectedTruckId) {
-            $this->dispatch('toast', message: 'No truck selected.', type: 'error');
+        // Ensure selectedVehicleId is set
+        if (!$this->selectedVehicleId) {
+            $this->dispatch('toast', message: 'No vehicle selected.', type: 'error');
             return;
         }
 
@@ -213,7 +213,7 @@ class Vehicles extends Component
 
         // Validate with sanitized value
         $this->validate([
-            'vehicle' => ['required', 'string', 'max:20', 'unique:trucks,vehicle,' . $this->selectedTruckId],
+            'vehicle' => ['required', 'string', 'max:20', 'unique:vehicles,vehicle,' . $this->selectedVehicleId],
         ], [
             'vehicle.required' => 'Vehicle is required.',
             'vehicle.max' => 'Vehicle must not exceed 20 characters.',
@@ -222,46 +222,46 @@ class Vehicles extends Component
             'vehicle' => 'Vehicle',
         ]);
 
-        $truck = Vehicle::findOrFail($this->selectedTruckId);
+        $vehicle = Vehicle::findOrFail($this->selectedVehicleId);
         
         // Check if there are any changes
-        if ($truck->vehicle === $vehicle) {
+        if ($vehicle->vehicle === $vehicle) {
             $this->dispatch('toast', message: 'No changes detected.', type: 'info');
             return;
         }
         
         // Capture old values for logging
-        $oldValues = $truck->only(['vehicle', 'disabled']);
+        $oldValues = $vehicle->only(['vehicle', 'disabled']);
         
-        $truck->update([
+        $vehicle->update([
             'vehicle' => $vehicle,
         ]);
         
         // Log the update action
         Logger::update(
             Vehicle::class,
-            $truck->id,
+            $vehicle->id,
             "Updated to \"{$vehicle}\"",
             $oldValues,
             ['vehicle' => $vehicle]
         );
 
-        Cache::forget('trucks_all');
+        Cache::forget('vehicles_all');
 
         $this->showEditModal = false;
-        $this->reset(['selectedTruckId', 'vehicle', 'original_vehicle']);
+        $this->reset(['selectedVehicleId', 'vehicle', 'original_vehicle']);
         $this->dispatch('toast', message: "Vehicle {$vehicle} has been updated.", type: 'success');
     }
 
-    public function openDisableModal($truckId)
+    public function openDisableModal($vehicleId)
     {
-        $truck = Vehicle::findOrFail($truckId);
-        $this->selectedTruckId = $truckId;
-        $this->selectedTruckDisabled = $truck->disabled;
+        $vehicle = Vehicle::findOrFail($vehicleId);
+        $this->selectedVehicleId = $vehicleId;
+        $this->selectedVehicleDisabled = $vehicle->disabled;
         $this->showDisableModal = true;
     }
 
-    public function toggleTruckStatus()
+    public function toggleVehicleStatus()
     {
         // Prevent multiple submissions
         if ($this->isTogglingStatus) {
@@ -277,61 +277,61 @@ class Vehicles extends Component
         }
 
         // Atomic update: Get current status and update atomically to prevent race conditions
-        $truck = Vehicle::findOrFail($this->selectedTruckId);
-        $wasDisabled = $truck->disabled;
+        $vehicle = Vehicle::findOrFail($this->selectedVehicleId);
+        $wasDisabled = $vehicle->disabled;
         $newStatus = !$wasDisabled; // true = disabled, false = enabled
         
         // Atomic update: Only update if the current disabled status matches what we expect
-        $updated = Vehicle::where('id', $this->selectedTruckId)
+        $updated = Vehicle::where('id', $this->selectedVehicleId)
             ->where('disabled', $wasDisabled) // Only update if status hasn't changed
             ->update(['disabled' => $newStatus]);
         
         if ($updated === 0) {
             // Status was changed by another process, refresh and show error
-            $truck->refresh();
+            $vehicle->refresh();
             $this->showDisableModal = false;
-            $this->reset(['selectedTruckId', 'selectedTruckDisabled']);
+            $this->reset(['selectedVehicleId', 'selectedVehicleDisabled']);
             $this->dispatch('toast', message: 'The vehicle status was changed by another administrator. Please refresh the page.', type: 'error');
             return;
         }
         
-        // Refresh truck to get updated data
-        $truck->refresh();
+        // Refresh vehicle to get updated data
+        $vehicle->refresh();
 
-        // Always reset to first page to avoid pagination issues when truck disappears/appears from filtered results
+        // Always reset to first page to avoid pagination issues when vehicle disappears/appears from filtered results
         $this->resetPage();
         
-        $vehicle = $truck->vehicle;
+        $vehicle = $vehicle->vehicle;
         $message = !$wasDisabled ? "Vehicle {$vehicle} has been disabled." : "Vehicle {$vehicle} has been enabled.";
 
         // Log the status change
         Logger::update(
             Vehicle::class,
-            $truck->id,
+            $vehicle->id,
             ucfirst(!$wasDisabled ? 'disabled' : 'enabled') . " vehicle \"{$vehicle}\"",
             ['disabled' => $wasDisabled],
             ['disabled' => $newStatus]
         );
 
-        Cache::forget('trucks_all');
+        Cache::forget('vehicles_all');
 
         $this->showDisableModal = false;
-        $this->reset(['selectedTruckId', 'selectedTruckDisabled']);
+        $this->reset(['selectedVehicleId', 'selectedVehicleDisabled']);
         $this->dispatch('toast', message: $message, type: 'success');
         } finally {
             $this->isTogglingStatus = false;
         }
     }
 
-    public function openDeleteModal($truckId)
+    public function openDeleteModal($vehicleId)
     {
-        $truck = Vehicle::findOrFail($truckId);
-        $this->selectedTruckId = $truckId;
-        $this->selectedTruckName = $truck->vehicle;
+        $vehicle = Vehicle::findOrFail($vehicleId);
+        $this->selectedVehicleId = $vehicleId;
+        $this->selectedVehicleName = $vehicle->vehicle;
         $this->showDeleteModal = true;
     }
 
-    public function deleteTruck()
+    public function deleteVehicle()
     {
         // Prevent multiple submissions
         if ($this->isDeleting) {
@@ -346,31 +346,31 @@ class Vehicles extends Component
             abort(403, 'Unauthorized action.');
         }
 
-        $truck = Vehicle::findOrFail($this->selectedTruckId);
-        $truckIdForLog = $truck->id;
-        $vehicle = $truck->vehicle;
+        $vehicle = Vehicle::findOrFail($this->selectedVehicleId);
+        $vehicleIdForLog = $vehicle->id;
+        $vehicle = $vehicle->vehicle;
         
         // Capture old values for logging
-        $oldValues = $truck->only([
+        $oldValues = $vehicle->only([
             'vehicle',
             'disabled'
         ]);
         
-        // Soft delete the truck
-        $truck->delete();
+        // Soft delete the vehicle
+        $vehicle->delete();
         
         // Log the delete action
         Logger::delete(
             Vehicle::class,
-            $truckIdForLog,
+            $vehicleIdForLog,
             "Deleted \"{$vehicle}\"",
             $oldValues
         );
 
-        Cache::forget('trucks_all');
+        Cache::forget('vehicles_all');
 
         $this->showDeleteModal = false;
-        $this->reset(['selectedTruckId', 'selectedTruckName']);
+        $this->reset(['selectedVehicleId', 'selectedVehicleName']);
         $this->resetPage();
         $this->dispatch('toast', message: "Vehicle {$vehicle} has been deleted.", type: 'success');
         } finally {
@@ -385,7 +385,7 @@ class Vehicles extends Component
         $this->showDeleteModal = false;
         $this->showCreateModal = false;
         $this->showRestoreModal = false;
-        $this->reset(['selectedTruckId', 'selectedTruckDisabled', 'selectedTruckName', 'vehicle', 'original_vehicle', 'create_vehicle']);
+        $this->reset(['selectedVehicleId', 'selectedVehicleDisabled', 'selectedVehicleName', 'vehicle', 'original_vehicle', 'create_vehicle']);
         $this->resetValidation();
     }
 
@@ -431,7 +431,7 @@ class Vehicles extends Component
         return mb_strtoupper($vehicle, 'UTF-8');
     }
 
-    public function createTruck()
+    public function createVehicle()
     {
         // Authorization check
         if (Auth::user()->user_type < 2) {
@@ -452,7 +452,7 @@ class Vehicles extends Component
 
         // Validate with sanitized value
         $this->validate([
-            'create_vehicle' => ['required', 'string', 'max:20', 'unique:trucks,vehicle'],
+            'create_vehicle' => ['required', 'string', 'max:20', 'unique:vehicles,vehicle'],
         ], [
             'create_vehicle.required' => 'Vehicle is required.',
             'create_vehicle.max' => 'Vehicle must not exceed 20 characters.',
@@ -461,20 +461,20 @@ class Vehicles extends Component
             'create_vehicle' => 'Vehicle',
         ]);
 
-        // Create truck
-        $truck = Vehicle::create([
+        // Create vehicle
+        $vehicle = Vehicle::create([
             'vehicle' => $vehicle,
             'disabled' => false,
         ]);
 
-        Cache::forget('trucks_all');
+        Cache::forget('vehicles_all');
 
         // Log the create action
         Logger::create(
             Vehicle::class,
-            $truck->id,
+            $vehicle->id,
             "Created \"{$vehicle}\"",
-            $truck->only(['vehicle', 'disabled'])
+            $vehicle->only(['vehicle', 'disabled'])
         );
 
         $this->showCreateModal = false;
@@ -489,7 +489,7 @@ class Vehicles extends Component
             ? Vehicle::onlyTrashed()
             : Vehicle::whereNull('deleted_at');
         
-        $trucks = $query->when($this->search, function ($query) {
+        $vehicles = $query->when($this->search, function ($query) {
                 $searchTerm = $this->search;
                 
                 // Sanitize search term to prevent SQL injection
@@ -555,7 +555,7 @@ class Vehicles extends Component
         $filtersActive = $this->appliedStatus !== null || !empty($this->appliedCreatedFrom) || !empty($this->appliedCreatedTo);
 
         return view('livewire.super-admin.vehicles', [
-            'trucks' => $trucks,
+            'vehicles' => $vehicles,
             'filtersActive' => $filtersActive,
             'availableStatuses' => $this->availableStatuses,
         ]);
@@ -619,12 +619,12 @@ class Vehicles extends Component
             
             fputcsv($file, ['Vehicle', 'Status', 'Created Date']);
             
-            foreach ($data as $truck) {
-                $status = $truck->disabled ? 'Disabled' : 'Enabled';
+            foreach ($data as $vehicle) {
+                $status = $vehicle->disabled ? 'Disabled' : 'Enabled';
                 fputcsv($file, [
-                    $truck->vehicle,
+                    $vehicle->vehicle,
                     $status,
-                    $truck->created_at->format('Y-m-d H:i:s')
+                    $vehicle->created_at->format('Y-m-d H:i:s')
                 ]);
             }
             
@@ -668,11 +668,11 @@ class Vehicles extends Component
         $this->resetPage();
     }
 
-    public function openRestoreModal($truckId)
+    public function openRestoreModal($vehicleId)
     {
-        $truck = Vehicle::onlyTrashed()->findOrFail($truckId);
-        $this->selectedTruckId = $truckId;
-        $this->selectedTruckName = $truck->vehicle;
+        $vehicle = Vehicle::onlyTrashed()->findOrFail($vehicleId);
+        $this->selectedVehicleId = $vehicleId;
+        $this->selectedVehicleName = $vehicle->vehicle;
         $this->showRestoreModal = true;
     }
 
@@ -691,41 +691,41 @@ class Vehicles extends Component
             abort(403, 'Unauthorized action.');
         }
 
-        if (!$this->selectedTruckId) {
+        if (!$this->selectedVehicleId) {
             return;
         }
 
         // Atomic restore: Only restore if currently deleted to prevent race conditions
         // Do the atomic update first, then load the model only if successful
         $restored = Vehicle::onlyTrashed()
-            ->where('id', $this->selectedTruckId)
+            ->where('id', $this->selectedVehicleId)
             ->update(['deleted_at' => null]);
         
         if ($restored === 0) {
-            // Truck was already restored or doesn't exist
+            // Vehicle was already restored or doesn't exist
             $this->showRestoreModal = false;
-            $this->reset(['selectedTruckId', 'selectedTruckName']);
+            $this->reset(['selectedVehicleId', 'selectedVehicleName']);
             $this->dispatch('toast', message: 'This vehicle was already restored or does not exist. Please refresh the page.', type: 'error');
             $this->resetPage();
             return;
         }
         
-        // Now load the restored truck
-        $truck = Vehicle::findOrFail($this->selectedTruckId);
+        // Now load the restored vehicle
+        $vehicle = Vehicle::findOrFail($this->selectedVehicleId);
         
         // Log the restore action
         Logger::restore(
             Vehicle::class,
-            $truck->id,
-            "Restored vehicle {$truck->vehicle}"
+            $vehicle->id,
+            "Restored vehicle {$vehicle->vehicle}"
         );
         
-        Cache::forget('trucks_all');
+        Cache::forget('vehicles_all');
 
         $this->showRestoreModal = false;
-        $this->reset(['selectedTruckId', 'selectedTruckName']);
+        $this->reset(['selectedVehicleId', 'selectedVehicleName']);
         $this->resetPage();
-        $this->dispatch('toast', message: "{$truck->vehicle} has been restored.", type: 'success');
+        $this->dispatch('toast', message: "{$vehicle->vehicle} has been restored.", type: 'success');
         } finally {
             $this->isRestoring = false;
         }
@@ -738,11 +738,11 @@ class Vehicles extends Component
         }
         
         $data = $this->getExportData();
-        $exportData = $data->map(function($truck) {
+        $exportData = $data->map(function($vehicle) {
             return [
-                'vehicle' => $truck->vehicle,
-                'disabled' => $truck->disabled,
-                'created_at' => $truck->created_at->toIso8601String(),
+                'vehicle' => $vehicle->vehicle,
+                'disabled' => $vehicle->disabled,
+                'created_at' => $vehicle->created_at->toIso8601String(),
             ];
         })->toArray();
         

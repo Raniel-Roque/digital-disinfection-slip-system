@@ -12,7 +12,7 @@ return new class extends Migration {
             $table->string('slip_id')->unique(); 
  
             // Foreign relations
-            $table->foreignId('truck_id')->constrained('trucks')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('vehicle_id')->constrained('vehicles')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('location_id')->constrained('locations')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('destination_id')->constrained('locations')->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('driver_id')->constrained('drivers')->cascadeOnUpdate()->cascadeOnDelete();

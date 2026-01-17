@@ -36,6 +36,7 @@
             </div>
 
             <form wire:submit="submitIssue">
+                @csrf
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         Description <span class="text-red-500">*</span>

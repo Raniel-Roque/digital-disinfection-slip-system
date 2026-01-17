@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Trucks;
+namespace App\Livewire\Vehicles;
 
 use Livewire\Component;
 use Livewire\Attributes\Renderless;
@@ -47,14 +47,14 @@ class DisinfectionSlip extends Component
     public $type;
 
     // Editable fields
-    public $truck_id;
+    public $vehicle_id;
     public $destination_id;
     public $driver_id;
     public $reason_id;
     public $remarks_for_disinfection;
 
     // Search properties for dropdowns
-    public $searchTruck = '';
+    public $searchVehicle = '';
     public $searchDestination = '';
     public $searchDriver = '';
     public $searchReason = '';
@@ -73,7 +73,7 @@ class DisinfectionSlip extends Component
     
     // Paginated data fetching methods for searchable dropdowns
     #[Renderless]
-    public function getPaginatedTrucks($search = '', $page = 1, $perPage = 20, $includeIds = [])
+    public function getPaginatedVehicles($search = '', $page = 1, $perPage = 20, $includeIds = [])
     {
         $query = Vehicle::query()
             ->whereNull('deleted_at')
@@ -263,7 +263,7 @@ class DisinfectionSlip extends Component
         // Optimize relationship loading by only selecting needed fields
         // This significantly reduces memory usage with large datasets
         $this->selectedSlip = DisinfectionSlipModel::with([
-            'truck' => function($q) {
+            'vehicle' => function($q) {
                 $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed();
             },
             'location' => function($q) {
@@ -286,7 +286,7 @@ class DisinfectionSlip extends Component
     
 
         // preload fields for editing
-        $this->truck_id                = $this->selectedSlip->truck_id;
+        $this->vehicle_id                = $this->selectedSlip->vehicle_id;
         $this->destination_id          = $this->selectedSlip->destination_id;
         $this->driver_id               = $this->selectedSlip->driver_id;
         
@@ -409,7 +409,7 @@ class DisinfectionSlip extends Component
         }
 
         // Compare with original values stored when entering edit mode
-        return $this->truck_id != ($this->originalValues['truck_id'] ?? $this->selectedSlip->truck_id) ||
+        return $this->vehicle_id != ($this->originalValues['vehicle_id'] ?? $this->selectedSlip->vehicle_id) ||
                $this->destination_id != ($this->originalValues['destination_id'] ?? $this->selectedSlip->destination_id) ||
                $this->driver_id != ($this->originalValues['driver_id'] ?? $this->selectedSlip->driver_id) ||
                $this->reason_id != ($this->originalValues['reason_id'] ?? $this->selectedSlip->reason_id) ||
@@ -459,7 +459,7 @@ class DisinfectionSlip extends Component
         $originalRemarks = $originalRemarks === '' ? null : $originalRemarks;
         
         $this->originalValues = [
-            'truck_id'                => $this->truck_id,
+            'vehicle_id'                => $this->vehicle_id,
             'destination_id'          => $this->destination_id,
             'driver_id'               => $this->driver_id,
             'reason_id'               => $this->reason_id,
@@ -470,14 +470,14 @@ class DisinfectionSlip extends Component
     public function cancelEdit()
     {
         // Restore original values
-        $this->truck_id                = $this->originalValues['truck_id'] ?? $this->selectedSlip->truck_id;
+        $this->vehicle_id                = $this->originalValues['vehicle_id'] ?? $this->selectedSlip->vehicle_id;
         $this->destination_id          = $this->originalValues['destination_id'] ?? $this->selectedSlip->destination_id;
         $this->driver_id               = $this->originalValues['driver_id'] ?? $this->selectedSlip->driver_id;
         $this->reason_id               = $this->originalValues['reason_id'] ?? $this->selectedSlip->reason_id;
         $this->remarks_for_disinfection = $this->originalValues['remarks_for_disinfection'] ?? $this->selectedSlip->remarks_for_disinfection;
         
         // Reset search properties
-        $this->searchTruck = '';
+        $this->searchVehicle = '';
         $this->searchDestination = '';
         $this->searchDriver = '';
         $this->searchReason = '';
@@ -504,7 +504,7 @@ class DisinfectionSlip extends Component
         if ($updated === 0) {
             $this->dispatch('toast', message: 'This slip status has changed. Please refresh the page.', type: 'error');
             $this->selectedSlip->refresh();
-            $this->selectedSlip->load(['truck', 'location', 'destination', 'driver', 'hatcheryGuard', 'receivedGuard']);
+            $this->selectedSlip->load(['vehicle', 'location', 'destination', 'driver', 'hatcheryGuard', 'receivedGuard']);
             return;
         }
         Cache::forget('disinfection_slips_all');
@@ -512,7 +512,7 @@ class DisinfectionSlip extends Component
         // Refresh the slip with relationships
         $this->selectedSlip->refresh();
         $this->selectedSlip->load([
-            'truck',
+            'vehicle',
             'location',
             'destination',
             'driver',
@@ -552,12 +552,12 @@ class DisinfectionSlip extends Component
 
             $slipId = $this->selectedSlip->slip_id;
 
-            // Dispatch global event for truck arrival notification
+            // Dispatch global event for vehicle arrival notification
             if ($this->selectedSlip->destination_id) {
-                $this->dispatch('truckArrival', [
+                $this->dispatch('vehicleArrival', [
                     'locationId' => $this->selectedSlip->destination_id,
                     'slipId' => $slipId,
-                    'truckCount' => 1 // Each slip represents one truck
+                    'vehicleCount' => 1 // Each slip represents one vehicle
                 ]);
             }
 
@@ -599,7 +599,7 @@ class DisinfectionSlip extends Component
         // Refresh the slip with relationships
         $this->selectedSlip->refresh();
         $this->selectedSlip->load([
-            'truck',
+            'vehicle',
             'location',
             'destination',
             'driver',
@@ -644,7 +644,7 @@ class DisinfectionSlip extends Component
         // Refresh the slip with relationships
         $this->selectedSlip->refresh();
         $this->selectedSlip->load([
-            'truck',
+            'vehicle',
             'location',
             'destination',
             'driver',
@@ -673,7 +673,7 @@ class DisinfectionSlip extends Component
 
         $slipId = $this->selectedSlip->slip_id;
         $slipIdForLog = $this->selectedSlip->id;
-        $oldValues = $this->selectedSlip->only(['truck_id', 'destination_id', 'driver_id', 'location_id', 'status', 'slip_id']);
+        $oldValues = $this->selectedSlip->only(['vehicle_id', 'destination_id', 'driver_id', 'location_id', 'status', 'slip_id']);
         
         // Clean up photos before soft deleting the slip
         $this->selectedSlip->deleteAttachments();
@@ -732,7 +732,7 @@ class DisinfectionSlip extends Component
         $currentLocationId = Session::get('location_id');
         
         $this->validate([
-            'truck_id'                => 'required|exists:trucks,id',
+            'vehicle_id'                => 'required|exists:vehicles,id',
             'destination_id'          => [
                 'required',
                 'exists:locations,id',
@@ -762,7 +762,7 @@ class DisinfectionSlip extends Component
         $sanitizedRemarks = $this->sanitizeText($this->remarks_for_disinfection);
 
         $this->selectedSlip->update([
-            'truck_id'                => $this->truck_id,
+            'vehicle_id'                => $this->vehicle_id,
             'destination_id'          => $this->destination_id,
             'driver_id'               => $this->driver_id,
             'reason_id'               => $this->reason_id,
@@ -774,7 +774,7 @@ class DisinfectionSlip extends Component
         // Refresh the slip with relationships
         $this->selectedSlip->refresh();
         $this->selectedSlip->load([
-            'truck',
+            'vehicle',
             'location',
             'destination',
             'driver',
@@ -786,14 +786,14 @@ class DisinfectionSlip extends Component
         
         // Log the update action
         $oldValues = [
-            'truck_id' => $this->originalValues['truck_id'] ?? null,
+            'vehicle_id' => $this->originalValues['vehicle_id'] ?? null,
             'destination_id' => $this->originalValues['destination_id'] ?? null,
             'driver_id' => $this->originalValues['driver_id'] ?? null,
             'reason_id' => $this->originalValues['reason_id'] ?? null,
             'remarks_for_disinfection' => $this->originalValues['remarks_for_disinfection'] ?? null,
         ];
         $newValues = [
-            'truck_id' => $this->truck_id,
+            'vehicle_id' => $this->vehicle_id,
             'destination_id' => $this->destination_id,
             'driver_id' => $this->driver_id,
             'reason_id' => $this->reason_id,
@@ -1471,6 +1471,6 @@ class DisinfectionSlip extends Component
 
     public function render()
     {
-        return view('livewire.trucks.disinfection-slip');
+        return view('livewire.vehicles.disinfection-slip');
     }
 }

@@ -181,9 +181,9 @@
         <div class="form-field">
             <div class="form-label">Vehicle:</div>
             <div class="form-value">
-                @if ($slip->truck)
-                    {{ $slip->truck->vehicle }}
-                    @if ($slip->truck->trashed())
+                @if ($slip->vehicle)
+                    {{ $slip->vehicle->vehicle }}
+                    @if ($slip->vehicle->trashed())
                         <span style="color: #dc2626; font-weight: bold;">(Deleted)</span>
                     @endif
                 @else

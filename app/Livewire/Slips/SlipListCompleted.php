@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Trucks;
+namespace App\Livewire\Vehicles;
 
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -12,7 +12,7 @@ use App\Models\Driver;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-class TruckListCompleted extends Component
+class SlipListCompleted extends Component
 {
     use WithPagination;
 
@@ -89,16 +89,16 @@ class TruckListCompleted extends Component
             ->keyBy('id');
     }
 
-    public function getTrucksProperty()
+    public function getVehiclesProperty()
     {
-        $truckIds = $this->appliedVehicle ?? [];
+        $vehicleIds = $this->appliedVehicle ?? [];
         
-        if (empty($truckIds)) {
+        if (empty($vehicleIds)) {
             return collect();
         }
         
         return Vehicle::withTrashed()
-            ->whereIn('id', $truckIds)
+            ->whereIn('id', $vehicleIds)
             ->select('id', 'vehicle', 'disabled', 'deleted_at')
             ->get()
             ->keyBy('id');
@@ -108,7 +108,7 @@ class TruckListCompleted extends Component
     
     // Paginated data fetching methods for searchable dropdowns
     #[Renderless]
-    public function getPaginatedTrucks($search = '', $page = 1, $perPage = 20, $includeIds = [])
+    public function getPaginatedVehicles($search = '', $page = 1, $perPage = 20, $includeIds = [])
     {
         $query = Vehicle::query()
             ->whereNull('deleted_at')
@@ -346,7 +346,7 @@ class TruckListCompleted extends Component
         // Optimize relationship loading by only selecting needed fields
         // This significantly reduces memory usage with large datasets (5,000+ records)
         $query = DisinfectionSlip::with([
-            'truck' => function($q) {
+            'vehicle' => function($q) {
                 $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed();
             },
             'location' => function($q) {
@@ -393,7 +393,7 @@ class TruckListCompleted extends Component
                 $q->whereIn('driver_id', $this->appliedDriver);
             })
             ->when(!empty($this->appliedVehicle), function($q) {
-                $q->whereIn('truck_id', $this->appliedVehicle);
+                $q->whereIn('vehicle_id', $this->appliedVehicle);
             })
             ->when($this->appliedCompletedFrom, function($q) {
                 $q->whereDate('completed_at', '>=', $this->appliedCompletedFrom);
@@ -419,7 +419,7 @@ class TruckListCompleted extends Component
 
         $slips = $query->paginate(10);
 
-        return view('livewire.trucks.truck-list-completed', [
+        return view('livewire.vehicles.vehicle-list-completed', [
             'slips' => $slips
         ]);
     }

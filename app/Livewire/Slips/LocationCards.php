@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Trucks;
+namespace App\Livewire\Vehicles;
 
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -69,7 +69,7 @@ class LocationCards extends Component
             return $setting && !empty($setting->value) ? $setting->value : 'images/logo/BGC.png';
         });
     
-        return view('livewire.trucks.location-cards', [
+        return view('livewire.vehicles.location-cards', [
             'locations' => $locations,
             'defaultLogoPath' => $defaultLogoPath,
         ]);

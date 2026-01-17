@@ -11,9 +11,9 @@
         <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
             <div class="font-semibold text-gray-500">Vehicle:<span class="text-red-500">*</span></div>
             <div class="text-gray-900">
-            <x-forms.searchable-dropdown-paginated wire-model="truck_id" data-method="getPaginatedTrucks" search-property="searchTruck"
+            <x-forms.searchable-dropdown-paginated wire-model="vehicle_id" data-method="getPaginatedVehicles" search-property="searchVehicle"
                 placeholder="Select vehicle..." search-placeholder="Search vehicles..." :per-page="20" />
-            @error('truck_id')
+            @error('vehicle_id')
                     <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
             @enderror
         </div>

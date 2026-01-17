@@ -13,6 +13,7 @@
             @endif
 
             <form wire:submit="updatePassword" class="space-y-5">
+                @csrf
 
                 <!-- Current Password -->
                 <div>

@@ -314,24 +314,24 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($trucks as $truck)
+                        @forelse($vehicles as $vehicle)
                             <tr class="hover:bg-gray-50 transition-colors duration-150">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-semibold text-gray-900">
-                                        {{ $truck->vehicle }}
+                                        {{ $vehicle->vehicle }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-semibold text-gray-900">
-                                        {{ \Carbon\Carbon::parse($truck->created_at)->format('M d, Y') }}
+                                        {{ \Carbon\Carbon::parse($vehicle->created_at)->format('M d, Y') }}
                                     </div>
                                     <div class="text-xs text-gray-500 mt-0.5">
-                                        {{ \Carbon\Carbon::parse($truck->created_at)->format('h:i A') }}
+                                        {{ \Carbon\Carbon::parse($vehicle->created_at)->format('h:i A') }}
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                     @if ($showDeleted)
-                                        <x-buttons.submit-button wire:click="openRestoreModal({{ $truck->id }})"
+                                        <x-buttons.submit-button wire:click="openRestoreModal({{ $vehicle->id }})"
                                             color="green" size="sm" :fullWidth="false">
                                             <div class="inline-flex items-center gap-1.5">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
@@ -345,7 +345,7 @@
                                         </x-buttons.submit-button>
                                     @else
                                         <div class="flex items-center justify-center gap-2">
-                                            <x-buttons.submit-button wire:click="openEditModal({{ $truck->id }})"
+                                            <x-buttons.submit-button wire:click="openEditModal({{ $vehicle->id }})"
                                                 color="blue" size="sm" :fullWidth="false">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -355,9 +355,9 @@
                                                 </svg>
                                                 Edit
                                             </x-buttons.submit-button>
-                                            @if ($truck->disabled)
+                                            @if ($vehicle->disabled)
                                                 <x-buttons.submit-button
-                                                    wire:click="openDisableModal({{ $truck->id }})" color="green"
+                                                    wire:click="openDisableModal({{ $vehicle->id }})" color="green"
                                                     size="sm" :fullWidth="false">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
@@ -370,7 +370,7 @@
                                                 </x-buttons.submit-button>
                                             @else
                                                 <x-buttons.submit-button
-                                                    wire:click="openDisableModal({{ $truck->id }})" color="orange"
+                                                    wire:click="openDisableModal({{ $vehicle->id }})" color="orange"
                                                     size="sm" :fullWidth="false">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
@@ -382,7 +382,7 @@
                                                     Disable
                                                 </x-buttons.submit-button>
                                             @endif
-                                            <x-buttons.submit-button wire:click="openDeleteModal({{ $truck->id }})"
+                                            <x-buttons.submit-button wire:click="openDeleteModal({{ $vehicle->id }})"
                                                 color="red" size="sm" :fullWidth="false">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -432,7 +432,7 @@
 
             {{-- Pagination Footer --}}
             <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                <x-buttons.nav-pagination :paginator="$trucks" />
+                <x-buttons.nav-pagination :paginator="$vehicles" />
             </div>
         </div>
 
@@ -489,11 +489,11 @@
                                 class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 hover:cursor-pointer cursor-pointer">
                                 Cancel
                             </button>
-                            <button wire:click.prevent="updateTruck" wire:loading.attr="disabled" wire:target="updateTruck"
+                            <button wire:click.prevent="updateVehicle" wire:loading.attr="disabled" wire:target="updateVehicle"
                                 class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                 x-bind:disabled="!$wire.hasChanges">
-                                <span wire:loading.remove wire:target="updateTruck">Save Changes</span>
-                                <span wire:loading.inline-flex wire:target="updateTruck" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Saving...</span>
+                                <span wire:loading.remove wire:target="updateVehicle">Save Changes</span>
+                                <span wire:loading.inline-flex wire:target="updateVehicle" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Saving...</span>
                             </button>
                         </div>
                     </div>
@@ -514,7 +514,7 @@
                         class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-md">
                         <div class="px-6 py-4 bg-white border-b border-gray-200">
                             <div class="flex items-center">
-                                @if ($selectedTruckDisabled)
+                                @if ($selectedVehicleDisabled)
                                     <div class="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full">
                                         <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
@@ -541,7 +541,7 @@
                         <div class="px-6 py-4">
                     @csrf
                             <p class="text-sm text-gray-600">
-                                @if ($selectedTruckDisabled)
+                                @if ($selectedVehicleDisabled)
                                     Are you sure you want to enable this vehicle? The vehicle will be
                                     available for use again.
                                 @else
@@ -552,21 +552,21 @@
                         </div>
 
                         <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
-                            <button wire:click="closeModal" wire:loading.attr="disabled" wire:target="toggleTruckStatus"
+                            <button wire:click="closeModal" wire:loading.attr="disabled" wire:target="toggleVehicleStatus"
                                 class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
                                 Cancel
                             </button>
-                            @if ($selectedTruckDisabled)
-                                <button wire:click="toggleTruckStatus" wire:loading.attr="disabled" wire:target="toggleTruckStatus"
+                            @if ($selectedVehicleDisabled)
+                                <button wire:click="toggleVehicleStatus" wire:loading.attr="disabled" wire:target="toggleVehicleStatus"
                                     class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
-                                    <span wire:loading.remove wire:target="toggleTruckStatus">Enable Vehicle</span>
-                                    <span wire:loading.inline-flex wire:target="toggleTruckStatus" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Enabling...</span>
+                                    <span wire:loading.remove wire:target="toggleVehicleStatus">Enable Vehicle</span>
+                                    <span wire:loading.inline-flex wire:target="toggleVehicleStatus" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Enabling...</span>
                                 </button>
                             @else
-                                <button wire:click="toggleTruckStatus" wire:loading.attr="disabled" wire:target="toggleTruckStatus"
+                                <button wire:click="toggleVehicleStatus" wire:loading.attr="disabled" wire:target="toggleVehicleStatus"
                                     class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
-                                    <span wire:loading.remove wire:target="toggleTruckStatus">Disable Vehicle</span>
-                                    <span wire:loading.inline-flex wire:target="toggleTruckStatus" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Disabling...</span>
+                                    <span wire:loading.remove wire:target="toggleVehicleStatus">Disable Vehicle</span>
+                                    <span wire:loading.inline-flex wire:target="toggleVehicleStatus" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Disabling...</span>
                                 </button>
                             @endif
                         </div>
@@ -611,10 +611,10 @@
                                 class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 hover:cursor-pointer cursor-pointer">
                                 Cancel
                             </button>
-                            <button wire:click.prevent="createTruck" wire:loading.attr="disabled" wire:target="createTruck"
+                            <button wire:click.prevent="createVehicle" wire:loading.attr="disabled" wire:target="createVehicle"
                                 class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                                <span wire:loading.remove wire:target="createTruck">Create</span>
-                                <span wire:loading.inline-flex wire:target="createTruck" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Creating...</span>
+                                <span wire:loading.remove wire:target="createVehicle">Create</span>
+                                <span wire:loading.inline-flex wire:target="createVehicle" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Creating...</span>
                             </button>
                         </div>
                     </div>
@@ -623,7 +623,7 @@
         @endif
 
         {{-- Delete Confirmation Modal --}}
-        <x-modals.delete-modal :show="$showDeleteModal" title="Delete Vehicle" :name="$selectedTruckName" onConfirm="deleteTruck"
+        <x-modals.delete-modal :show="$showDeleteModal" title="Delete Vehicle" :name="$selectedVehicleName" onConfirm="deleteVehicle"
             confirmText="Delete Vehicle" />
 
         {{-- Restore Confirmation Modal --}}
@@ -655,7 +655,7 @@
                     @csrf
                             <p class="text-sm text-gray-600">
                                 Are you sure you want to restore <span
-                                    class="font-medium text-gray-900">{{ $selectedTruckName }}</span>?
+                                    class="font-medium text-gray-900">{{ $selectedVehicleName }}</span>?
                                 The vehicle will be available for use again.
                             </p>
                         </div>

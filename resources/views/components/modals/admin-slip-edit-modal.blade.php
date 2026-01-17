@@ -71,15 +71,15 @@
                 <div class="font-semibold text-gray-500">Vehicle:<span class="text-red-500">*</span></div>
                 <div class="text-gray-900">
                     @php
-                        $isTruckSoftDeleted = $selectedSlip && $selectedSlip->truck && $selectedSlip->truck->trashed();
+                        $isVehicleSoftDeleted = $selectedSlip && $selectedSlip->vehicle && $selectedSlip->vehicle->trashed();
                     @endphp
-                    <x-forms.searchable-dropdown-paginated wire-model="editTruckId" data-method="getPaginatedTrucks" search-property="searchEditTruck"
+                    <x-forms.searchable-dropdown-paginated wire-model="editVehicleId" data-method="getPaginatedVehicles" search-property="searchEditVehicle"
                         placeholder="Select vehicle..." search-placeholder="Search vehicles..." :per-page="20"
-                        :disabled="$isTruckSoftDeleted" />
-                    @if ($isTruckSoftDeleted)
-                        <p class="text-xs text-red-600 mt-1">This truck has been deleted and cannot be changed.</p>
+                        :disabled="$isVehicleSoftDeleted" />
+                    @if ($isVehicleSoftDeleted)
+                        <p class="text-xs text-red-600 mt-1">This vehicle has been deleted and cannot be changed.</p>
                     @endif
-                    @error('editTruckId')
+                    @error('editVehicleId')
                         <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
                     @enderror
                 </div>

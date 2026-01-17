@@ -61,7 +61,7 @@
                     </div>
 
                     {{-- Export Button with Create option (mobile) --}}
-                    <x-buttons.export-button type="trucks" :showCreate="true" />
+                    <x-buttons.export-button type="slips" :showCreate="true" />
                 </div>
             </div>
 
@@ -139,14 +139,14 @@
                     @endif
 
                     @if (!empty($appliedVehicle))
-                        @foreach ($appliedVehicle as $truckId)
+                        @foreach ($appliedVehicle as $vehicleId)
                             @php
-                                $truck = $trucks->find($truckId);
+                                $vehicle = $vehicles->find($vehicleId);
                             @endphp
                             <span
                                 class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                Plate: {{ $truck->vehicle }}
-                                <button wire:click="removeSpecificFilter('vehicle', {{ $truckId }})"
+                                Plate: {{ $vehicle->vehicle }}
+                                <button wire:click="removeSpecificFilter('vehicle', {{ $vehicleId }})"
                                     class="ml-1.5 inline-flex items-center hover:cursor-pointer cursor-pointer">
                                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"
@@ -384,11 +384,11 @@
                                             {{ $slip->driver->first_name }} {{ $slip->driver->last_name }}
                                         </div>
                                         <div class="text-xs text-gray-500 mt-0.5">
-                                            {{ $slip->truck->vehicle }}
+                                            {{ $slip->vehicle->vehicle }}
                                         </div>
                                     @else
                                         <div class="text-sm font-semibold text-gray-900">
-                                            {{ $slip->truck->vehicle }}
+                                            {{ $slip->vehicle->vehicle }}
                                         </div>
                                         <div class="text-xs text-gray-500 mt-0.5">
                                             {{ $slip->driver->first_name }} {{ $slip->driver->last_name }}

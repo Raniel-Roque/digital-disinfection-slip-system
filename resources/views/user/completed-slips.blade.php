@@ -1,8 +1,8 @@
 <x-layout>
     <x-navigation.navbar module="Completed Slips" />
 
-    <!-- Truck Arrival Monitor -->
-    <livewire:truck-arrival-monitor />
+    <!-- Slip Arrival Monitor -->
+    <livewire:slip-arrival-monitor />
 
-    <livewire:trucks.truck-list-completed />
+    <livewire:slips.slip-list-completed />
 </x-layout>
