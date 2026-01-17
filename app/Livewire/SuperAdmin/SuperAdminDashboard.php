@@ -37,6 +37,7 @@ class SuperAdminDashboard extends Component
     private function getWeekDisinfectedCount()
     {
         return DisinfectionSlip::where('status', 3)
+            ->whereNull('deleted_at')
             ->whereBetween('completed_at', [
                 Carbon::now()->startOfWeek(),
                 Carbon::now()->endOfWeek()
@@ -50,6 +51,7 @@ class SuperAdminDashboard extends Component
     private function getMonthDisinfectedCount()
     {
         return DisinfectionSlip::where('status', 3)
+            ->whereNull('deleted_at')
             ->whereMonth('completed_at', Carbon::now()->month)
             ->whereYear('completed_at', Carbon::now()->year)
             ->count();
@@ -61,6 +63,7 @@ class SuperAdminDashboard extends Component
     private function getYearDisinfectedCount()
     {
         return DisinfectionSlip::where('status', 3)
+            ->whereNull('deleted_at')
             ->whereYear('completed_at', Carbon::now()->year)
             ->count();
     }
@@ -71,6 +74,7 @@ class SuperAdminDashboard extends Component
     private function getTotalDisinfectedCount()
     {
         return DisinfectionSlip::where('status', 3)
+            ->whereNull('deleted_at')
             ->whereNotNull('completed_at')
             ->count();
     }
@@ -81,6 +85,7 @@ class SuperAdminDashboard extends Component
     private function getGuardsCount()
     {
         return User::where('user_type', 0)
+            ->whereNull('deleted_at')
             ->count();
     }
 
@@ -90,6 +95,7 @@ class SuperAdminDashboard extends Component
     private function getAdminsCount()
     {
         return User::where('user_type', 1)
+            ->whereNull('deleted_at')
             ->count();
     }
 
@@ -99,6 +105,7 @@ class SuperAdminDashboard extends Component
     private function getDriversCount()
     {
         return Driver::where('disabled', false)
+            ->whereNull('deleted_at')
             ->count();
     }
 
@@ -108,6 +115,7 @@ class SuperAdminDashboard extends Component
     private function getVehiclesCount()
     {
         return Vehicle::where('disabled', false)
+            ->whereNull('deleted_at')
             ->count();
     }
 
@@ -117,6 +125,7 @@ class SuperAdminDashboard extends Component
     private function getLocationsCount()
     {
         return Location::where('disabled', false)
+            ->whereNull('deleted_at')
             ->count();
     }
 

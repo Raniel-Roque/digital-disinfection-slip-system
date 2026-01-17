@@ -26,11 +26,12 @@ class SlipCountCard extends Component
             return 0;
         }
 
-        // Base query for all types
-        $query = DisinfectionSlip::where(function($q) use ($locationId) {
-            $q->where('location_id', $locationId)
-              ->orWhere('destination_id', $locationId);
-        });
+        // Base query for all types - exclude soft-deleted slips
+        $query = DisinfectionSlip::whereNull('deleted_at')
+            ->where(function($q) use ($locationId) {
+                $q->where('location_id', $locationId)
+                  ->orWhere('destination_id', $locationId);
+            });
 
         // Apply filters based on type
         switch ($this->type) {
