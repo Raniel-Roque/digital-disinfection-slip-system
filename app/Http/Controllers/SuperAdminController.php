@@ -131,7 +131,7 @@ class SuperAdminController extends Controller
             }
         }
         
-        return view('livewire.super-admin.print-guards', [
+        return view('components.prints.guards', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -166,7 +166,7 @@ class SuperAdminController extends Controller
             }
         }
         
-        return view('livewire.super-admin.print-admins', [
+        return view('components.prints.admins', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -201,7 +201,7 @@ class SuperAdminController extends Controller
             }
         }
         
-        return view('livewire.super-admin.print-drivers', [
+        return view('components.prints.drivers', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -236,7 +236,7 @@ class SuperAdminController extends Controller
             }
         }
         
-        return view('livewire.super-admin.print-locations', [
+        return view('components.prints.locations', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -271,7 +271,7 @@ class SuperAdminController extends Controller
             }
         }
         
-        return view('livewire.super-admin.print-vehicles', [
+        return view('components.prints.vehicles', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -306,7 +306,7 @@ class SuperAdminController extends Controller
             }
         }
         
-        return view('livewire.super-admin.print-slips', [
+        return view('components.prints.slips', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -355,7 +355,7 @@ class SuperAdminController extends Controller
             $displayReason = ($slip->reason && !$slip->reason->is_disabled) ? $slip->reason->reason_text : 'N/A';
         }
         
-        return view('livewire.admin.print-slip', [
+        return view('components.prints.slip-single', [
             'slip' => $slip,
             'displayReason' => $displayReason
         ]);
@@ -389,7 +389,7 @@ class SuperAdminController extends Controller
             }
         }
         
-        return view('livewire.super-admin.print-audit-trail', [
+        return view('components.prints.audit-trail', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting

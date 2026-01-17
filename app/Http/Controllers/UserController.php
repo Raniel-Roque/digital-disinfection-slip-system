@@ -227,7 +227,7 @@ class UserController extends Controller
             }
         }
         
-        return view('livewire.admin.print-guards', [
+        return view('components.prints.guards', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -272,7 +272,7 @@ class UserController extends Controller
             }
         }
         
-        return view('livewire.admin.print-drivers', [
+        return view('components.prints.drivers', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -317,7 +317,7 @@ class UserController extends Controller
             }
         }
         
-        return view('livewire.admin.print-locations', [
+        return view('components.prints.locations', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -362,7 +362,7 @@ class UserController extends Controller
             }
         }
         
-        return view('livewire.admin.print-vehicles', [
+        return view('components.prints.vehicles', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting

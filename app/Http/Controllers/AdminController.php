@@ -112,7 +112,7 @@ class AdminController extends Controller
             }
         }
         
-        return view('livewire.admin.print-guards', [
+        return view('components.prints.guards', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -147,7 +147,7 @@ class AdminController extends Controller
             }
         }
         
-        return view('livewire.admin.print-drivers', [
+        return view('components.prints.drivers', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -182,7 +182,7 @@ class AdminController extends Controller
             }
         }
         
-        return view('livewire.admin.print-locations', [
+        return view('components.prints.locations', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -217,7 +217,7 @@ class AdminController extends Controller
             }
         }
         
-        return view('livewire.admin.print-vehicles', [
+        return view('components.prints.vehicles', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -252,7 +252,7 @@ class AdminController extends Controller
             }
         }
         
-        return view('livewire.admin.print-slips', [
+        return view('components.prints.slips', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting
@@ -301,7 +301,7 @@ class AdminController extends Controller
             $displayReason = ($slip->reason && !$slip->reason->is_disabled) ? $slip->reason->reason_text : 'N/A';
         }
         
-        return view('livewire.admin.print-slip', [
+        return view('components.prints.slip-single', [
             'slip' => $slip,
             'displayReason' => $displayReason
         ]);
@@ -335,7 +335,7 @@ class AdminController extends Controller
             }
         }
         
-        return view('livewire.admin.print-audit-trail', [
+        return view('components.prints.audit-trail', [
             'data' => $data,
             'filters' => $filters,
             'sorting' => $sorting

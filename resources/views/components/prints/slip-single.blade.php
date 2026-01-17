@@ -1,6 +1,7 @@
+@props(['slip', 'displayReason'])
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,25 +11,21 @@
             .no-print {
                 display: none !important;
             }
-
             @page {
                 margin: 1cm;
                 size: A4;
             }
-
             body {
                 margin: 0;
                 padding: 0;
             }
         }
-
         body {
             font-family: Arial, sans-serif;
             font-size: 14px;
             margin: 20px;
             background-color: #fff;
         }
-
         .slip-container {
             max-width: 600px;
             margin: 0 auto;
@@ -36,14 +33,12 @@
             border: 1px solid #ddd;
             padding: 30px;
         }
-
         .header {
             text-align: center;
             margin-bottom: 15px;
             padding-bottom: 15px;
             position: relative;
         }
-
         .header h1 {
             margin: 0;
             font-size: 20px;
@@ -51,7 +46,6 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-
         .header h2 {
             margin: 5px 0 0 0;
             font-size: 18px;
@@ -59,21 +53,17 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-
-
         .form-field {
             margin-bottom: 18px;
             display: flex;
             align-items: baseline;
         }
-
         .form-label {
             font-weight: bold;
             min-width: 200px;
             margin-right: 15px;
             font-size: 14px;
         }
-
         .form-value {
             flex: 1;
             border-bottom: 1px solid #000;
@@ -81,24 +71,20 @@
             padding-bottom: 3px;
             font-size: 14px;
         }
-
         .signature-section {
             margin-top: 40px;
             display: flex;
             justify-content: space-between;
         }
-
         .signature-box {
             flex: 1;
             margin: 0 10px;
         }
-
         .signature-label {
             font-weight: bold;
             margin-bottom: 5px;
             font-size: 13px;
         }
-
         .signature-line {
             border-bottom: 1px solid #000;
             min-height: 50px;
@@ -108,14 +94,12 @@
             align-items: flex-end;
             justify-content: center;
         }
-
         .signature-name {
             font-weight: bold;
             font-size: 12px;
             padding-bottom: 2px;
             display: inline-block;
         }
-
         .signature-subtext {
             position: absolute;
             bottom: -18px;
@@ -126,12 +110,10 @@
             text-align: center;
             width: 100%;
         }
-
         .print-actions {
             margin-bottom: 20px;
             text-align: right;
         }
-
         .btn {
             padding: 10px 20px;
             margin-left: 10px;
@@ -140,19 +122,16 @@
             border-radius: 4px;
             font-size: 14px;
         }
-
         .btn-print {
             background-color: #4CAF50;
             color: white;
         }
-
         .btn-close {
             background-color: #f44336;
             color: white;
         }
     </style>
 </head>
-
 <body>
     <div class="no-print print-actions">
         <button class="btn btn-print hover:cursor-pointer" onclick="window.print()">Print / Save as PDF</button>
@@ -268,5 +247,4 @@
         </div>
     </div>
 </body>
-
 </html>
