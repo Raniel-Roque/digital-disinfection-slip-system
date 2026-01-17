@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50 p-6" @if (!$showFilters && !$showCreateModal && !$showEditModal && !$showDisableModal && !$showDeleteModal && !$showRestoreModal) wire:poll.keep-alive @endif>
+<div class="min-h-screen bg-gray-50 p-6" @if (!$showFilters && !$showRestoreModal) wire:poll.keep-alive @endif>
     <div class="max-w-7xl mx-auto">
         {{-- Simple Header --}}
         <div class="mb-6">
@@ -460,7 +460,19 @@
         @endif
 
         {{-- Edit Modal --}}
-        @if ($showEditModal)
+        <livewire:shared.drivers.edit :config="['minUserType' => 2]" />
+
+        {{-- Disable/Enable Confirmation Modal --}}
+        <livewire:shared.drivers.disable :config="['minUserType' => 2]" />
+
+        {{-- Create Driver Modal --}}
+        <livewire:shared.drivers.create :config="['minUserType' => 2]" />
+
+        {{-- Delete Confirmation Modal --}}
+        <livewire:shared.drivers.delete :config="['minUserType' => 2]" />
+
+        {{-- OLD MODALS BELOW - TO BE REMOVED --}}
+        @if (false && $showEditModal)
             <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
                 aria-modal="true">
                 {{-- Backdrop --}}
@@ -675,8 +687,7 @@
         @endif
 
         {{-- Delete Confirmation Modal --}}
-        <x-modals.delete-modal :show="$showDeleteModal" title="Delete Driver" :name="$selectedDriverName" onConfirm="deleteDriver"
-            confirmText="Delete Driver" />
+        <livewire:shared.drivers.delete :config="['minUserType' => 2]" />
 
         {{-- Restore Confirmation Modal --}}
         @if ($showRestoreModal)

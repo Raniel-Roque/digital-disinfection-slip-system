@@ -788,25 +788,24 @@ class Issues extends Component
             return;
         }
         
-        // Load slip data into edit fields
-        $this->editVehicleId = $this->selectedSlip->vehicle_id;
-        $this->editLocationId = $this->selectedSlip->location_id;
-        $this->editDestinationId = $this->selectedSlip->destination_id;
-        $this->editDriverId = $this->selectedSlip->driver_id;
-        $this->editHatcheryGuardId = $this->selectedSlip->hatchery_guard_id;
-        $this->editReceivedGuardId = $this->selectedSlip->received_guard_id;
-        $this->editRemarksForDisinfection = $this->selectedSlip->remarks_for_disinfection;
-        $this->editStatus = $this->selectedSlip->status;
-        
-        // Reset search properties
-        $this->searchEditVehicle = '';
-        $this->searchEditOrigin = '';
-        $this->searchEditDestination = '';
-        $this->searchEditDriver = '';
-        $this->searchEditHatcheryGuard = '';
-        $this->searchEditReceivedGuard = '';
-        
-        $this->showEditModal = true;
+        // Dispatch event to the Issues Edit component
+        $this->dispatch('openEditModal', $this->selectedSlip->id);
+    }
+
+    #[On('slip-updated')]
+    public function handleSlipUpdated()
+    {
+        $this->resetPage();
+        if ($this->selectedSlip && $this->selectedSlip->id) {
+            $this->selectedSlip = DisinfectionSlipModel::with([
+                'vehicle:id,vehicle,disabled,deleted_at',
+                'location:id,location_name,disabled,deleted_at',
+                'destination:id,location_name,disabled,deleted_at',
+                'driver:id,first_name,middle_name,last_name,disabled,deleted_at',
+                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at',
+                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at'
+            ])->find($this->selectedSlip->id);
+        }
     }
     
     public function closeEditModal()

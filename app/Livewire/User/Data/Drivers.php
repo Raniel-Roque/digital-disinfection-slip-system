@@ -2,6 +2,7 @@
 
 namespace App\Livewire\User\Data;
 
+use App\Livewire\Shared\Drivers as SharedDrivers;
 use App\Models\Driver;
 use App\Services\Logger;
 use Livewire\Component;
@@ -12,160 +13,39 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
-class Drivers extends Component
+class Drivers extends SharedDrivers
 {
-    use WithPagination;
-
-    public $search = '';
-    public $showFilters = false;
-    
-    // Sorting properties - supports multiple columns
-    public $sortColumns = ['first_name' => 'asc']; // Default sort by first_name ascending
-    
-    // Filter properties
-    public $filterStatus = null; // null = All Drivers, 0 = Enabled, 1 = Disabled
-    public $filterCreatedFrom = '';
-    public $filterCreatedTo = '';
-    
-    // Applied filters
-    public $appliedStatus = null; // null = All Drivers, 0 = Enabled, 1 = Disabled
-    public $appliedCreatedFrom = '';
-    public $appliedCreatedTo = '';
-    
-    public $availableStatuses = [
-        0 => 'Enabled',
-        1 => 'Disabled',
-    ];
-    
-    // Ensure filterStatus is properly typed when updated
-    public function updatedFilterStatus($value)
-    {
-        // Handle null, empty string, or numeric values (0, 1)
-        // null/empty = All Drivers, 0 = Enabled, 1 = Disabled
-        // The select will send values as strings, so we convert to int
-        if ($value === null || $value === '' || $value === false) {
-            $this->filterStatus = null;
-        } elseif (is_numeric($value)) {
-            $intValue = (int)$value;
-            if ($intValue >= 0 && $intValue <= 1) {
-                // Store as integer (0 or 1)
-                $this->filterStatus = $intValue;
-            } else {
-                $this->filterStatus = null;
-            }
-        } else {
-            $this->filterStatus = null;
-        }
-    }
-    
-    public $selectedDriverId;
-    public $selectedDriverDisabled = false;
+    // User/Data specific properties
     public $showEditModal = false;
     public $showDisableModal = false;
-    
-    // Protection flags
-    public $isTogglingStatus = false;
     public $showCreateModal = false;
-
+    
     // Edit form fields
     public $first_name;
     public $middle_name;
     public $last_name;
-
+    
     // Create form fields
     public $create_first_name;
     public $create_middle_name;
     public $create_last_name;
-
-    protected $queryString = ['search'];
     
-    public function applySort($column)
-    {
-        // Initialize sortColumns if it's not an array (for backward compatibility)
-        if (!is_array($this->sortColumns)) {
-            $this->sortColumns = [];
-        }
-        
-        // Special handling: first_name and last_name are mutually exclusive
-        if ($column === 'first_name' || $column === 'last_name') {
-            // Remove the other name column if it exists
-            if ($column === 'first_name') {
-                unset($this->sortColumns['last_name']);
-            } else {
-                unset($this->sortColumns['first_name']);
-            }
-        }
-        
-        // If column is already in sort, toggle direction or remove if clicking same direction
-        if (isset($this->sortColumns[$column])) {
-            if ($this->sortColumns[$column] === 'asc') {
-                $this->sortColumns[$column] = 'desc';
-            } else {
-                // Remove from sort if clicking desc (cycle: asc -> desc -> remove)
-                unset($this->sortColumns[$column]);
-            }
-        } else {
-            // Add column with ascending direction
-            $this->sortColumns[$column] = 'asc';
-        }
-        
-        // If no sorts remain, default to first_name ascending
-        if (empty($this->sortColumns)) {
-            $this->sortColumns = ['first_name' => 'asc'];
-        }
-        
-        $this->resetPage();
-    }
+    // Protection flags
+    public $isTogglingStatus = false;
     
-    // Helper method to get sort direction for a column
-    public function getSortDirection($column)
-    {
-        return $this->sortColumns[$column] ?? null;
-    }
-
-    public function updatingSearch()
-    {
-        $this->resetPage();
-    }
-
-    public function applyFilters()
-    {
-        $this->appliedStatus = $this->filterStatus;
-        $this->appliedCreatedFrom = $this->filterCreatedFrom;
-        $this->appliedCreatedTo = $this->filterCreatedTo;
-        $this->showFilters = false;
-        $this->resetPage();
-    }
-
-    public function removeFilter($filterName)
-    {
-        if ($filterName === 'status') {
-            $this->appliedStatus = null;
-            $this->filterStatus = null;
-        } elseif ($filterName === 'createdFrom') {
-            $this->appliedCreatedFrom = '';
-            $this->filterCreatedFrom = '';
-        } elseif ($filterName === 'createdTo') {
-            $this->appliedCreatedTo = '';
-            $this->filterCreatedTo = '';
-        }
-        $this->resetPage();
-    }
-
-    public function clearFilters()
-    {
-        $this->appliedStatus = null;
-        $this->appliedCreatedFrom = '';
-        $this->appliedCreatedTo = '';
-        $this->filterStatus = null;
-        $this->filterCreatedFrom = '';
-        $this->filterCreatedTo = '';
-        $this->resetPage();
-    }
-
     public $original_first_name;
     public $original_middle_name;
     public $original_last_name;
+
+    public function mount($config = [])
+    {
+        parent::mount(array_merge([
+            'role' => 'user',
+            'showRestore' => false,
+            'printRoute' => 'user.print.drivers',
+            'minUserType' => 0, // Guards can access
+        ], $config));
+    }
 
     public function openEditModal($driverId)
     {
@@ -266,6 +146,7 @@ class Drivers extends Component
         $this->showEditModal = false;
         $this->reset(['selectedDriverId', 'first_name', 'middle_name', 'last_name', 'original_first_name', 'original_middle_name', 'original_last_name']);
         $this->dispatch('toast', message: "{$driverName} has been updated.", type: 'success');
+        $this->dispatch('driver-updated');
     }
 
     public function openDisableModal($driverId)
@@ -335,6 +216,7 @@ class Drivers extends Component
         $this->showDisableModal = false;
         $this->reset(['selectedDriverId', 'selectedDriverDisabled']);
         $this->dispatch('toast', message: $message, type: 'success');
+        $this->dispatch('driver-status-toggled');
         } finally {
             $this->isTogglingStatus = false;
         }
@@ -354,18 +236,6 @@ class Drivers extends Component
         $this->reset(['create_first_name', 'create_middle_name', 'create_last_name']);
         $this->resetValidation();
         $this->showCreateModal = true;
-    }
-
-    /**
-     * Get driver's full name formatted
-     * 
-     * @param \App\Models\Driver $driver
-     * @return string
-     */
-    private function getDriverFullName($driver)
-    {
-        $parts = array_filter([$driver->first_name, $driver->middle_name, $driver->last_name]);
-        return implode(' ', $parts);
     }
 
     /**
@@ -453,10 +323,12 @@ class Drivers extends Component
         $this->reset(['create_first_name', 'create_middle_name', 'create_last_name']);
         $this->dispatch('toast', message: "{$driverName} has been created.", type: 'success');
         $this->resetPage();
+        $this->dispatch('driver-created');
     }
 
     public function render()
     {
+        // Override to use user.data.drivers view instead of shared.drivers
         $drivers = Driver::when($this->search, function ($query) {
                 $searchTerm = $this->search;
                 
@@ -531,127 +403,5 @@ class Drivers extends Component
             'filtersActive' => $filtersActive,
             'availableStatuses' => $this->availableStatuses,
         ]);
-    }
-
-    public function getExportData()
-    {
-        return Driver::when($this->search, function ($query) {
-                $searchTerm = trim($this->search);
-                $searchTerm = preg_replace('/[%_]/', '', $searchTerm);
-                if (empty($searchTerm)) {
-                    return $query;
-                }
-                $escapedSearchTerm = str_replace(['%', '_'], ['\%', '\_'], $searchTerm);
-                $query->where(function ($q) use ($escapedSearchTerm) {
-                    $q->where('first_name', 'like', '%' . $escapedSearchTerm . '%')
-                      ->orWhere('middle_name', 'like', '%' . $escapedSearchTerm . '%')
-                      ->orWhere('last_name', 'like', '%' . $escapedSearchTerm . '%')
-                      ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%'])
-                      ->orWhereRaw("CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name) LIKE ?", ['%' . $escapedSearchTerm . '%']);
-                });
-                return $query;
-            })
-            ->when($this->appliedCreatedFrom, function ($query) {
-                $query->whereDate('created_at', '>=', $this->appliedCreatedFrom);
-            })
-            ->when($this->appliedCreatedTo, function ($query) {
-                $query->whereDate('created_at', '<=', $this->appliedCreatedTo);
-            })
-            ->when($this->appliedStatus !== null, function ($query) {
-                if ($this->appliedStatus === 0) {
-                    $query->where('disabled', false);
-                } elseif ($this->appliedStatus === 1) {
-                    $query->where('disabled', true);
-                }
-            })
-            ->when(!empty($this->sortColumns), function($query) {
-                if (!is_array($this->sortColumns)) {
-                    $this->sortColumns = ['first_name' => 'asc'];
-                }
-                
-                $firstSort = true;
-                foreach ($this->sortColumns as $column => $direction) {
-                    if ($column === 'created_at' && $firstSort) {
-                        // Special handling for created_at when it's the primary sort
-                        // First: prioritize recent records (within 5 minutes) over older ones
-                        $query->orderByRaw("CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) THEN 0 ELSE 1 END")
-                            // Second: sort recent records by created_at DESC, older records also by created_at (to avoid NULL sorting issues)
-                            ->orderByRaw("CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE) THEN created_at ELSE created_at END DESC")
-                            ->orderBy('created_at', $direction);
-                    } else {
-                        $query->orderBy($column, $direction);
-                    }
-                    $firstSort = false;
-                }
-            })
-            ->when(empty($this->sortColumns), function($query) {
-                $query->orderBy('first_name', 'asc');
-            })
-            ->get();
-    }
-
-    public function exportCSV()
-    {
-        $data = $this->getExportData();
-        $filename = 'drivers_' . date('Y-m-d_His') . '.csv';
-        
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'Photo; filename="' . $filename . '"',
-        ];
-
-        $callback = function() use ($data) {
-            $file = fopen('php://output', 'w');
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            
-            fputcsv($file, ['Name', 'Status', 'Created Date']);
-            
-            foreach ($data as $driver) {
-                $name = trim(implode(' ', array_filter([$driver->first_name, $driver->middle_name, $driver->last_name])));
-                $status = $driver->disabled ? 'Disabled' : 'Enabled';
-                fputcsv($file, [
-                    $name,
-                    $status,
-                    $driver->created_at->format('Y-m-d H:i:s')
-                ]);
-            }
-            
-            fclose($file);
-        };
-
-        return Response::stream($callback, 200, $headers);
-    }
-
-    public function openPrintView()
-    {
-        $data = $this->getExportData();
-        $exportData = $data->map(function($driver) {
-            return [
-                'first_name' => $driver->first_name,
-                'middle_name' => $driver->middle_name,
-                'last_name' => $driver->last_name,
-                'disabled' => $driver->disabled,
-                'created_at' => $driver->created_at->toIso8601String(),
-            ];
-        })->toArray();
-        
-        $filters = [
-            'search' => $this->search,
-            'status' => $this->appliedStatus,
-            'created_from' => $this->appliedCreatedFrom,
-            'created_to' => $this->appliedCreatedTo,
-        ];
-        
-        $sorting = $this->sortColumns ?? ['first_name' => 'asc'];
-        
-        $token = Str::random(32);
-        Session::put("export_data_{$token}", $exportData);
-        Session::put("export_filters_{$token}", $filters);
-        Session::put("export_sorting_{$token}", $sorting);
-        Session::put("export_data_{$token}_expires", now()->addMinutes(10));
-        
-        $printUrl = route('user.print.drivers', ['token' => $token]);
-        
-        $this->dispatch('open-print-window', ['url' => $printUrl]);
     }
 }

@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Renderless;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
@@ -1033,7 +1034,7 @@ class Slips extends Component
 
     public function openEditModal($id = null)
     {
-        // Load the slip if ID is provided (when called from table row)
+        // Load the slip if ID is provided (for other modals like details, delete)
         if ($id) {
             $this->selectedSlip = DisinfectionSlipModel::with([
                 'vehicle:id,vehicle,disabled,deleted_at',
@@ -1046,41 +1047,29 @@ class Slips extends Component
             ])->find($id);
         }
         
-        // Check if admin can edit this slip
-        if (!$this->canEdit()) {
-            $this->dispatch('toast', message: 'You are not authorized to edit completed or incomplete slips.', type: 'error');
-            return;
+        // Dispatch event to the SlipEdit component
+        $slipId = $id ?? ($this->selectedSlip?->id);
+        if ($slipId) {
+            $this->dispatch('openEditModal', $slipId);
         }
-        
-        // Load slip data into edit fields
-        $this->editVehicleId = $this->selectedSlip->vehicle_id;
-        $this->editLocationId = $this->selectedSlip->location_id;
-        $this->editDestinationId = $this->selectedSlip->destination_id;
-        $this->editDriverId = $this->selectedSlip->driver_id;
-        $this->editHatcheryGuardId = $this->selectedSlip->hatchery_guard_id;
-        $this->editReceivedGuardId = $this->selectedSlip->received_guard_id;
-        // Only set editReasonId if the reason exists and is not disabled
-        $reasonId = $this->selectedSlip->reason_id;
-        if ($reasonId) {
-            /** @phpstan-ignore-next-line */
-            $reason = Reason::find($reasonId);
-            $this->editReasonId = ($reason && !$reason->is_disabled) ? $reasonId : null;
-        } else {
-            $this->editReasonId = null;
+    }
+
+    #[On('slip-updated')]
+    public function handleSlipUpdated()
+    {
+        $this->resetPage();
+        // Refresh selectedSlip if it exists
+        if ($this->selectedSlip && $this->selectedSlip->id) {
+            $this->selectedSlip = DisinfectionSlipModel::with([
+                'vehicle:id,vehicle,disabled,deleted_at',
+                'location:id,location_name,disabled,deleted_at',
+                'destination:id,location_name,disabled,deleted_at',
+                'driver:id,first_name,middle_name,last_name,disabled,deleted_at',
+                'reason:id,reason_text,is_disabled',
+                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at',
+                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at'
+            ])->find($this->selectedSlip->id);
         }
-        $this->editRemarksForDisinfection = $this->selectedSlip->remarks_for_disinfection;
-        $this->editStatus = $this->selectedSlip->status;
-        
-        // Reset search properties
-        $this->searchEditVehicle = '';
-        $this->searchEditOrigin = '';
-        $this->searchEditDestination = '';
-        $this->searchEditDriver = '';
-        $this->searchEditHatcheryGuard = '';
-        $this->searchEditReceivedGuard = '';
-        $this->searchEditReason = '';
-        
-        $this->showEditModal = true;
     }
     
     public function updatedEditStatus($value)
@@ -1541,8 +1530,14 @@ class Slips extends Component
 
     public function openCreateModal()
     {
-        $this->resetCreateForm();
-        $this->showCreateModal = true;
+        // Dispatch event to the SlipCreate component
+        $this->dispatch('openCreateModal');
+    }
+
+    #[On('slip-created')]
+    public function handleSlipCreated()
+    {
+        $this->resetPage();
     }
 
     public function closeCreateModal()

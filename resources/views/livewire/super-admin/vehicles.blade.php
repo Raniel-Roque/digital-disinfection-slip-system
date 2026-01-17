@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50 p-6" @if (!$showFilters && !$showCreateModal && !$showEditModal && !$showDisableModal && !$showDeleteModal && !$showRestoreModal) wire:poll.keep-alive @endif>
+<div class="min-h-screen bg-gray-50 p-6" @if (!$showFilters && !(($config['showRestore'] ?? false) && ($showRestoreModal ?? false))) wire:poll.keep-alive @endif>
     <div class="max-w-7xl mx-auto">
         {{-- Simple Header --}}
         <div class="mb-6">
@@ -61,56 +61,61 @@
                         </div>
                     @endif
 
-                    {{-- Desktop: Restore Button (Icon + Text) --}}
-                    <div class="hidden md:block">
-                        <button wire:click="toggleDeletedView" wire:loading.attr="disabled" wire:target="toggleDeletedView"
-                            class="inline-flex items-center px-4 py-2.5 {{ $showDeleted ?? false ? 'bg-gray-600 hover:bg-gray-700' : 'bg-orange-600 hover:bg-orange-700' }} text-white rounded-lg text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 {{ $showDeleted ?? false ? 'focus:ring-gray-500' : 'focus:ring-orange-500' }} disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
-                        <svg wire:loading.remove wire:target="toggleDeletedView" class="w-5 h-5 mr-2" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
-                            </path>
-                        </svg>
-
-                        <span wire:loading.remove
-                            wire:target="toggleDeletedView">{{ $showDeleted ?? false ? 'Back to Active' : 'Restore' }}</span>
-                        <span wire:loading.inline-flex wire:target="toggleDeletedView" class="inline-flex items-center gap-2">
-                            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Loading...
-                        </span>
-                    </button>
-                    </div>
-
-                    {{-- Mobile: Restore/Back to Active Button (only when in restore mode) --}}
-                    @if ($showDeleted ?? false)
-                        <div class="md:hidden">
+                    {{-- Desktop: Restore Button (Icon + Text) - Only if showRestore is enabled --}}
+                    @if ($config['showRestore'] ?? false)
+                        <div class="hidden md:block">
                             <button wire:click="toggleDeletedView" wire:loading.attr="disabled" wire:target="toggleDeletedView"
-                                class="inline-flex items-center px-4 py-2.5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
-                            <svg wire:loading.remove wire:target="toggleDeletedView" class="w-5 h-5 mr-2" fill="none"
-                                stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
-                                </path>
-                            </svg>
-
-                            <span wire:loading.remove wire:target="toggleDeletedView">Back to Active</span>
-                            <span wire:loading.inline-flex wire:target="toggleDeletedView" class="inline-flex items-center gap-2">
-                                <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                class="inline-flex items-center px-4 py-2.5 {{ $showDeleted ?? false ? 'bg-gray-600 hover:bg-gray-700' : 'bg-orange-600 hover:bg-orange-700' }} text-white rounded-lg text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 {{ $showDeleted ?? false ? 'focus:ring-gray-500' : 'focus:ring-orange-500' }} disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
+                                <svg wire:loading.remove wire:target="toggleDeletedView" class="w-5 h-5 mr-2" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                                    </path>
                                 </svg>
-                                Loading...
-                            </span>
-                        </button>
-                        </div>
-                    @endif
 
-                    {{-- Export Button with Create and Restore options (mobile, only when NOT in restore mode) --}}
-                    @if (!($showDeleted ?? false))
-                        <x-buttons.export-button :showCreate="true" :showRestore="true" :showDeleted="false" />
+                                <span wire:loading.remove
+                                    wire:target="toggleDeletedView">{{ $showDeleted ?? false ? 'Back to Active' : 'Restore' }}</span>
+                                <span wire:loading.inline-flex wire:target="toggleDeletedView" class="inline-flex items-center gap-2">
+                                    <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Loading...
+                                </span>
+                            </button>
+                        </div>
+
+                        {{-- Mobile: Restore/Back to Active Button (only when in restore mode) --}}
+                        @if ($showDeleted ?? false)
+                            <div class="md:hidden">
+                                <button wire:click="toggleDeletedView" wire:loading.attr="disabled" wire:target="toggleDeletedView"
+                                    class="inline-flex items-center px-4 py-2.5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
+                                <svg wire:loading.remove wire:target="toggleDeletedView" class="w-5 h-5 mr-2" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                                    </path>
+                                </svg>
+
+                                <span wire:loading.remove wire:target="toggleDeletedView">Back to Active</span>
+                                <span wire:loading.inline-flex wire:target="toggleDeletedView" class="inline-flex items-center gap-2">
+                                    <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Loading...
+                                </span>
+                            </button>
+                            </div>
+                        @endif
+
+                        {{-- Export Button with Create and Restore options (mobile, only when NOT in restore mode) --}}
+                        @if (!($showDeleted ?? false))
+                            <x-buttons.export-button :showCreate="true" :showRestore="true" :showDeleted="false" />
+                        @endif
+                    @else
+                        {{-- Export Button with Create option (mobile, for Admin) --}}
+                        <x-buttons.export-button :showCreate="true" />
                     @endif
                 </div>
             </div>
@@ -330,7 +335,7 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                    @if ($showDeleted)
+                                    @if (($config['showRestore'] ?? false) && $showDeleted)
                                         <x-buttons.submit-button wire:click="openRestoreModal({{ $vehicle->id }})"
                                             color="green" size="sm" :fullWidth="false">
                                             <div class="inline-flex items-center gap-1.5">
@@ -454,180 +459,19 @@
         @endif
 
         {{-- Edit Modal --}}
-        @if ($showEditModal)
-            <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
-                aria-modal="true">
-                {{-- Backdrop --}}
-                <div class="fixed inset-0 transition-opacity bg-black/80" wire:click="closeModal"></div>
-
-                {{-- Modal Panel --}}
-                <div class="flex min-h-full items-center justify-center p-4">
-                    <div
-                        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-md">
-                        <div class="px-6 py-4 bg-white border-b border-gray-200">
-                            <h3 class="text-lg font-semibold text-gray-900">Edit Vehicle</h3>
-                        </div>
-
-                        <div class="px-6 py-4">
-                    @csrf
-                            <div class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Vehicle <span
-                                            class="text-red-500">*</span></label>
-                                    <input type="text" wire:model="vehicle" maxlength="20"
-                                        class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
-                                        placeholder="Enter vehicle">
-                                    @error('vehicle')
-                                        <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
-                            <button wire:click="closeModal"
-                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 hover:cursor-pointer cursor-pointer">
-                                Cancel
-                            </button>
-                            <button wire:click.prevent="updateVehicle" wire:loading.attr="disabled" wire:target="updateVehicle"
-                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 hover:cursor-pointer transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                x-bind:disabled="!$wire.hasChanges">
-                                <span wire:loading.remove wire:target="updateVehicle">Save Changes</span>
-                                <span wire:loading.inline-flex wire:target="updateVehicle" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Saving...</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @endif
+        <livewire:shared.vehicles.edit :config="['minUserType' => 2]" />
 
         {{-- Disable/Enable Confirmation Modal --}}
-        @if ($showDisableModal)
-            <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
-                aria-modal="true">
-                {{-- Backdrop --}}
-                <div class="fixed inset-0 transition-opacity bg-black/80" wire:click="closeModal"></div>
-
-                {{-- Modal Panel --}}
-                <div class="flex min-h-full items-center justify-center p-4">
-                    <div
-                        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-md">
-                        <div class="px-6 py-4 bg-white border-b border-gray-200">
-                            <div class="flex items-center">
-                                @if ($selectedVehicleDisabled)
-                                    <div class="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full">
-                                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z">
-                                            </path>
-                                        </svg>
-                                    </div>
-                                    <h3 class="ml-4 text-lg font-semibold text-gray-900">Enable Vehicle</h3>
-                                @else
-                                    <div class="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full">
-                                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636">
-                                            </path>
-                                        </svg>
-                                    </div>
-                                    <h3 class="ml-4 text-lg font-semibold text-gray-900">Disable Vehicle</h3>
-                                @endif
-                            </div>
-                        </div>
-
-                        <div class="px-6 py-4">
-                    @csrf
-                            <p class="text-sm text-gray-600">
-                                @if ($selectedVehicleDisabled)
-                                    Are you sure you want to enable this vehicle? The vehicle will be
-                                    available for use again.
-                                @else
-                                    Are you sure you want to disable this vehicle? The vehicle will not be
-                                    available for use.
-                                @endif
-                            </p>
-                        </div>
-
-                        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
-                            <button wire:click="closeModal" wire:loading.attr="disabled" wire:target="toggleVehicleStatus"
-                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
-                                Cancel
-                            </button>
-                            @if ($selectedVehicleDisabled)
-                                <button wire:click="toggleVehicleStatus" wire:loading.attr="disabled" wire:target="toggleVehicleStatus"
-                                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
-                                    <span wire:loading.remove wire:target="toggleVehicleStatus">Enable Vehicle</span>
-                                    <span wire:loading.inline-flex wire:target="toggleVehicleStatus" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Enabling...</span>
-                                </button>
-                            @else
-                                <button wire:click="toggleVehicleStatus" wire:loading.attr="disabled" wire:target="toggleVehicleStatus"
-                                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer cursor-pointer">
-                                    <span wire:loading.remove wire:target="toggleVehicleStatus">Disable Vehicle</span>
-                                    <span wire:loading.inline-flex wire:target="toggleVehicleStatus" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Disabling...</span>
-                                </button>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @endif
+        <livewire:shared.vehicles.disable :config="['minUserType' => 2]" />
 
         {{-- Create Vehicle Modal --}}
-        @if ($showCreateModal)
-            <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
-                aria-modal="true">
-                {{-- Backdrop --}}
-                <div class="fixed inset-0 transition-opacity bg-black/80" wire:click="closeModal"></div>
-
-                {{-- Modal Panel --}}
-                <div class="flex min-h-full items-center justify-center p-4">
-                    <div
-                        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-md">
-                        <div class="px-6 py-4 bg-white border-b border-gray-200">
-                            <h3 class="text-lg font-semibold text-gray-900">Create Vehicle</h3>
-                        </div>
-
-                        <div class="px-6 py-4">
-                    @csrf
-                            <div class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Vehicle <span
-                                            class="text-red-500">*</span></label>
-                                    <input type="text" wire:model="create_vehicle" maxlength="20"
-                                        class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
-                                        placeholder="Enter vehicle">
-                                    @error('create_vehicle')
-                                        <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
-                            <button wire:click="closeModal"
-                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 hover:cursor-pointer cursor-pointer">
-                                Cancel
-                            </button>
-                            <button wire:click.prevent="createVehicle" wire:loading.attr="disabled" wire:target="createVehicle"
-                                class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                                <span wire:loading.remove wire:target="createVehicle">Create</span>
-                                <span wire:loading.inline-flex wire:target="createVehicle" class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Creating...</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @endif
+        <livewire:shared.vehicles.create :config="['minUserType' => 2]" />
 
         {{-- Delete Confirmation Modal --}}
-        <x-modals.delete-modal :show="$showDeleteModal" title="Delete Vehicle" :name="$selectedVehicleName" onConfirm="deleteVehicle"
-            confirmText="Delete Vehicle" />
+        <livewire:shared.vehicles.delete :config="['minUserType' => 2]" />
 
         {{-- Restore Confirmation Modal --}}
-        @if ($showRestoreModal)
+        @if (($config['showRestore'] ?? false) && $showRestoreModal)
             <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
                 aria-modal="true">
                 {{-- Backdrop --}}

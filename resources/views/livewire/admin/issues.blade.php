@@ -486,9 +486,7 @@
         @include('livewire.admin.slip-details-modal')
 
         {{-- Admin Edit Modal --}}
-        @if ($selectedSlip && $showEditModal)
-            <x-modals.admin-slip-edit-modal :slip-status="$selectedSlip->status" :edit-status="$editStatus" :selected-slip="$selectedSlip" />
-        @endif
+        <livewire:shared.issues.edit :config="['minUserType' => 1]" />
 
         {{-- Slip Delete Confirmation Modal --}}
         @if ($selectedSlip)

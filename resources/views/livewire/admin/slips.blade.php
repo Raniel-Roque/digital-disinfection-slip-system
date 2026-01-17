@@ -525,7 +525,7 @@
         @include('livewire.admin.slip-details-modal')
 
         {{-- Admin Create Modal --}}
-        <x-modals.admin-slip-creation-modal :is-creating="$isCreating" />
+        <livewire:shared.slips.create :config="['minUserType' => 1]" />
 
         {{-- Reasons Settings Modal --}}
         <x-modals.reason-settings :editing-reason-id="$editingReasonId" :editing-reason-text="$editingReasonText" :show-unsaved-changes-confirmation="$showUnsavedChangesConfirmation" :show-save-confirmation="$showSaveConfirmation" :saving-reason="$savingReason" />
@@ -537,7 +537,7 @@
                 message="Delete this disinfection slip?" :details="'Slip No: <span class=\'font-semibold\'>' . ($selectedSlip?->slip_id ?? '') . '</span>'" warning="This action cannot be undone!"
                 onConfirm="deleteSlip" />
 
-            <x-modals.admin-slip-edit-modal :slip-status="$selectedSlip->status" :edit-status="$editStatus" :selected-slip="$selectedSlip" />
+            <livewire:shared.slips.edit :config="['minUserType' => 1]" />
         @endif
 
     </div>

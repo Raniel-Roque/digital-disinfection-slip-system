@@ -235,11 +235,17 @@ class Slips extends Component
      * Prevent polling from running when any modal is open
      * This prevents the selected slip data from being overwritten
      */
+    #[On('slip-created')]
+    public function handleSlipCreated()
+    {
+        $this->resetPage();
+    }
+
     #[On('polling')]
     public function polling()
     {
         // If any modal is open, skip polling
-        if ($this->showFilters || $this->showCreateModal || $this->showDetailsModal || 
+        if ($this->showFilters || $this->showDetailsModal || 
             $this->showDeleteConfirmation || $this->showRemoveAttachmentConfirmation || 
             $this->showEditModal || $this->showCancelCreateConfirmation || 
             $this->showCancelEditConfirmation || $this->showAttachmentModal || 
@@ -1140,6 +1146,56 @@ class Slips extends Component
 
     public function openEditModal($id = null)
     {
+        // Load the slip if ID is provided (for other modals like details, delete)
+        if ($id) {
+            $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
+                'vehicle' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
+                'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'reason:id,reason_text,is_disabled',
+                'hatcheryGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); },
+                'receivedGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); }
+            ])->find($id);
+        }
+        // Re-fetch selectedSlip with withTrashed() to preserve deleted relations and find deleted slips
+        elseif ($this->selectedSlip && $this->selectedSlip->id) {
+            $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
+                'vehicle' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
+                'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'reason:id,reason_text,is_disabled',
+                'hatcheryGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); },
+                'receivedGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); }
+            ])->find($this->selectedSlip->id);
+        }
+
+        // Dispatch event to the SlipEdit component
+        $slipId = $id ?? ($this->selectedSlip?->id);
+        if ($slipId) {
+            $this->dispatch('openEditModal', $slipId);
+        }
+    }
+
+    #[On('slip-updated')]
+    public function handleSlipUpdated()
+    {
+        $this->resetPage();
+        // Refresh selectedSlip if it exists
+        if ($this->selectedSlip && $this->selectedSlip->id) {
+            $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
+                'vehicle' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
+                'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'reason:id,reason_text,is_disabled',
+                'hatcheryGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); },
+                'receivedGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); }
+            ])->find($this->selectedSlip->id);
+        }
+    }
+    {
         // Load the slip if ID is provided (when called from table row)
         if ($id) {
             $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
@@ -1758,8 +1814,8 @@ class Slips extends Component
 
     public function openCreateModal()
     {
-        $this->resetCreateForm();
-        $this->showCreateModal = true;
+        // Dispatch event to the SlipCreate component
+        $this->dispatch('openCreateModal');
     }
 
     public function closeCreateModal()

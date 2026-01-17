@@ -1,6 +1,7 @@
 @props([
     'availableStatuses' => [],
     'availableGuardTypes' => [],
+    'showGuardTypeFilter' => true,
 ])
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -84,7 +85,8 @@
         </div>
     </div>
 
-    {{-- Guard Type Filter --}}
+    {{-- Guard Type Filter - Only if showGuardTypeFilter is enabled --}}
+    @if ($showGuardTypeFilter)
     <div x-data="{
         open: false,
         options: @js($availableGuardTypes),
@@ -162,6 +164,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     {{-- From Date Input --}}
     <div x-data="{
