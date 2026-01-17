@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Vehicles;
+namespace App\Livewire\Slips;
 
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -1163,7 +1163,7 @@ class SlipList extends Component
             })
             ->paginate(5);
 
-        return view('livewire.vehicles.vehicle-list', [
+        return view('livewire.slips.slip-list', [
             'slips' => $slips,
             'availableStatuses' => $this->availableStatuses,
             // NOTE: vehicles, locations, drivers removed - views use searchable-dropdown-paginated component

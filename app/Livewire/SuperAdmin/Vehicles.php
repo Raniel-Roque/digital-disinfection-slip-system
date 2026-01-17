@@ -761,7 +761,7 @@ class Vehicles extends Component
         Session::put("export_sorting_{$token}", $sorting);
         Session::put("export_data_{$token}_expires", now()->addMinutes(10));
         
-        $printUrl = route('superadmin.print.plate-numbers', ['token' => $token]);
+        $printUrl = route('superadmin.print.vehicles', ['token' => $token]);
         
         $this->dispatch('open-print-window', ['url' => $printUrl]);
     }

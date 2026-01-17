@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Vehicles;
+namespace App\Livewire\Slips;
 
 use Livewire\Component;
 use App\Models\DisinfectionSlip;

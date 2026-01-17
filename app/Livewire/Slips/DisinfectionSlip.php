@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Vehicles;
+namespace App\Livewire\Slips;
 
 use Livewire\Component;
 use Livewire\Attributes\Renderless;
@@ -1471,6 +1471,6 @@ class DisinfectionSlip extends Component
 
     public function render()
     {
-        return view('livewire.vehicles.disinfection-slip');
+        return view('livewire.slips.disinfection-slip');
     }
 }

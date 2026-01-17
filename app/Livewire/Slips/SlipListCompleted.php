@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Vehicles;
+namespace App\Livewire\Slips;
 
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -419,7 +419,7 @@ class SlipListCompleted extends Component
 
         $slips = $query->paginate(10);
 
-        return view('livewire.vehicles.vehicle-list-completed', [
+        return view('livewire.slips.slip-list-completed', [
             'slips' => $slips
         ]);
     }
