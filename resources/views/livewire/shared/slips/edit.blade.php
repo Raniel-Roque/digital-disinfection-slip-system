@@ -247,7 +247,7 @@
 
     {{-- Final Status Confirmation Modal --}}
     @if ($selectedSlip && $showFinalStatusConfirmation)
-        <div class="fixed inset-0 z-[60] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 z-60 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div class="fixed inset-0 transition-opacity bg-black/80"></div>
             <div class="flex min-h-full items-center justify-center p-4">
                 <div class="relative bg-white rounded-xl shadow-xl w-full max-w-md overflow-visible">
