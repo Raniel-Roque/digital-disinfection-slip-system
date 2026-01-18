@@ -4,7 +4,7 @@
         <!-- Mobile: Simple Layout - Logo + Title -->
         <div class="flex items-center justify-between gap-3 sm:hidden">
             <a href="{{ url('/') }}" class="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition-opacity">
-                <img src="{{ asset('storage/images/logo/BGC.png') }}" alt="Logo" class="h-15 w-30 object-contain shrink-0">
+                <img src="{{ asset('storage/' . $defaultLogoPath) }}" alt="Logo" class="h-15 w-30 object-contain shrink-0">
                 <div class="font-bold text-gray-800 text-base leading-tight">
                     <div>Digital Disinfection</div>
                     <div>Slip System</div>
@@ -16,7 +16,7 @@
         <div class="hidden sm:flex items-center justify-between gap-3">
             <!-- Left: Logo + Title + Date -->
             <a href="{{ url('/') }}" class="flex items-center gap-3 min-w-0 hover:opacity-80 transition-opacity">
-                <img src="{{ asset('storage/images/logo/BGC.png') }}" alt="Logo" class="h-15 w-30 object-contain shrink-0">
+                <img src="{{ asset('storage/' . $defaultLogoPath) }}" alt="Logo" class="h-15 w-30 object-contain shrink-0">
                 <!-- Title + Date (stacked) -->
                 <div class="flex flex-col">
                     <span class="font-semibold text-gray-800 text-lg truncate">Digital Disinfection Slip System</span>
@@ -30,7 +30,7 @@
     <div class="flex items-center justify-center px-4 min-h-screen pt-20 sm:pt-24 bg-linear-to-br from-gray-50 to-gray-100">
         <div class="w-full max-w-md md:max-w-lg rounded-xl bg-white shadow-lg ring-1 ring-gray-300 p-10">
             <div class="flex flex-col items-center mb-4">
-                <img src="{{ asset('storage/images/logo/BGC.png') }}" class="h-15 w-auto">
+                <img src="{{ asset('storage/' . $defaultLogoPath) }}" class="h-15 w-auto">
                 <h2 class="mt-1 text-2xl font-semibold text-gray-900 text-center">
                     @if (isset($location) && $location)
                         Log in to your account

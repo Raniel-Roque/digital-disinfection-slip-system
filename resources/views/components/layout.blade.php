@@ -8,7 +8,11 @@
     <title>{{ config('app.name', 'Laravel') }}</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('storage/images/logo/BGC.png') }}">
+    @php
+        $defaultLogo = \App\Models\Setting::where('setting_name', 'default_location_logo')->first();
+        $defaultLogoPath = $defaultLogo && !empty($defaultLogo->value) ? $defaultLogo->value : 'images/logo/BGC.png';
+    @endphp
+    <link rel="icon" type="image/png" href="{{ asset('storage/' . $defaultLogoPath) }}">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -11,13 +11,16 @@
         $userName .= ' ' . strtoupper(substr(auth()->user()->middle_name, 0, 1)) . '.';
     }
     $userName .= ' ' . auth()->user()->last_name;
+    // Get default logo path from settings
+    $defaultLogo = \App\Models\Setting::where('setting_name', 'default_location_logo')->first();
+    $defaultLogoPath = $defaultLogo && !empty($defaultLogo->value) ? $defaultLogo->value : 'images/logo/BGC.png';
 @endphp
 
 <nav x-data="{ userMenuOpen: false, showLogoutConfirm: false, isLoggingOut: false }" class="bg-[#ffb97f] shadow-md rounded-md px-2 sm:px-4 py-2 sm:py-3">
     <!-- Mobile: Simple Layout - Logo + Farm Name + User Menu -->
     <div class="flex items-center justify-between gap-3 sm:hidden">
         <a href="{{ auth()->user()->isGuardView() ? route('user.dashboard') : route(auth()->user()->dashboardRoute()) }}" class="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition-opacity">
-            <img src="{{ asset('storage/images/logo/BGC.png') }}" alt="Logo" class="h-15 w-30 object-contain shrink-0">
+            <img src="{{ asset('storage/' . $defaultLogoPath) }}" alt="Logo" class="h-15 w-30 object-contain shrink-0">
             <div class="flex flex-col">
                 <span class="font-semibold text-gray-800 text-base truncate">{{ $locationName }}</span>
                 <span class="text-xs text-gray-600">{{ now()->format('F d, Y') }}</span>
@@ -85,7 +88,7 @@
     <div class="hidden sm:flex items-center justify-between gap-3">
         <!-- Left: Logo + Farm Name + Date -->
         <a href="{{ auth()->user()->isGuardView() ? route('user.dashboard') : route(auth()->user()->dashboardRoute()) }}" class="flex items-center gap-3 min-w-0 hover:opacity-80 transition-opacity">
-                <img src="{{ asset('storage/images/logo/BGC.png') }}" alt="Logo" class="h-15 w-30 object-contain shrink-0">
+                <img src="{{ asset('storage/' . $defaultLogoPath) }}" alt="Logo" class="h-15 w-30 object-contain shrink-0">
                 <!-- Farm Name + Date (stacked) -->
                 <div class="flex flex-col">
                     <span class="font-semibold text-gray-800 text-lg truncate">{{ $locationName }}</span>
