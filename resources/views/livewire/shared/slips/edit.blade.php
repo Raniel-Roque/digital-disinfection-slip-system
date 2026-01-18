@@ -20,25 +20,21 @@
             }
         @endphp
 
-        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            {{-- Backdrop --}}
-            <div class="fixed inset-0 transition-opacity bg-black/80" wire:click="closeModal"></div>
+        {{-- EDIT MODAL --}}
+        <x-modals.modal-template show="showModal" max-width="max-w-3xl" header-class="{{ $headerClass }}">
+            <x-slot name="titleSlot">
+                {{ strtoupper(($selectedSlip->location?->location_name ?? '') . ' DISINFECTION SLIP DETAILS') }}
+            </x-slot>
+            <x-slot name="headerActions">
+                <button wire:click="closeModal" class="text-gray-400 hover:text-gray-600 transition hover:cursor-pointer">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </x-slot>
 
-            {{-- Modal Panel --}}
-            <div class="flex min-h-full items-center justify-center p-4">
-                <div class="relative bg-white rounded-xl shadow-xl w-full max-w-3xl overflow-visible {{ $headerClass }}" @click.stop>
-                    {{-- Header --}}
-                    <div class="flex items-center justify-between p-4 border-b border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-900">{{ strtoupper(($selectedSlip->location?->location_name ?? '') . ' DISINFECTION SLIP DETAILS') }}</h3>
-                        <button wire:click="closeModal" class="text-gray-400 hover:text-gray-600">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
-                    </div>
-
-                    {{-- Sub Header --}}
-                    <div class="border-b border-gray-200 px-6 py-2 bg-gray-50 -mx-6 -mt-6 mb-2">
+            {{-- Sub Header --}}
+            <div class="border-b border-gray-200 px-6 py-2 bg-gray-50 -mx-6 -mt-6 mb-2">
                         <div class="grid grid-cols-[1fr_1fr_auto] gap-4 items-start text-xs">
                             <div>
                                 <div class="font-semibold text-gray-500 mb-0.5">Date:</div>
@@ -51,186 +47,197 @@
                         </div>
                     </div>
 
-                    {{-- Body Fields --}}
-                    <div class="space-y-0 -mx-6">
-                        {{-- Status --}}
-                        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
-                            <div class="font-semibold text-gray-500">Status:<span class="text-red-500">*</span></div>
-                            <div class="text-gray-900">
-                                <select wire:model="editStatus"
-                                    class="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500 hover:cursor-pointer cursor-pointer">
-                                    <option value="0">Pending</option>
-                                    <option value="1">Disinfecting</option>
-                                    <option value="2">In-Transit</option>
-                                    <option value="3">Completed</option>
-                                    <option value="4">Incomplete</option>
-                                </select>
-                                @error('editStatus')
-                                    <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
+            {{-- Body Fields --}}
+            @php
+                // Track row index for alternating colors
+                $rowIndex = 0;
+            @endphp
+            <div class="space-y-0 -mx-6">
+                {{-- Status --}}
+                @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
+                    <div class="font-semibold text-gray-500">Status:<span class="text-red-500">*</span></div>
+                    <div class="text-gray-900 min-w-0">
+                        <select wire:model="editStatus"
+                            class="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500 hover:cursor-pointer cursor-pointer">
+                            <option value="0">Pending</option>
+                            <option value="1">Disinfecting</option>
+                            <option value="2">In-Transit</option>
+                            <option value="3">Completed</option>
+                            <option value="4">Incomplete</option>
+                        </select>
+                        @error('editStatus')
+                            <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
 
-                        {{-- Vehicle --}}
-                        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
-                            <div class="font-semibold text-gray-500">Vehicle:<span class="text-red-500">*</span></div>
-                            <div class="text-gray-900">
-                                @php
-                                    $isVehicleSoftDeleted = $selectedSlip && $selectedSlip->vehicle && $selectedSlip->vehicle->trashed();
-                                @endphp
-                                <x-forms.searchable-dropdown-paginated wire-model="editVehicleId" data-method="getPaginatedVehicles" search-property="searchEditVehicle"
-                                    placeholder="Select vehicle..." search-placeholder="Search vehicles..." :per-page="20"
-                                    :disabled="$isVehicleSoftDeleted" />
-                                @if ($isVehicleSoftDeleted)
-                                    <p class="text-xs text-red-600 mt-1">This vehicle has been deleted and cannot be changed.</p>
-                                @endif
-                                @error('editVehicleId')
-                                    <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        {{-- Driver --}}
-                        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
-                            <div class="font-semibold text-gray-500">Driver:<span class="text-red-500">*</span></div>
-                            <div class="text-gray-900">
-                                <x-forms.searchable-dropdown-paginated wire-model="editDriverId" data-method="getPaginatedDrivers"
-                                    search-property="searchEditDriver" placeholder="Select driver..."
-                                    search-placeholder="Search drivers..." :per-page="20" />
-                                @error('editDriverId')
-                                    <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        {{-- Origin (only for status 0, 1, 2, 3) --}}
-                        @if ($status == 0 || $status == 1 || $status == 2 || $status == 3)
-                            <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
-                                <div class="font-semibold text-gray-500">Origin:<span class="text-red-500">*</span></div>
-                                <div class="text-gray-900">
-                                    <x-forms.searchable-dropdown-paginated wire-model="editLocationId" data-method="getPaginatedLocations"
-                                        search-property="searchEditOrigin" placeholder="Select origin..."
-                                        search-placeholder="Search locations..." :per-page="20" />
-                                    @error('editLocationId')
-                                        <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                                    @enderror
-                                </div>
-                            </div>
+                {{-- Vehicle --}}
+                @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
+                    <div class="font-semibold text-gray-500">Vehicle:<span class="text-red-500">*</span></div>
+                    <div class="text-gray-900 min-w-0">
+                        @php
+                            $isVehicleSoftDeleted = $selectedSlip && $selectedSlip->vehicle && $selectedSlip->vehicle->trashed();
+                        @endphp
+                        <x-forms.searchable-dropdown-paginated wire-model="editVehicleId" data-method="getPaginatedVehicles" search-property="searchEditVehicle"
+                            placeholder="Select vehicle..." search-placeholder="Search vehicles..." :per-page="20"
+                            :disabled="$isVehicleSoftDeleted" />
+                        @if ($isVehicleSoftDeleted)
+                            <p class="text-xs text-red-600 mt-1">This vehicle has been deleted and cannot be changed.</p>
                         @endif
+                        @error('editVehicleId')
+                            <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
 
-                        {{-- Destination --}}
-                        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-white">
-                            <div class="font-semibold text-gray-500">Destination:<span class="text-red-500">*</span></div>
-                            <div class="text-gray-900">
-                                <x-forms.searchable-dropdown-paginated wire-model="editDestinationId" data-method="getPaginatedLocations"
-                                    search-property="searchEditDestination" placeholder="Select destination..."
-                                    search-placeholder="Search locations..." :per-page="20" />
-                                @error('editDestinationId')
-                                    <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
+                {{-- Driver --}}
+                @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
+                    <div class="font-semibold text-gray-500">Driver:<span class="text-red-500">*</span></div>
+                    <div class="text-gray-900 min-w-0">
+                        <x-forms.searchable-dropdown-paginated wire-model="editDriverId" data-method="getPaginatedDrivers"
+                            search-property="searchEditDriver" placeholder="Select driver..."
+                            search-placeholder="Search drivers..." :per-page="20" />
+                        @error('editDriverId')
+                            <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
 
-                        {{-- Reason --}}
-                        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if (($status == 3 || $status == 4) && $selectedSlip->completed_at) bg-white @else bg-gray-100 @endif">
-                            <div class="font-semibold text-gray-500">Reason:<span class="text-red-500">*</span></div>
-                            <div class="text-gray-900">
-                                <x-forms.searchable-dropdown-paginated wire-model="editReasonId" data-method="getPaginatedReasons"
-                                    search-property="searchEditReason" placeholder="Select reason..."
-                                    search-placeholder="Search reasons..." :per-page="20" />
-                                @error('editReasonId')
-                                    <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        {{-- Completion Date (only when completed or incomplete) --}}
-                        @if (($status == 3 || $status == 4) && $selectedSlip->completed_at)
-                            <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs bg-gray-100">
-                                <div class="font-semibold text-gray-500">End Date:</div>
-                                <div class="text-gray-900">
-                                    {{ \Carbon\Carbon::parse($selectedSlip->completed_at)->format('M d, Y - h:i A') }}
-                                </div>
-                            </div>
-                        @endif
-
-                        {{-- Remarks --}}
-                        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs @if (($status == 3 || $status == 4) && $selectedSlip->completed_at) bg-white @else bg-gray-100 @endif">
-                            <div class="font-semibold text-gray-500">Remarks:</div>
-                            <div class="text-gray-900 wrap-break-words min-w-0" style="word-break: break-word; overflow-wrap: break-word;">
-                                <textarea wire:model="editRemarksForDisinfection" class="w-full border rounded px-2 py-2 text-sm" rows="6"></textarea>
-                                @error('editRemarksForDisinfection')
-                                    <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                                @enderror
-                            </div>
+                {{-- Origin (only for status 0, 1, 2, 3) --}}
+                @if ($status == 0 || $status == 1 || $status == 2 || $status == 3)
+                    @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                    <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
+                        <div class="font-semibold text-gray-500">Origin:<span class="text-red-500">*</span></div>
+                        <div class="text-gray-900 min-w-0">
+                            <x-forms.searchable-dropdown-paginated wire-model="editLocationId" data-method="getPaginatedLocations"
+                                search-property="searchEditOrigin" placeholder="Select origin..."
+                                search-placeholder="Search locations..." :per-page="20" />
+                            @error('editLocationId')
+                                <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
+                            @enderror
                         </div>
                     </div>
+                @endif
 
-                    {{-- Sub Footer (Guards) --}}
-                    <div class="border-t border-gray-200 px-6 py-2 bg-gray-50 -mx-6 -mb-6 mt-2">
-                        <div class="grid grid-cols-2 gap-4 text-xs">
-                            <div>
-                                <div class="font-semibold text-gray-500 mb-0.5">Hatchery Guard:<span class="text-red-500">*</span></div>
-                                <div class="text-gray-900">
-                                    <x-forms.searchable-dropdown-paginated wire-model="editHatcheryGuardId" data-method="getPaginatedGuards"
-                                        search-property="searchEditHatcheryGuard" placeholder="Select hatchery guard..."
-                                        search-placeholder="Search guards..." :per-page="20" />
-                                    @error('editHatcheryGuardId')
-                                        <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div>
-                                <div class="flex items-start justify-between mb-0.5">
-                                    <div class="font-semibold text-gray-500">
-                                        Received By:
-                                        @if ($status == 3)
-                                            <span class="text-red-500">*</span>
-                                        @endif
-                                    </div>
-                                    @if ($status == 0 || $status == 1 || $status == 2)
-                                        <div x-data="{ editReceivedGuardId: @entangle('editReceivedGuardId') }">
-                                            <button type="button" x-show="editReceivedGuardId"
-                                                wire:click="$set('editReceivedGuardId', null)"
-                                                class="text-xs text-blue-600 hover:text-blue-800 font-medium hover:cursor-pointer cursor-pointer" style="display: none;">
-                                                Clear
-                                            </button>
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="text-gray-900">
-                                    <x-forms.searchable-dropdown-paginated wire-model="editReceivedGuardId" data-method="getPaginatedGuards"
-                                        search-property="searchEditReceivedGuard" placeholder="Select receiving guard..."
-                                        search-placeholder="Search guards..." :per-page="20" />
-                                    @error('editReceivedGuardId')
-                                        <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
-                                    @enderror
-                                </div>
-                            </div>
+                {{-- Destination --}}
+                @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
+                    <div class="font-semibold text-gray-500">Destination:<span class="text-red-500">*</span></div>
+                    <div class="text-gray-900 min-w-0">
+                        <x-forms.searchable-dropdown-paginated wire-model="editDestinationId" data-method="getPaginatedLocations"
+                            search-property="searchEditDestination" placeholder="Select destination..."
+                            search-placeholder="Search locations..." :per-page="20" />
+                        @error('editDestinationId')
+                            <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
+
+                {{-- Reason --}}
+                @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
+                    <div class="font-semibold text-gray-500">Reason:<span class="text-red-500">*</span></div>
+                    <div class="text-gray-900 min-w-0">
+                        <x-forms.searchable-dropdown-paginated wire-model="editReasonId" data-method="getPaginatedReasons"
+                            search-property="searchEditReason" placeholder="Select reason..."
+                            search-placeholder="Search reasons..." :per-page="20" />
+                        @error('editReasonId')
+                            <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
+
+                {{-- Completion Date (only when completed or incomplete) --}}
+                @if (($status == 3 || $status == 4) && $selectedSlip->completed_at)
+                    @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                    <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
+                        <div class="font-semibold text-gray-500">End Date:</div>
+                        <div class="text-gray-900">
+                            {{ \Carbon\Carbon::parse($selectedSlip->completed_at)->format('M d, Y - h:i A') }}
                         </div>
                     </div>
+                @endif
 
-                    {{-- Footer --}}
-                    <div class="flex justify-end gap-2 p-4 border-t border-gray-200 -mt-6">
-                        <x-buttons.submit-button wire:click="closeModal" color="white" wire:loading.attr="disabled" wire:target="saveEdit">
-                            Cancel
-                        </x-buttons.submit-button>
-
-                        <x-buttons.submit-button wire:click.prevent="checkBeforeSave" color="green" wire:loading.attr="disabled" wire:target="saveEdit"
-                            x-bind:disabled="!$wire.hasUnsavedChanges()">
-                            <span wire:loading.remove wire:target="saveEdit">Save Changes</span>
-                            <span wire:loading.inline-flex wire:target="saveEdit" class="inline-flex items-center gap-2">
-                                <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Saving...
-                            </span>
-                        </x-buttons.submit-button>
+                {{-- Remarks --}}
+                @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+                <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
+                    <div class="font-semibold text-gray-500">Remarks:</div>
+                    <div class="text-gray-900 wrap-break-words min-w-0" style="word-break: break-word; overflow-wrap: break-word;">
+                        <textarea wire:model="editRemarksForDisinfection" class="w-full border rounded px-2 py-2 text-sm" rows="6"></textarea>
+                        @error('editRemarksForDisinfection')
+                            <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
+                        @enderror
                     </div>
                 </div>
             </div>
-        </div>
+
+            {{-- Sub Footer (Guards) --}}
+            <div class="border-t border-gray-200 px-6 py-2 bg-gray-50 -mx-6 -mb-6 mt-2">
+                <div class="grid grid-cols-2 gap-4 text-xs">
+                    <div>
+                        <div class="font-semibold text-gray-500 mb-0.5">Hatchery Guard:<span class="text-red-500">*</span></div>
+                        <div class="text-gray-900 min-w-0">
+                            <x-forms.searchable-dropdown-paginated wire-model="editHatcheryGuardId" data-method="getPaginatedGuards"
+                                search-property="searchEditHatcheryGuard" placeholder="Select hatchery guard..."
+                                search-placeholder="Search guards..." :per-page="20" />
+                            @error('editHatcheryGuardId')
+                                <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-start justify-between mb-0.5">
+                            <div class="font-semibold text-gray-500">
+                                Received By:
+                                @if ($status == 3)
+                                    <span class="text-red-500">*</span>
+                                @endif
+                            </div>
+                            @if ($status == 0 || $status == 1 || $status == 2)
+                                <div x-data="{ editReceivedGuardId: @entangle('editReceivedGuardId') }">
+                                    <button type="button" x-show="editReceivedGuardId"
+                                        wire:click="$set('editReceivedGuardId', null)"
+                                        class="text-xs text-blue-600 hover:text-blue-800 font-medium hover:cursor-pointer cursor-pointer" style="display: none;">
+                                        Clear
+                                    </button>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="text-gray-900 min-w-0">
+                            <x-forms.searchable-dropdown-paginated wire-model="editReceivedGuardId" data-method="getPaginatedGuards"
+                                search-property="searchEditReceivedGuard" placeholder="Select receiving guard..."
+                                search-placeholder="Search guards..." :per-page="20" />
+                            @error('editReceivedGuardId')
+                                <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Footer --}}
+            <x-slot name="footer">
+                <x-buttons.submit-button wire:click="closeModal" color="white" wire:loading.attr="disabled" wire:target="saveEdit">
+                    Cancel
+                </x-buttons.submit-button>
+
+                <x-buttons.submit-button wire:click.prevent="checkBeforeSave" color="green" wire:loading.attr="disabled" wire:target="saveEdit"
+                    x-bind:disabled="!$wire.hasUnsavedChanges()">
+                    <span wire:loading.remove wire:target="saveEdit">Save Changes</span>
+                    <span wire:loading.inline-flex wire:target="saveEdit" class="inline-flex items-center gap-2">
+                        <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Saving...
+                    </span>
+                </x-buttons.submit-button>
+            </x-slot>
+
+        </x-modals.modal-template>
     @endif
 
     {{-- Cancel Confirmation Modal --}}

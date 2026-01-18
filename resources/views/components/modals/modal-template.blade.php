@@ -23,7 +23,7 @@
     x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
     {{-- Backdrop --}}
-    <div class="fixed inset-0 {{ $backdropClass }} transition-opacity" @click="show = false"></div>
+    <div class="fixed inset-0 {{ $backdropClass }} transition-opacity" @click="$wire.closeModal ? $wire.closeModal() : (show = false)"></div>
 
     {{-- Modal Panel --}}
     <div class="flex min-h-full items-center justify-center p-4">
@@ -33,7 +33,7 @@
             x-transition:leave="transition ease-in duration-150"
             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
             x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            class="relative bg-white rounded-xl shadow-xl w-full {{ $maxWidth }} overflow-visible" @click.stop>
+            class="relative bg-white rounded-xl shadow-xl w-full {{ $maxWidth }} z-50" @click.stop>
             {{-- Header --}}
             <div class="flex items-center justify-between p-4 border-b border-gray-200 {{ $headerClass }}">
                 <div class="flex items-center gap-3">
@@ -49,24 +49,25 @@
                 <div class="flex items-center gap-2">
                     @if (isset($headerActions))
                         {{ $headerActions }}
+                    @else
+                    <button @click="show = false" class="text-gray-400 hover:text-gray-600 transition hover:cursor-pointer">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                     @endif
-                <button @click="show = false" class="text-gray-400 hover:text-gray-600 transition hover:cursor-pointer">
-                    <svg class="size-5" xmlns="https://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
                 </div>
             </div>
 
             {{-- Body (slot) --}}
-            <div class="p-6 overflow-visible">
+            <div class="p-6 -mt-4">
                 {{ $slot }}
             </div>
 
             {{-- Footer (optional slot) --}}
             @if (isset($footer))
-                <div class="flex justify-end gap-3 p-4 rounded-b-xl">
+                <div class="flex justify-end gap-3 p-4 rounded-b-xl -mt-6">
                     {{ $footer }}
                 </div>
             @endif

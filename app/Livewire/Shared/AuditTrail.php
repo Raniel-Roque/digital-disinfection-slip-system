@@ -566,6 +566,9 @@ class AuditTrail extends Component
         // Use shared view for both admin and superadmin
         return view('livewire.shared.audit-trail', [
             'logs' => $logs,
+            'availableActions' => $this->availableActions,
+            'availableModelTypes' => $this->availableModelTypes,
+            'availableUserTypes' => $this->availableUserTypes,
             'filterActionOptions' => $this->filterActionOptions,
             'filterModelTypeOptions' => $this->filterModelTypeOptions,
         ]);

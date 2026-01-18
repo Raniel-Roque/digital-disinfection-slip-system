@@ -65,16 +65,16 @@
                 @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
                 <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                     <div class="font-semibold text-gray-500">Vehicle:</div>
-                    <div class="text-gray-900">
+                    <div class="text-gray-900 min-w-0">
                     @if ($isEditing)
-                        <x-forms.searchable-dropdown-paginated wire-model="truck_id" data-method="getPaginatedTrucks"
-                            search-property="searchTruck" placeholder="Select vehicle..."
+                        <x-forms.searchable-dropdown-paginated wire-model="vehicle_id" data-method="getPaginatedVehicles"
+                            search-property="searchVehicle" placeholder="Select vehicle..."
                             search-placeholder="Search vehicles..." :per-page="20" />
-                        @error('truck_id')
+                        @error('vehicle_id')
                             <div class="text-red-500 text-xs mt-1">{{ $message }}</div>
                         @enderror
                     @else
-                        {{ $selectedSlip->truck->vehicle ?? 'N/A' }}
+                        {{ $selectedSlip->vehicle->vehicle ?? 'N/A' }}
                     @endif
                 </div>
             </div>
@@ -83,7 +83,7 @@
                 @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
                 <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                     <div class="font-semibold text-gray-500">Driver:</div>
-                    <div class="text-gray-900">
+                    <div class="text-gray-900 min-w-0">
                     @if ($isEditing)
                         <x-forms.searchable-dropdown-paginated wire-model="driver_id" data-method="getPaginatedDrivers"
                             search-property="searchDriver" placeholder="Select driver..."
@@ -112,7 +112,7 @@
                 @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
                 <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                     <div class="font-semibold text-gray-500">Destination:</div>
-                    <div class="text-gray-900">
+                    <div class="text-gray-900 min-w-0">
                         @if ($isEditing)
                             <x-forms.searchable-dropdown-paginated wire-model="destination_id" data-method="getPaginatedLocations"
                                 search-property="searchDestination" placeholder="Select destination..."
@@ -141,7 +141,7 @@
                 @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
                 <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                     <div class="font-semibold text-gray-500">Reason:<span class="text-red-500">*</span></div>
-                    <div class="text-gray-900">
+                    <div class="text-gray-900 min-w-0">
                         @if ($isEditing)
                             <x-forms.searchable-dropdown-paginated wire-model="reason_id" data-method="getPaginatedReasons"
                                 search-property="searchReason" placeholder="Select reason..."

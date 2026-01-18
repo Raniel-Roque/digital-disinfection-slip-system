@@ -36,7 +36,7 @@ $dropdownId = 'dropdown_' . str_replace(['.', '[', ']'], '_', $wireModel) . '_' 
 $maxHeight = $maxShown * 40 . 'px';
 @endphp
 
-<div class="w-full" wire:key="dropdown-{{ $dropdownId }}">
+<div class="w-full max-w-full" wire:key="dropdown-{{ $dropdownId }}">
     @if ($label)
         <label class="block text-sm font-medium text-gray-700 mb-1">
             {{ $label }}
@@ -45,7 +45,7 @@ $maxHeight = $maxShown * 40 . 'px';
 
     {{-- Alpine.js for open state, search, and server-side pagination --}}
     @if ($multiple)
-    <div class="relative" wire:ignore x-data="{
+    <div class="relative overflow-visible" wire:ignore x-data="{
         open: false,
         searchTerm: '',
         options: [],
@@ -82,6 +82,11 @@ $maxHeight = $maxShown * 40 . 'px';
             
             if (!this.hasMore) return;
             
+            // Ensure options is always an array
+            if (!Array.isArray(this.options)) {
+                this.options = [];
+            }
+            
             this.loading = true;
             try {
                 const response = await Livewire.find('{{ $__livewire->getId() }}').call('{{ $dataMethod }}', this.searchTerm, this.page, {{ $perPage }});
@@ -92,7 +97,10 @@ $maxHeight = $maxShown * 40 . 'px';
                         id: Number(id),
                         label: label
                     }));
-                    this.options = [...this.options, ...newItems];
+                    // Filter out duplicates by ID before appending
+                    const existingIds = new Set(this.options.map(opt => opt.id));
+                    const uniqueNewItems = newItems.filter(item => !existingIds.has(item.id));
+                    this.options = [...this.options, ...uniqueNewItems];
                     this.hasMore = response.has_more;
                     this.page++;
                 }
@@ -212,6 +220,11 @@ $maxHeight = $maxShown * 40 . 'px';
             
             if (!this.hasMore) return;
             
+            // Ensure options is always an array
+            if (!Array.isArray(this.options)) {
+                this.options = [];
+            }
+            
             this.loading = true;
             try {
                 const response = await Livewire.find('{{ $__livewire->getId() }}').call('{{ $dataMethod }}', this.searchTerm, this.page, {{ $perPage }});
@@ -222,7 +235,10 @@ $maxHeight = $maxShown * 40 . 'px';
                         id: Number(id),
                         label: label
                     }));
-                    this.options = [...this.options, ...newItems];
+                    // Filter out duplicates by ID before appending
+                    const existingIds = new Set(this.options.map(opt => opt.id));
+                    const uniqueNewItems = newItems.filter(item => !existingIds.has(item.id));
+                    this.options = [...this.options, ...uniqueNewItems];
                     this.hasMore = response.has_more;
                     this.page++;
                 }
@@ -316,7 +332,7 @@ $maxHeight = $maxShown * 40 . 'px';
                 x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-95"
                 x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-75"
                 x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                class="absolute right-0 mt-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 p-1 space-y-1"
+                class="absolute left-0 mt-2 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 p-1 space-y-1"
                 style="display: none; z-index: 9999;" x-cloak @click.stop>
 
                 <!-- Search Input -->
@@ -333,7 +349,7 @@ $maxHeight = $maxShown * 40 . 'px';
                 <div class="overflow-y-auto" style="max-height: {{ $maxHeight }};" 
                     x-on:scroll="handleScroll($event)"
                     x-on:click.stop>
-                    <template x-for="option in options" :key="option.id">
+                    <template x-for="(option, index) in (options || [])" :key="'{{ $dropdownId }}_' + option.id + '_' + index">
                         @if ($multiple)
                             <a href="#"
                                 x-on:click.prevent.stop="updateSelection(option.id)"
@@ -373,7 +389,7 @@ $maxHeight = $maxShown * 40 . 'px';
                     </div>
                     
                     <!-- No results message -->
-                    <div x-show="!loading && options.length === 0"
+                    <div x-show="!loading && (!options || options.length === 0)"
                         class="px-4 py-6 text-center text-sm text-gray-500" style="display: none;">
                         No results found
                     </div>

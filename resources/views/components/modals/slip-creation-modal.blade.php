@@ -1,6 +1,7 @@
 @props([
     'isCreating' => false,
     'pendingAttachmentIds' => [],
+    'useGuardMode' => false,
 ])
 
 {{-- CREATE MODAL --}}
@@ -16,20 +17,36 @@
         @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
         <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
             <div class="font-semibold text-gray-500">Vehicle:<span class="text-red-500">*</span></div>
-            <div class="text-gray-900">
+            <div class="text-gray-900 min-w-0">
                 <x-forms.searchable-dropdown-paginated wire-model="vehicle_id" data-method="getPaginatedVehicles" search-property="searchVehicle"
                     placeholder="Select vehicle..." search-placeholder="Search vehicles..." :per-page="20" />
                 @error('vehicle_id')
                     <span class="text-red-500 text-xs">{{ $message }}</span>
                 @enderror
             </div>
-        </div>
+        </div>  
+
+        {{-- Origin --}}
+        @if (!$useGuardMode)
+            @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+            <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
+                <div class="font-semibold text-gray-500">Origin:<span class="text-red-500">*</span></div>
+                <div class="text-gray-900 min-w-0">
+                    <x-forms.searchable-dropdown-paginated wire-model="location_id" data-method="getPaginatedLocations"
+                        search-property="searchOrigin" placeholder="Select origin..."
+                        search-placeholder="Search locations..." :per-page="20" />
+                    @error('location_id')
+                        <span class="text-red-500 text-xs">{{ $message }}</span>
+                    @enderror
+                </div>
+            </div>
+        @endif
 
         {{-- Destination --}}
         @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
         <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
             <div class="font-semibold text-gray-500">Destination:<span class="text-red-500">*</span></div>
-            <div class="text-gray-900">
+            <div class="text-gray-900 min-w-0">
                 <x-forms.searchable-dropdown-paginated wire-model="destination_id" data-method="getPaginatedLocations"
                     search-property="searchDestination" placeholder="Select destination..."
                     search-placeholder="Search locations..." :per-page="20" />
@@ -43,7 +60,7 @@
         @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
         <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
             <div class="font-semibold text-gray-500">Driver Name:<span class="text-red-500">*</span></div>
-            <div class="text-gray-900">
+            <div class="text-gray-900 min-w-0">
                 <x-forms.searchable-dropdown-paginated wire-model="driver_id" data-method="getPaginatedDrivers" search-property="searchDriver"
                     placeholder="Select driver..." search-placeholder="Search drivers..." :per-page="20" />
                 @error('driver_id')
@@ -52,11 +69,43 @@
             </div>
         </div>
 
+        {{-- Hatchery Guard --}}
+        @if (!$useGuardMode)
+            @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+            <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
+                <div class="font-semibold text-gray-500">Hatchery Guard:<span class="text-red-500">*</span></div>
+                <div class="text-gray-900 min-w-0">
+                    <x-forms.searchable-dropdown-paginated wire-model="hatchery_guard_id" data-method="getPaginatedGuards"
+                        search-property="searchHatcheryGuard" placeholder="Select hatchery guard..."
+                        search-placeholder="Search guards..." :per-page="20" />
+                    @error('hatchery_guard_id')
+                        <span class="text-red-500 text-xs">{{ $message }}</span>
+                    @enderror
+                </div>
+            </div>
+        @endif
+
+        @if (!$useGuardMode)
+        {{-- Receiving Guard (Admin mode only) --}}
+        @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
+        <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
+            <div class="font-semibold text-gray-500">Receiving Guard:</div>
+            <div class="text-gray-900 min-w-0">
+                <x-forms.searchable-dropdown-paginated wire-model="received_guard_id" data-method="getPaginatedGuards"
+                    search-property="searchReceivedGuard" placeholder="Select receiving guard..."
+                    search-placeholder="Search guards..." :per-page="20" />
+                @error('received_guard_id')
+                    <span class="text-red-500 text-xs">{{ $message }}</span>
+                @enderror
+            </div>
+        </div>
+        @endif
+
         {{-- Reason --}}
         @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
         <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
             <div class="font-semibold text-gray-500">Reason:<span class="text-red-500">*</span></div>
-            <div class="text-gray-900">
+            <div class="text-gray-900 min-w-0">
                 <x-forms.searchable-dropdown-paginated wire-model="reason_id" data-method="getPaginatedReasons" search-property="searchReason"
                     placeholder="Select reason..." search-placeholder="Search reasons..." :per-page="20" />
                 @error('reason_id')
