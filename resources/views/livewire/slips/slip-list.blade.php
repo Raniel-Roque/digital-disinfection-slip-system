@@ -590,4 +590,14 @@
 
     {{-- Pagination --}}
     <x-buttons.nav-pagination :paginator="$slips" />
+
+    {{-- Reasons Modal (only for super guards) --}}
+    @php
+        $user = Auth::user();
+        $isSuperGuard = $user && $user->user_type === 0 && $user->super_guard;
+        $reasonsMinUserType = $isSuperGuard ? 1 : 2; // Super guards have same permissions as admins (minUserType = 1), others need superadmin (2)
+    @endphp
+    @if($isSuperGuard)
+        <livewire:shared.slips.reasons :config="['minUserType' => $reasonsMinUserType]" />
+    @endif
 </div>

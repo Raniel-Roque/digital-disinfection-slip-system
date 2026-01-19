@@ -931,8 +931,36 @@ class Create extends Component
         if (empty($this->pendingAttachmentIds)) {
             return collect([]);
         }
-        
+
         return Photo::whereIn('id', $this->pendingAttachmentIds)->get();
+    }
+
+    /**
+     * Check if the current location permits slip creation (for guard mode)
+     */
+    public function getCanCreateSlipProperty()
+    {
+        if (!$this->useGuardMode) {
+            return true; // Admin mode always allows creation
+        }
+
+        $currentLocationId = Session::get('location_id');
+        if (!$currentLocationId) {
+            return false;
+        }
+
+        // Check if the location exists and is not disabled
+        $location = Location::find($currentLocationId);
+        return $location && !$location->disabled && !$location->trashed();
+    }
+
+    /**
+     * Check if the current user is disabled
+     */
+    public function isUserDisabled()
+    {
+        $user = Auth::user();
+        return $user && $user->disabled;
     }
     
     /**

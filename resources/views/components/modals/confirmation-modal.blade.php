@@ -34,7 +34,7 @@
 @endphp
 
 @if($useAlpine)
-    <x-modals.modal-template :show="$show" :title="$title" max-width="max-w-md">
+    <x-modals.modal-template :show="$show" :title="$title" max-width="max-w-md" z-index="60">
         <div class="text-center py-4">
             <svg class="mx-auto mb-4 {{ $iconColor }} w-16 h-16" fill="none" stroke="currentColor"
                 viewBox="0 0 24 24">
@@ -98,7 +98,7 @@
         </x-slot>
     </x-modals.modal-template>
 @else
-    <x-modals.modal-template :show="$show" max-width="max-w-lg">
+    <x-modals.modal-template :show="$show" max-width="max-w-lg" z-index="60">
         <x-slot name="header">
             <div class="flex items-center">
                 <div class="flex items-center justify-center w-12 h-12 {{ $iconBg }} rounded-full">

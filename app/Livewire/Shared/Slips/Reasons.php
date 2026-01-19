@@ -35,6 +35,25 @@ class Reasons extends Component
         'openReasonsModal' => 'openReasonsModal',
     ];
 
+    /**
+     * Check if the current user has permission to manage reasons
+     */
+    private function canManageReasons()
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return false;
+        }
+
+        // Super guards have admin-level permissions for reasons
+        if ($user->user_type === 0 && $user->super_guard) {
+            return true;
+        }
+
+        // Regular user type check
+        return $user->user_type >= $this->minUserType;
+    }
+
     public function mount($config = [])
     {
         $this->minUserType = $config['minUserType'] ?? 2;
@@ -152,7 +171,7 @@ class Reasons extends Component
     public function createReason()
     {
         // Authorization check
-        if (Auth::user()->user_type < $this->minUserType) {
+        if (!$this->canManageReasons()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -220,7 +239,7 @@ class Reasons extends Component
     public function saveReasonEdit()
     {
         // Authorization check
-        if (Auth::user()->user_type < $this->minUserType) {
+        if (!$this->canManageReasons()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -269,7 +288,7 @@ class Reasons extends Component
 
         if ($reason) {
             // Authorization check
-            if (Auth::user()->user_type < $this->minUserType) {
+            if (!$this->canManageReasons()) {
                 abort(403, 'Unauthorized action.');
             }
 
@@ -306,7 +325,7 @@ class Reasons extends Component
     public function toggleReasonDisabled($reasonId)
     {
         // Authorization check
-        if (Auth::user()->user_type < $this->minUserType) {
+        if (!$this->canManageReasons()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -341,7 +360,7 @@ class Reasons extends Component
     public function deleteReason()
     {
         // Authorization check
-        if (Auth::user()->user_type < $this->minUserType) {
+        if (!$this->canManageReasons()) {
             abort(403, 'Unauthorized action.');
         }
 

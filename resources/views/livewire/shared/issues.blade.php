@@ -411,8 +411,6 @@
             </div>
         </div>
 
-        {{-- Delete/Restore actions removed to make Issues view-only --}}
-
         {{-- Restore Modal - Only for super-admin --}}
         @if ($showRestore)
         <livewire:shared.issues.restore :config="['minUserType' => $minUserType]" />
@@ -552,7 +550,7 @@
                     </div>
                 </x-slot>
             </x-modals.modal-template>
-        @endif --}}
+        @endif 
 
         {{-- Filter Modal --}}
         <x-modals.filter-modal>

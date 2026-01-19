@@ -4,6 +4,7 @@
     'maxWidth' => 'max-w-md',
     'backdropOpacity' => '80',
     'headerClass' => '',
+    'zIndex' => '50',
 ])
 
 @php
@@ -21,9 +22,9 @@
 <div x-data="{ show: @entangle($show) }" x-show="show" x-transition:enter="transition ease-out duration-200"
     x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
     x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
-    x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+    x-transition:leave-end="opacity-0" class="fixed inset-0 z-{{ $zIndex }} overflow-y-auto" style="display: none;">
     {{-- Backdrop --}}
-    <div class="fixed inset-0 {{ $backdropClass }} transition-opacity" @click="$wire.closeModal ? $wire.closeModal() : (show = false)"></div>
+    <div class="fixed inset-0 {{ $backdropClass }} transition-opacity" @click="show = false"></div>
 
     {{-- Modal Panel --}}
     <div class="flex min-h-full items-center justify-center p-4">
@@ -33,7 +34,7 @@
             x-transition:leave="transition ease-in duration-150"
             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
             x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            class="relative bg-white rounded-xl shadow-xl w-full {{ $maxWidth }} z-50" @click.stop>
+            class="relative bg-white rounded-xl shadow-xl w-full {{ $maxWidth }} z-{{ $zIndex }}" @click.stop>
             {{-- Header --}}
             <div class="flex items-center justify-between p-4 border-b border-gray-200 {{ $headerClass }}">
                 <div class="flex items-center gap-3">

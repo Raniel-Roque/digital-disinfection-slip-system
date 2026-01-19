@@ -477,6 +477,7 @@
                                                     Disable
                                                 </x-buttons.submit-button>
                                             @endif
+                                            @if (Auth::user()->user_type === 2)
                                             <x-buttons.submit-button wire:click="openDeleteModal({{ $location->id }})"
                                                 color="red" size="sm" :fullWidth="false">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor"
@@ -488,6 +489,7 @@
                                                 </svg>
                                                 Delete
                                             </x-buttons.submit-button>
+                                            @endif
                                         </div>
                                     @endif
                                 </td>

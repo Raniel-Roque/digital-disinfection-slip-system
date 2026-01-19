@@ -689,10 +689,23 @@
         @include('livewire.shared.slip-details-modal')
 
         {{-- Create Modal --}}
-        <livewire:shared.slips.create :config="['minUserType' => $minUserType]" />
+        @php
+            $user = Auth::user();
+            $isGuard = $user && $user->user_type === 0;
+            $createConfig = [
+                'minUserType' => $minUserType,
+                'useGuardMode' => $isGuard
+            ];
+        @endphp
+        <livewire:shared.slips.create :config="$createConfig" />
 
         {{-- Reasons Modal --}}
-        <livewire:shared.slips.reasons :config="['minUserType' => $minUserType]" />
+        @php
+            $user = Auth::user();
+            $isSuperGuard = $user && $user->user_type === 0 && $user->super_guard;
+            $reasonsMinUserType = $isSuperGuard ? 1 : $minUserType; // Super guards have same permissions as admins (minUserType = 1)
+        @endphp
+        <livewire:shared.slips.reasons :config="['minUserType' => $reasonsMinUserType]" />
         
         {{-- Restore Modal - Only for super-admin --}}
         @if ($showRestore)

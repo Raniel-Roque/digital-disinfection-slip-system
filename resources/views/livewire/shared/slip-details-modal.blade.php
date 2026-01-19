@@ -389,6 +389,7 @@
                             isAdminOrSuperAdmin: @js($isAdminOrSuperAdmin),
                             canManage: @js($canManage),
                             status: @js($status),
+                            userType: @js(Auth::user()->user_type),
                             getCurrentAttachment() {
                                 const index = $wire.get('currentAttachmentIndex');
                                 return this.photos[index] || null;
@@ -396,14 +397,16 @@
                             canShowDelete() {
                                 const Photo = this.getCurrentAttachment();
                                 if (!Photo) return false;
-                                
+
                                 // SuperAdmin can always delete regardless of status or ownership
-                                if (this.isAdminOrSuperAdmin) return true;
-                                
-                                // Admin can delete if slip is not completed/incomplete, regardless of ownership
-                                if (this.status === 3 || this.status === 4) return false;
-                                if (this.canManage) return true;
-                                
+                                if (this.isAdminOrSuperAdmin && $wire.get('userType') === 2) return true;
+
+                                // Admin cannot delete from completed/incomplete slips
+                                if ($wire.get('userType') === 1 && (this.status === 3 || this.status === 4)) return false;
+
+                                // Admin can delete from pending/disinfecting/in-transit slips if they can manage
+                                if ($wire.get('userType') === 1 && this.canManage) return true;
+
                                 return false;
                             },
                             deleteCurrentPhoto() {

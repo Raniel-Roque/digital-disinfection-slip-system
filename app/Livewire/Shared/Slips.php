@@ -1060,7 +1060,20 @@ class Slips extends Component
             return false;
         }
 
+        $user = Auth::user();
+        $slipStatus = $this->selectedSlip->status;
+
         // SuperAdmin can edit any slip, including completed ones (unless vehicle is soft-deleted)
+        if ($user->user_type === 2) {
+            return true;
+        }
+
+        // Admin cannot edit completed (status 3) or incomplete (status 4) slips
+        if ($user->user_type === 1 && in_array($slipStatus, [3, 4])) {
+            return false;
+        }
+
+        // Admin can edit pending (0), disinfecting (1), and in-transit (2) slips
         return true;
     }
 
@@ -1075,7 +1088,20 @@ class Slips extends Component
             return false;
         }
 
+        $user = Auth::user();
+        $slipStatus = $this->selectedSlip->status;
+
         // SuperAdmin can delete any slip, including completed ones (unless vehicle is soft-deleted)
+        if ($user->user_type === 2) {
+            return true;
+        }
+
+        // Admin cannot delete completed (status 3) or incomplete (status 4) slips
+        if ($user->user_type === 1 && in_array($slipStatus, [3, 4])) {
+            return false;
+        }
+
+        // Admin can delete pending (0), disinfecting (1), and in-transit (2) slips
         return true;
     }
 
@@ -1085,9 +1111,27 @@ class Slips extends Component
             return false;
         }
 
-        // SuperAdmin can remove Photo from any slip, including completed ones
+        $user = Auth::user();
+        $slipStatus = $this->selectedSlip->status;
+
+        // Check if there are attachments
         $attachmentIds = $this->selectedSlip->photo_ids ?? [];
-        return !empty($attachmentIds);
+        if (empty($attachmentIds)) {
+            return false;
+        }
+
+        // SuperAdmin can remove photos from any slip, including completed ones
+        if ($user->user_type === 2) {
+            return true;
+        }
+
+        // Admin cannot remove photos from completed (status 3) or incomplete (status 4) slips
+        if ($user->user_type === 1 && in_array($slipStatus, [3, 4])) {
+            return false;
+        }
+
+        // Admin can remove photos from pending (0), disinfecting (1), and in-transit (2) slips
+        return true;
     }
 
     #[On('slip-updated')]
@@ -1744,7 +1788,9 @@ class Slips extends Component
         Session::put("export_sorting_{$token}", $sorting);
         Session::put("export_data_{$token}_expires", now()->addMinutes(10));
         
-        $printUrl = route('superadmin.print.slips', ['token' => $token]);
+        $userType = Auth::user()->user_type;
+        $routePrefix = $userType === 2 ? 'superadmin' : 'admin';
+        $printUrl = route("{$routePrefix}.print.slips", ['token' => $token]);
 
         $this->js("window.open('{$printUrl}', '_blank')");
     }
@@ -1755,7 +1801,9 @@ class Slips extends Component
         Session::put("print_slip_{$token}", $slipId);
         Session::put("print_slip_{$token}_expires", now()->addMinutes(10));
 
-        $printUrl = route('superadmin.print.slip', ['token' => $token]);
+        $userType = Auth::user()->user_type;
+        $routePrefix = $userType === 2 ? 'superadmin' : 'admin';
+        $printUrl = route("{$routePrefix}.print.slip", ['token' => $token]);
 
         $this->js("window.open('{$printUrl}', '_blank')");
     }

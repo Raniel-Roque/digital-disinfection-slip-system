@@ -443,7 +443,7 @@ class Issues extends Component
         // Set modal state FIRST to prevent polling from interfering
         $this->showDetailsModal = true;
 
-        $this->selectedSlip = DisinfectionSlipModel::withTrashed()->with([
+        $slip = DisinfectionSlipModel::withTrashed()->with([
             'vehicle' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
             'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
             'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
@@ -452,15 +452,22 @@ class Issues extends Component
             'receivedGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); },
             'reason'
         ])->find($slipId);
+        
+        // Add validation - if slip not found, show error and close modal
+        if (!$slip) {
+            $this->dispatch('toast', message: 'Slip not found or has been permanently deleted.', type: 'error');
+            $this->showDetailsModal = false;
+            return;
+        }
+        
+        $this->selectedSlip = $slip;
     }
 
     public function confirmDeleteSlip()
     {
         $this->showDeleteConfirmation = true;
     }
-    
-    // Restore functionality moved to Shared\Issues\Restore component
-    
+        
     // Cached collections for edit modal
     private $cachedLocations = null;
     private $cachedDrivers = null;
@@ -1224,18 +1231,8 @@ class Issues extends Component
 
     public function openDeleteConfirmation($issueId)
     {
-        // Check if issue has a slip - if yes, delete the slip instead
-        $issue = Issue::with(['slip'])->find($issueId);
-        
-        if ($issue && $issue->slip_id && $issue->slip) {
-            // Issue is linked to a slip - delete the slip instead
-            // Use specific event name to avoid triggering issue delete modal
-            $this->dispatch('openSlipDeleteModal', $issue->slip->id);
-        } else {
-            // Issue is miscellaneous (no slip) - delete the issue
-            // Use specific event name to avoid triggering slip delete modal
-            $this->dispatch('openIssueDeleteModal', $issueId);
-        }
+        // Always delete the issue report itself, not the slip it references
+        $this->dispatch('openIssueDeleteModal', $issueId);
     }
 
     public function openRestoreModal($issueId)
