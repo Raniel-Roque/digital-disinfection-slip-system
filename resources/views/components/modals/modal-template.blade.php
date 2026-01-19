@@ -1,6 +1,6 @@
 @props([
     'show' => 'showModal',
-    'title' => 'Modal Title',
+    'title' => '',
     'maxWidth' => 'max-w-md',
     'backdropOpacity' => '80',
     'headerClass' => '',
