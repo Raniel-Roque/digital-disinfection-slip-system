@@ -29,10 +29,10 @@
         @csrf
         <p class="text-sm text-gray-600">
             @if ($driverDisabled)
-                Are you sure you want to enable this driver? The driver will be
+                Are you sure you want to enable <span class="font-semibold text-gray-900">{{ $driverName }}</span>? This driver will be
                 available for use again.
             @else
-                Are you sure you want to disable this driver? The driver will not be
+                Are you sure you want to disable <span class="font-semibold text-gray-900">{{ $driverName }}</span>? This driver will not be
                 available for use.
             @endif
         </p>

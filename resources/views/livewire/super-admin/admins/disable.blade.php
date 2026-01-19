@@ -39,11 +39,11 @@
                         @csrf
                         <p class="text-sm text-gray-600">
                             @if ($userDisabled)
-                                Are you sure you want to enable this admin? The admin will be able to access the
+                                Are you sure you want to enable this admin? This admin will be able to access the
                                 system again.
                             @else
-                                Are you sure you want to disable this admin? The admin will not be able to access
-                                the system.
+                                Are you sure you want to disable this admin? This admin will not be able to access
+                                the system. 
                             @endif
                         </p>
                     </div>

@@ -29,10 +29,10 @@
         @csrf
         <p class="text-sm text-gray-600">
             @if ($vehicleDisabled)
-                Are you sure you want to enable this vehicle? The vehicle will be
+                Are you sure you want to enable this vehicle? This vehicle will be
                 available for use again.
             @else
-                Are you sure you want to disable this vehicle? The vehicle will not be
+                Are you sure you want to disable this vehicle? This vehicle will not be
                 available for use.
             @endif
         </p>

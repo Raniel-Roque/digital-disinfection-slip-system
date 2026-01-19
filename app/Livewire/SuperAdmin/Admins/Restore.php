@@ -90,9 +90,9 @@ class Restore extends Component
             $this->showModal = false;
             $this->reset(['userId', 'userName']);
             $this->dispatch('admin-restored');
-            $this->dispatch('toast', message: 'Admin restored successfully.', type: 'success');
+            $this->dispatch('toast', message: "{$adminName} has been restored successfully.", type: 'success');
         } catch (\Exception $e) {
-            $this->dispatch('toast', message: 'Failed to restore admin: ' . $e->getMessage(), type: 'error');
+            $this->dispatch('toast', message: "Failed to restore {$adminName}: " . $e->getMessage(), type: 'error');
         } finally {
             $this->isRestoring = false;
         }

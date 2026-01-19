@@ -164,12 +164,8 @@ class Edit extends Component
         $this->showModal = false;
         $this->reset(['userId', 'first_name', 'middle_name', 'last_name', 'original_first_name', 'original_middle_name', 'original_last_name']);
         
-        $message = "{$adminName} has been updated.";
-        if ($usernameChanged) {
-            $message .= " The user has been logged out and must log in again with the new username.";
-        }
         $this->dispatch('admin-updated');
-        $this->dispatch('toast', message: $message, type: 'success');
+        $this->dispatch('toast', message: "{$adminName} has been updated successfully.", type: 'success');
     }
 
     /**

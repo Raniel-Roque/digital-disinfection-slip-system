@@ -88,11 +88,10 @@ class Disable extends Component
             $this->showModal = false;
             $this->reset(['userId', 'userDisabled']);
             
-            $message = !$wasDisabled ? "{$adminName} has been disabled." : "{$adminName} has been enabled.";
             $this->dispatch('admin-status-toggled');
-            $this->dispatch('toast', message: $message, type: 'success');
+            $this->dispatch('toast', message: "{$adminName} has been " . ($newStatus ? 'disabled' : 'enabled') . " successfully.", type: 'success');
         } catch (\Exception $e) {
-            $this->dispatch('toast', message: 'Failed to toggle status: ' . $e->getMessage(), type: 'error');
+            $this->dispatch('toast', message: "Failed to toggle status for {$adminName}: " . $e->getMessage(), type: 'error');
         } finally {
             $this->isToggling = false;
         }

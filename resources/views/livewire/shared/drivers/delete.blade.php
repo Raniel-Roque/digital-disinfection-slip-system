@@ -16,8 +16,7 @@
         @csrf
         <p class="text-sm text-gray-600">
             Are you sure you want to delete <span
-                class="font-semibold text-gray-900">{{ $driverName }}</span>? This action cannot be
-            undone. The driver will be permanently removed from the system.
+                class="font-semibold text-gray-900">{{ $driverName }}</span>? 
         </p>
 
         <x-slot name="footer">

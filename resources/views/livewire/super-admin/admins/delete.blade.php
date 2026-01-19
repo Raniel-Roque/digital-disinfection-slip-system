@@ -20,7 +20,7 @@
 
                     <div class="px-6 py-4">
                         <p class="text-sm text-gray-600">
-                            Are you sure you want to delete <span class="font-semibold text-gray-900">{{ $userName }}</span>? This action cannot be undone. The item will be permanently removed from the system.
+                            Are you sure you want to delete <span class="font-semibold text-gray-900">{{ $userName }}</span>?
                         </p>
                     </div>
 

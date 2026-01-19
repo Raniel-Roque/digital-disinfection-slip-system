@@ -76,9 +76,9 @@ class Delete extends Component
             $this->showModal = false;
             $this->reset(['userId', 'userName']);
             $this->dispatch('admin-deleted');
-            $this->dispatch('toast', message: "{$adminName} has been deleted.", type: 'success');
+            $this->dispatch('toast', message: "{$adminName} has been deleted successfully.", type: 'success');
         } catch (\Exception $e) {
-            $this->dispatch('toast', message: 'Failed to delete admin: ' . $e->getMessage(), type: 'error');
+            $this->dispatch('toast', message: "Failed to delete {$adminName}: " . $e->getMessage(), type: 'error');
         } finally {
             $this->isDeleting = false;
         }

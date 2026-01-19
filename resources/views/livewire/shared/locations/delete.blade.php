@@ -16,8 +16,7 @@
         @csrf
         <p class="text-sm text-gray-600">
             Are you sure you want to delete <span
-                class="font-semibold text-gray-900">{{ $locationName }}</span>? This action cannot be
-            undone. The location will be permanently removed from the system.
+                class="font-semibold text-gray-900">{{ $locationName }}</span>?
         </p>
 
         <x-slot name="footer">

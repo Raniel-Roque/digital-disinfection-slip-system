@@ -99,7 +99,7 @@ class Create extends Component
         $this->showModal = false;
         $this->reset(['first_name', 'middle_name', 'last_name']);
         $this->dispatch('admin-created');
-        $this->dispatch('toast', message: "{$adminName} has been created.", type: 'success');
+        $this->dispatch('toast', message: "{$adminName} has been created successfully.", type: 'success');
     }
 
     /**

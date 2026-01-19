@@ -78,9 +78,9 @@ class Delete extends Component
             $this->showModal = false;
             $this->reset(['driverId', 'driverName']);
             $this->dispatch('driver-deleted');
-            $this->dispatch('toast', message: "{$driverName} has been deleted.", type: 'success');
+            $this->dispatch('toast', message: "{$driverName} has been deleted successfully.", type: 'success');
         } catch (\Exception $e) {
-            $this->dispatch('toast', message: 'Failed to delete driver: ' . $e->getMessage(), type: 'error');
+            $this->dispatch('toast', message: "Failed to delete {$driverName}: " . $e->getMessage(), type: 'error');
         } finally {
             $this->isDeleting = false;
         }

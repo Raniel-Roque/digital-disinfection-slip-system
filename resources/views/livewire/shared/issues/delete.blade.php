@@ -15,7 +15,7 @@
 
         @csrf
         <p class="text-sm text-gray-600">
-            Are you sure you want to delete this issue? This action cannot be undone. The issue will be permanently removed from the system.
+            Are you sure you want to delete this issue?
         </p>
 
         <x-slot name="footer">

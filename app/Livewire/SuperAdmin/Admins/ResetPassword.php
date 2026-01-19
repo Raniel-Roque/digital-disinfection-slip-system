@@ -64,9 +64,9 @@ class ResetPassword extends Component
             $this->showModal = false;
             $this->reset('userId');
             $this->dispatch('admin-password-reset');
-            $this->dispatch('toast', message: "{$adminName}'s password has been reset.", type: 'success');
+            $this->dispatch('toast', message: "{$adminName} has been reset successfully.", type: 'success');
         } catch (\Exception $e) {
-            $this->dispatch('toast', message: 'Failed to reset password: ' . $e->getMessage(), type: 'error');
+            $this->dispatch('toast', message: "Failed to reset password for {$adminName}: " . $e->getMessage(), type: 'error');
         } finally {
             $this->isResetting = false;
         }

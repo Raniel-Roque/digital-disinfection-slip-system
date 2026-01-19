@@ -12,7 +12,8 @@ class Edit extends Component
 {
     public $showModal = false;
     public $driverId;
-    
+    public $driverName = '';
+
     // Form fields
     public $first_name;
     public $middle_name;
@@ -37,15 +38,16 @@ class Edit extends Component
     {
         $driver = Driver::findOrFail($driverId);
         $this->driverId = $driverId;
+        $this->driverName = $this->getDriverFullName($driver);
         $this->first_name = $driver->first_name;
         $this->middle_name = $driver->middle_name;
         $this->last_name = $driver->last_name;
-        
+
         // Store original values
         $this->original_first_name = $driver->first_name;
         $this->original_middle_name = $driver->middle_name;
         $this->original_last_name = $driver->last_name;
-        
+
         $this->resetValidation();
         $this->showModal = true;
     }
@@ -53,7 +55,7 @@ class Edit extends Component
     public function closeModal()
     {
         $this->showModal = false;
-        $this->reset(['driverId', 'first_name', 'middle_name', 'last_name', 'original_first_name', 'original_middle_name', 'original_last_name']);
+        $this->reset(['driverId', 'driverName', 'first_name', 'middle_name', 'last_name', 'original_first_name', 'original_middle_name', 'original_last_name']);
         $this->resetValidation();
     }
 
@@ -121,13 +123,13 @@ class Edit extends Component
 
         // Refresh driver to get updated name
         $driver->refresh();
-        $driverName = $this->getDriverFullName($driver);
-        
+        $this->driverName = $this->getDriverFullName($driver);
+
         // Log the update action
         Logger::update(
             Driver::class,
             $driver->id,
-            "Updated name to \"{$driverName}\"",
+            "Updated name to \"{$this->driverName}\"",
             $oldValues,
             ['first_name' => $firstName, 'middle_name' => $middleName, 'last_name' => $lastName]
         );
@@ -135,7 +137,7 @@ class Edit extends Component
         $this->showModal = false;
         $this->reset(['driverId', 'first_name', 'middle_name', 'last_name', 'original_first_name', 'original_middle_name', 'original_last_name']);
         $this->dispatch('driver-updated');
-        $this->dispatch('toast', message: "{$driverName} has been updated.", type: 'success');
+        $this->dispatch('toast', message: "{$this->driverName} has been updated successfully.", type: 'success');
     }
 
     /**

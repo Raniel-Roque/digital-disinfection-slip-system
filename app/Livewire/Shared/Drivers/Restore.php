@@ -31,7 +31,7 @@ class Restore extends Component
     public function openModal($driverId)
     {
         $driver = Driver::onlyTrashed()->findOrFail($driverId);
-        
+
         $this->driverId = $driverId;
         $this->driverName = $this->getDriverFullName($driver);
         $this->showModal = true;
@@ -41,18 +41,6 @@ class Restore extends Component
     {
         $this->showModal = false;
         $this->reset(['driverId', 'driverName', 'isRestoring']);
-    }
-
-    /**
-     * Get driver's full name formatted
-     * 
-     * @param \App\Models\Driver $driver
-     * @return string
-     */
-    private function getDriverFullName($driver)
-    {
-        $parts = array_filter([$driver->first_name, $driver->middle_name, $driver->last_name]);
-        return implode(' ', $parts);
     }
 
     public function restore()
@@ -103,12 +91,21 @@ class Restore extends Component
             $this->showModal = false;
             $this->reset(['driverId', 'driverName']);
             $this->dispatch('driver-restored');
-            $this->dispatch('toast', message: "{$this->driverName} has been restored.", type: 'success');
+            $this->dispatch('toast', message: "{$this->driverName} has been restored successfully.", type: 'success');
         } catch (\Exception $e) {
-            $this->dispatch('toast', message: 'Failed to restore driver: ' . $e->getMessage(), type: 'error');
+            $this->dispatch('toast', message: "Failed to restore {$this->driverName}: " . $e->getMessage(), type: 'error');
         } finally {
             $this->isRestoring = false;
         }
+    }
+
+    /**
+     * Get driver's full name formatted
+     */
+    private function getDriverFullName($driver)
+    {
+        $parts = array_filter([$driver->first_name, $driver->middle_name, $driver->last_name]);
+        return implode(' ', $parts);
     }
 
     public function render()

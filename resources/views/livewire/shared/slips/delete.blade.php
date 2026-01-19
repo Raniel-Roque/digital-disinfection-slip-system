@@ -15,7 +15,7 @@
 
         @csrf
         <p class="text-sm text-gray-600">
-            Are you sure you want to delete slip <span class="font-semibold text-gray-900">{{ $slipSlipId }}</span>? This action cannot be undone. The slip will be permanently removed from the system.
+            Are you sure you want to delete slip <span class="font-semibold text-gray-900">{{ $slipSlipId }}</span>?
         </p>
 
         <x-slot name="footer">

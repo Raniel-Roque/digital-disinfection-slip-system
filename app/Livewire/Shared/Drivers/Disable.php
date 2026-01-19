@@ -12,6 +12,7 @@ class Disable extends Component
 {
     public $showModal = false;
     public $driverId;
+    public $driverName = '';
     public $driverDisabled = false;
     public $isToggling = false;
 
@@ -29,6 +30,7 @@ class Disable extends Component
     {
         $driver = Driver::findOrFail($driverId);
         $this->driverId = $driverId;
+        $this->driverName = $this->getDriverFullName($driver);
         $this->driverDisabled = $driver->disabled;
         $this->showModal = true;
     }
@@ -36,7 +38,7 @@ class Disable extends Component
     public function closeModal()
     {
         $this->showModal = false;
-        $this->reset(['driverId', 'driverDisabled', 'isToggling']);
+        $this->reset(['driverId', 'driverName', 'driverDisabled', 'isToggling']);
     }
 
     public function toggle()
@@ -71,21 +73,21 @@ class Disable extends Component
                 $driver->refresh();
                 $this->showModal = false;
                 $this->reset(['driverId', 'driverDisabled']);
-                $this->dispatch('toast', message: 'The driver status was changed by another administrator. Please refresh the page.', type: 'error');
+                $this->dispatch('toast', message: "The driver status was changed by another administrator. Please refresh the page.", type: 'error');
                 return;
             }
             
             // Refresh driver to get updated data
             $driver->refresh();
-            
-            $driverName = $this->getDriverFullName($driver);
-            $message = !$wasDisabled ? "{$driverName} has been disabled." : "{$driverName} has been enabled.";
+
+            $this->driverName = $this->getDriverFullName($driver);
+            $message = !$wasDisabled ? "{$this->driverName} has been disabled successfully." : "{$this->driverName} has been enabled successfully.";
 
             // Log the status change
             Logger::update(
                 Driver::class,
                 $driver->id,
-                ucfirst(!$wasDisabled ? 'disabled' : 'enabled') . " \"{$driverName}\"",
+                ucfirst(!$wasDisabled ? 'disabled' : 'enabled') . " \"{$this->driverName}\"",
                 ['disabled' => $wasDisabled],
                 ['disabled' => $newStatus]
             );
@@ -97,7 +99,7 @@ class Disable extends Component
             $this->dispatch('driver-status-toggled');
             $this->dispatch('toast', message: $message, type: 'success');
         } catch (\Exception $e) {
-            $this->dispatch('toast', message: 'Failed to toggle status: ' . $e->getMessage(), type: 'error');
+            $this->dispatch('toast', message: "Failed to toggle status for {$this->driverName}: " . $e->getMessage(), type: 'error');
         } finally {
             $this->isToggling = false;
         }

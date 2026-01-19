@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\Cache;
 class Create extends Component
 {
     public $showModal = false;
-    
+    public $driverName = '';
+
     // Form fields
     public $first_name;
     public $middle_name;
@@ -37,7 +38,7 @@ class Create extends Component
     public function closeModal()
     {
         $this->showModal = false;
-        $this->reset(['first_name', 'middle_name', 'last_name']);
+        $this->reset(['driverName', 'first_name', 'middle_name', 'last_name']);
         $this->resetValidation();
     }
 
@@ -79,20 +80,20 @@ class Create extends Component
 
         Cache::forget('drivers_all');
 
-        $driverName = $this->getDriverFullName($driver);
+        $this->driverName = $this->getDriverFullName($driver);
 
         // Log the create action
         Logger::create(
             Driver::class,
             $driver->id,
-            "Created \"{$driverName}\"",
+            "Created \"{$this->driverName}\"",
             $driver->only(['first_name', 'middle_name', 'last_name', 'disabled'])
         );
 
         $this->showModal = false;
         $this->reset(['first_name', 'middle_name', 'last_name']);
         $this->dispatch('driver-created');
-        $this->dispatch('toast', message: "{$driverName} has been created.", type: 'success');
+        $this->dispatch('toast', message: "{$this->driverName} has been created successfully.", type: 'success');
     }
 
     /**

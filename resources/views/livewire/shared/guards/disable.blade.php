@@ -29,10 +29,10 @@
         @csrf
         <p class="text-sm text-gray-600">
             @if ($userDisabled)
-                Are you sure you want to enable this guard? The guard will be able to access the
+                Are you sure you want to enable this guard? This guard will be able to access the
                 system again.
             @else
-                Are you sure you want to disable this guard? The guard will not be able to access
+                Are you sure you want to disable this guard? This guard will not be able to access
                 the system.
             @endif
         </p>
