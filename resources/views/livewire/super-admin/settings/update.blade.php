@@ -105,9 +105,9 @@
                             </label>
                             <input type="text" id="default_guard_password" wire:model="default_guard_password"
                                 class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-900 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="Leave blank to keep current password, or enter new password">
+                                placeholder="Default Password">
                             <p class="text-xs text-gray-600 leading-relaxed">
-                                This password will be used when creating new guards or resetting guard passwords. Leave blank to keep the current password unchanged.
+                                This password will be used when creating new guards or resetting guard passwords.
                             </p>
                             @error('default_guard_password')
                                 <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>

@@ -31,7 +31,7 @@ class CleanPhotos extends Command
     public function handle(): int
     {
         // Get retention period from settings (default to 30 days if not set)
-        $retentionSetting = Setting::where('setting_name', 'photo_retention_days')->first();
+        $retentionSetting = Setting::where('setting_name', 'attachment_retention_days')->first();
         $retentionDays = $retentionSetting ? (int) $retentionSetting->value : 30;
 
         // Calculate the cutoff date

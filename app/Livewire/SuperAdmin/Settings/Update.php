@@ -134,11 +134,8 @@ class Update extends Component
         $softDeletedRetentionChanged = (string)$this->original_soft_deleted_retention_months !== (string)$this->soft_deleted_retention_months;
         $logoChanged = $this->default_logo_file !== null;
 
-        // If password is provided, always allow the save (even if it's the same password)
+        // Allow saving if password is provided, even if it's the same as current
         $hasAnyChanges = $attachmentChanged || $passwordChanged || $logRetentionChanged || $resolvedIssuesRetentionChanged || $softDeletedRetentionChanged || $logoChanged;
-
-        // Debug logging
-        logger("Update attempt - password field: '{$this->default_guard_password}', passwordChanged: " . ($passwordChanged ? 'true' : 'false'), hasAnyChanges: " . ($hasAnyChanges ? 'true' : 'false'));
 
         if (!$hasAnyChanges) {
             $this->dispatch('toast', message: 'No changes detected.', type: 'info');
