@@ -246,20 +246,26 @@ class Create extends Component
     }
 
     // Watch for changes to location_id or destination_id to prevent same selection
-    public function updatedLocationId()
+    public function updatedLocationId($value)
     {
         // If destination is the same as origin, clear it
         if ($this->destination_id == $this->location_id) {
             $this->destination_id = null;
         }
+        
+        // Dispatch event to refresh destination dropdown options
+        $this->dispatch('refresh-destination-options');
     }
 
-    public function updatedDestinationId()
+    public function updatedDestinationId($value)
     {
-        // If origin is the same as destination, clear it
-        if ($this->location_id == $this->destination_id) {
+        // If origin is the same as destination, clear it (only in admin mode)
+        if (!$this->useGuardMode && $this->location_id == $this->destination_id) {
             $this->location_id = null;
         }
+        
+        // Dispatch event to refresh origin dropdown options
+        $this->dispatch('refresh-origin-options');
     }
 
     public function updatedHatcheryGuardId()
@@ -1080,6 +1086,24 @@ class Create extends Component
             ->whereNull('deleted_at')
             ->where('disabled', false)
             ->select(['id', 'location_name']);
+
+        // Exclude the opposite selection based on which dropdown is calling this method
+        // If we're fetching for the selected item (includeIds), don't apply exclusion
+        if (empty($includeIds)) {
+            // Check if we need to exclude location_id or destination_id
+            // This works because when destination dropdown loads, it should exclude location_id
+            // and when location dropdown loads, it should exclude destination_id
+            
+            // For destination dropdown: exclude origin (location_id)
+            if ($this->location_id) {
+                $query->where('id', '!=', $this->location_id);
+            }
+            
+            // For origin dropdown: exclude destination (destination_id)
+            if ($this->destination_id) {
+                $query->where('id', '!=', $this->destination_id);
+            }
+        }
 
         // Apply search filter
         if (!empty($search)) {

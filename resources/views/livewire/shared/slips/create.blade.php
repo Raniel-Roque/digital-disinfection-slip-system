@@ -28,14 +28,20 @@
                 </div>
             </div>
 
-            @if (!$useGuardMode)
             {{-- Origin (Admin mode only) --}}
+            @if (!$useGuardMode)
             @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
             <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                 <div class="font-semibold text-gray-500">Origin:<span class="text-red-500">*</span></div>
-                <div class="text-gray-900 min-w-0">
-                    <x-forms.searchable-dropdown-paginated wire-model="location_id" data-method="getPaginatedLocations" search-property="searchOrigin"
-                        placeholder="Select origin..." search-placeholder="Search locations..." :per-page="20" />
+                <div class="text-gray-900 min-w-0" 
+                    wire:key="origin-dropdown-{{ $destination_id ?? 'null' }}">
+                    <x-forms.searchable-dropdown-paginated 
+                        wire-model="location_id" 
+                        data-method="getPaginatedLocations" 
+                        search-property="searchOrigin"
+                        placeholder="Select origin..." 
+                        search-placeholder="Search locations..." 
+                        :per-page="20" />
                     @error('location_id')
                         <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
                     @enderror
@@ -47,9 +53,15 @@
             @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
             <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
                 <div class="font-semibold text-gray-500">Destination:<span class="text-red-500">*</span></div>
-                <div class="text-gray-900 min-w-0">
-                    <x-forms.searchable-dropdown-paginated wire-model="destination_id" data-method="getPaginatedLocations" search-property="searchDestination"
-                        placeholder="Select destination..." search-placeholder="Search locations..." :per-page="20" />
+                <div class="text-gray-900 min-w-0" 
+                    wire:key="destination-dropdown-{{ $location_id ?? 'null' }}">
+                    <x-forms.searchable-dropdown-paginated 
+                        wire-model="destination_id" 
+                        data-method="getPaginatedLocations" 
+                        search-property="searchDestination"
+                        placeholder="Select destination..." 
+                        search-placeholder="Search locations..." 
+                        :per-page="20" />
                     @error('destination_id')
                         <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
                     @enderror
