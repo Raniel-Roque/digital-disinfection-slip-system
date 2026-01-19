@@ -139,6 +139,8 @@ class Update extends Component
         $softDeletedRetentionChanged = (string)$this->original_soft_deleted_retention_months !== (string)$this->soft_deleted_retention_months;
         $logoChanged = $this->default_logo_file !== null;
 
+        // Debug logging
+        logger("Update attempt - password field: '{$this->default_guard_password}', passwordChanged: " . ($passwordChanged ? 'true' : 'false'));
 
         if (!$attachmentChanged && !$passwordChanged && !$logRetentionChanged && !$resolvedIssuesRetentionChanged && !$softDeletedRetentionChanged && !$logoChanged) {
             $this->dispatch('toast', message: 'No changes detected.', type: 'info');
@@ -146,7 +148,8 @@ class Update extends Component
         }
 
         // Use database transaction for atomicity and better performance
-        DB::transaction(function () use ($attachmentChanged, $passwordChanged, $logRetentionChanged, $resolvedIssuesRetentionChanged, $softDeletedRetentionChanged, $logoChanged) {
+        $oldSettings = [];
+        DB::transaction(function () use ($attachmentChanged, $passwordChanged, $logRetentionChanged, $resolvedIssuesRetentionChanged, $softDeletedRetentionChanged, $logoChanged, &$oldSettings) {
             // Capture old values for logging (single query)
             $oldSettingsQuery = Setting::whereIn('setting_name', [
                 'attachment_retention_days',
