@@ -1031,8 +1031,8 @@ class DisinfectionSlip extends Component
         $userType = $user->user_type ?? 0;
         $status = $this->selectedSlip->status;
 
-        // COMPLETED SLIPS: Only Superadmin can delete photos
-        if ($status === 3) {
+        // COMPLETED AND INCOMPLETE SLIPS: Only Superadmin can delete photos
+        if (in_array($status, [3, 4])) {
             return $userType === 2; // Only Superadmin
         }
 

@@ -172,7 +172,7 @@
                     <div x-data="{
                         open: false,
                         options: {'all': 'All', 'completed': 'Completed', 'incomplete': 'Incomplete'},
-                        selected: @entangle('filterStatus').live,
+                        selected: @entangle('filterStatusCompleted').live,
                         placeholder: 'Select status',
                         get displayText() {
                             if (this.selected === null || this.selected === undefined || this.selected === '') {
