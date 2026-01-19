@@ -1693,7 +1693,7 @@ class Slips extends Component
         if ($this->showDeleted) {
             return;
         }
-        
+
         $data = $this->getExportData();
         $exportData = $data->map(function($slip) {
             // Helper function to format names
@@ -1745,8 +1745,8 @@ class Slips extends Component
         Session::put("export_data_{$token}_expires", now()->addMinutes(10));
         
         $printUrl = route('superadmin.print.slips', ['token' => $token]);
-        
-        $this->dispatch('open-print-window', ['url' => $printUrl]);
+
+        $this->js("window.open('{$printUrl}', '_blank')");
     }
 
     public function printSlip($slipId)
@@ -1754,13 +1754,11 @@ class Slips extends Component
         $token = Str::random(32);
         Session::put("print_slip_{$token}", $slipId);
         Session::put("print_slip_{$token}_expires", now()->addMinutes(10));
-        
+
         $printUrl = route('superadmin.print.slip', ['token' => $token]);
-        
-        $this->dispatch('open-print-window', ['url' => $printUrl]);
+
+        $this->js("window.open('{$printUrl}', '_blank')");
     }
-
-
     
     public function getPage()
     {
