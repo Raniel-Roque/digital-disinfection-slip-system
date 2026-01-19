@@ -666,7 +666,7 @@
 
         {{-- Delete Confirmation Modal - Only for superadmin --}}
         @if ($config['role'] === 'superadmin')
-        <livewire:shared.guards.delete />
+            <livewire:shared.guards.delete />
         @endif
 
         {{-- Restore Modal --}}
