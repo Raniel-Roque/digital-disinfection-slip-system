@@ -69,41 +69,46 @@ class Restore extends Component
             abort(403, 'Unauthorized action.');
         }
 
+        if (!$this->userId) {
+            return;
+        }
+
         $this->isRestoring = true;
 
         try {
-            if (!$this->userId) {
-                return;
-            }
-
-            DB::beginTransaction();
-
-            $user = User::onlyTrashed()->findOrFail($this->userId);
-            
             // Atomic restore: Only restore if currently deleted to prevent race conditions
             $restored = User::onlyTrashed()
                 ->where('id', $this->userId)
                 ->update(['deleted_at' => null]);
-            
+
             if ($restored === 0) {
                 // User was already restored or doesn't exist
                 $this->showModal = false;
                 $this->reset(['userId', 'userName']);
                 $this->dispatch('toast', message: 'This guard was already restored or does not exist. Please refresh the page.', type: 'error');
-                $this->dispatch('guard-restored'); // Notify parent to refresh
                 return;
             }
-            
-            // Refresh user to get updated data
-            $user->refresh();
-            
-            Logger::log(
-                'restore',
+
+            // Now load the restored user
+            $user = User::findOrFail($this->userId);
+
+            // Verify the user is a guard (user_type = 0)
+            if ($user->user_type !== 0) {
+                // Rollback the restore by deleting again
+                $user->delete();
+                $this->showModal = false;
+                $this->reset(['userId', 'userName']);
+                $this->dispatch('toast', message: 'Cannot restore this user.', type: 'error');
+                return;
+            }
+
+            $guardName = $this->getGuardFullName($user);
+
+            // Log the restore action
+            Logger::restore(
                 User::class,
                 $user->id,
-                "Restored guard {$user->username}",
-                null,
-                null
+                "Restored guard {$guardName}",
             );
 
             Cache::forget('guards_all');
@@ -111,9 +116,8 @@ class Restore extends Component
             $this->showModal = false;
             $this->reset(['userId', 'userName']);
             $this->dispatch('guard-restored');
-            $this->dispatch('toast', message: "{$this->userName} has been restored.", type: 'success');
+            $this->dispatch('toast', message: 'Guard restored successfully.', type: 'success');
         } catch (\Exception $e) {
-            DB::rollBack();
             $this->dispatch('toast', message: 'Failed to restore guard: ' . $e->getMessage(), type: 'error');
         } finally {
             $this->isRestoring = false;
