@@ -607,11 +607,11 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>  {{-- Close: relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 --}}
-                    </div>  {{-- Close: relative min-h-screen flex items-center justify-center p-4 --}}
-                </div>  {{-- Close: x-show="showCameraModal" camera modal container --}}
-            </div>  {{-- Close: x-data Alpine.js container --}}
-        </div>  {{-- Close: Photos field --}}
+                        </div> 
+                    </div>  
+                </div> 
+            </div> 
+        </div>  
 
         {{-- Remarks for Disinfection --}}
         @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; @endphp

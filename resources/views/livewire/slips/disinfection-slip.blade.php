@@ -583,11 +583,11 @@
                                     </div>
                                 </div>
                             </div>
-                            </div>  {{-- Close: relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-4 sm:p-6 --}}
-                        </div>  {{-- Close: relative min-h-screen flex items-start sm:items-center justify-center p-2 sm:p-4 --}}
-                    </div>  {{-- Close: x-show="showCameraModal" camera modal container --}}
-                </div>  {{-- Close: x-data Alpine.js container --}}
-            </div>  {{-- Close: Photos field text-gray-900 div --}}
+                        </div> 
+                    </div>
+                </div>
+            </div> 
+        </div> 
         @endif
 
         {{-- Remarks --}}
