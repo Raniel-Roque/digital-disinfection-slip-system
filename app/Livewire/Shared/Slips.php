@@ -1266,6 +1266,58 @@ class Slips extends Component
         }
     }
 
+    public function toggleDeletedView()
+    {
+        $this->showDeleted = !$this->showDeleted;
+        
+        if ($this->showDeleted) {
+            // Entering restore mode - save current date filters
+            $this->previousFilterCreatedFrom = $this->filterCreatedFrom;
+            $this->previousFilterCreatedTo = $this->filterCreatedTo;
+            $this->previousAppliedCreatedFrom = $this->appliedCreatedFrom;
+            $this->previousAppliedCreatedTo = $this->appliedCreatedTo;
+            
+            // Clear all filters except date range when entering restore mode
+            $this->filterStatus = null;
+            $this->filterOrigin = [];
+            $this->filterDestination = [];
+            $this->filterDriver = [];
+            $this->filterVehicle = [];
+            $this->filterHatcheryGuard = [];
+            $this->filterReceivedGuard = [];
+            
+            $this->appliedStatus = null;
+            $this->appliedOrigin = [];
+            $this->appliedDestination = [];
+            $this->appliedDriver = [];
+            $this->appliedVehicle = [];
+            $this->appliedHatcheryGuard = [];
+            $this->appliedReceivedGuard = [];
+            
+            $this->updateFiltersActive();
+        } else {
+            // Exiting restore mode - restore previous date filters if they existed
+            if ($this->previousFilterCreatedFrom !== null) {
+                $this->filterCreatedFrom = $this->previousFilterCreatedFrom;
+                $this->appliedCreatedFrom = $this->previousAppliedCreatedFrom;
+            }
+            if ($this->previousFilterCreatedTo !== null) {
+                $this->filterCreatedTo = $this->previousFilterCreatedTo;
+                $this->appliedCreatedTo = $this->previousAppliedCreatedTo;
+            }
+            
+            // Clear the stored previous values
+            $this->previousFilterCreatedFrom = null;
+            $this->previousFilterCreatedTo = null;
+            $this->previousAppliedCreatedFrom = null;
+            $this->previousAppliedCreatedTo = null;
+            
+            $this->updateFiltersActive();
+        }
+        
+        $this->resetPage();
+    }
+
     /**
      * Sanitize text input (for textarea fields like remarks_for_disinfection)
      * Removes HTML tags, decodes entities, removes control characters

@@ -67,7 +67,7 @@
 
             {{-- Footer (optional slot) --}}
             @if (isset($footer))
-                <div class="flex justify-end gap-3 p-4 rounded-b-xl -mt-6">
+                <div class="flex justify-end gap-3 p-4 rounded-b-xl -mt-4">
                     {{ $footer }}
                 </div>
             @endif

@@ -237,172 +237,27 @@ class Edit extends Component
         $this->isUpdating = true;
 
         try {
-            if (!$this->canEdit()) {
-                $this->dispatch('toast', message: 'Cannot edit a completed slip.', type: 'error');
+            // Check if slip exists
+            if (!$this->selectedSlip) {
+                $this->dispatch('toast', message: 'Slip not found.', type: 'error');
+                $this->isUpdating = false;
+                return;
+            }
+            
+            // Check if vehicle is soft-deleted
+            if ($this->selectedSlip->vehicle && $this->selectedSlip->vehicle->trashed()) {
+                $this->dispatch('toast', message: 'Cannot edit slip with deleted vehicle.', type: 'error');
+                $this->isUpdating = false;
                 return;
             }
 
             // Use the edited status, not the current status
             $status = $this->editStatus;
-            
-            // Validate status
-            $this->validate([
-                'editStatus' => 'required|in:0,1,2,3,4',
-            ], [], [
-                'editStatus' => 'Status',
-            ]);
-            
-            // Build validation rules based on selected status
-            $rules = [
-                'editVehicleId' => 'required|exists:vehicles,id',
-                'editDestinationId' => [
-                    'required',
-                    'exists:locations,id',
-                    function ($attribute, $value, $fail) {
-                        if ($value == $this->editLocationId) {
-                            $fail('The destination cannot be the same as the origin.');
-                        }
-                    },
-                ],
-                'editDriverId' => 'required|exists:drivers,id',
-                'editReasonId' => [
-                    'required',
-                    'exists:reasons,id',
-                    function ($attribute, $value, $fail) {
-                        if ($value) {
-                            $reason = Reason::find($value);
-                            if (!$reason || $reason->is_disabled) {
-                                $fail('The selected reason is not available.');
-                            }
-                        }
-                    },
-                ],
-                'editRemarksForDisinfection' => 'nullable|string|max:1000',
-            ];
-
-            // Status 0, 1, 2 (Pending, Disinfecting, In-Transit): Origin and Hatchery Guard are required, Receiving Guard is optional
-            if ($status == 0 || $status == 1 || $status == 2) {
-                $rules['editLocationId'] = [
-                    'required',
-                    'exists:locations,id',
-                    function ($attribute, $value, $fail) {
-                        if ($value == $this->editDestinationId) {
-                            $fail('The origin cannot be the same as the destination.');
-                        }
-                    },
-                ];
-                $rules['editHatcheryGuardId'] = [
-                    'required',
-                    'exists:users,id',
-                    function ($attribute, $value, $fail) {
-                        $guard = User::find($value);
-                        if (!$guard) {
-                            $fail('The selected hatchery guard does not exist.');
-                            return;
-                        }
-                        if ($guard->user_type !== 0) {
-                            $fail('The selected user is not a guard.');
-                            return;
-                        }
-                        if ($guard->disabled) {
-                            $fail('The selected hatchery guard has been disabled.');
-                        }
-                    },
-                ];
-                $rules['editReceivedGuardId'] = [
-                    'nullable',
-                    'exists:users,id',
-                    function ($attribute, $value, $fail) {
-                        if ($value && $value == $this->editHatcheryGuardId) {
-                            $fail('The receiving guard cannot be the same as the hatchery guard.');
-                            return;
-                        }
-                        if ($value) {
-                            $guard = User::find($value);
-                            if (!$guard) {
-                                $fail('The selected receiving guard does not exist.');
-                                return;
-                            }
-                            if ($guard->user_type !== 0) {
-                                $fail('The selected user is not a guard.');
-                                return;
-                            }
-                            if ($guard->disabled) {
-                                $fail('The selected receiving guard has been disabled.');
-                            }
-                        }
-                    },
-                ];
-            }
-            
-            // Status 3 (Completed): Origin, Hatchery Guard, and Receiving Guard are all required
-            if ($status == 3) {
-                $rules['editLocationId'] = [
-                    'required',
-                    'exists:locations,id',
-                    function ($attribute, $value, $fail) {
-                        if ($value == $this->editDestinationId) {
-                            $fail('The origin cannot be the same as the destination.');
-                        }
-                    },
-                ];
-                $rules['editHatcheryGuardId'] = [
-                    'required',
-                    'exists:users,id',
-                    function ($attribute, $value, $fail) {
-                        $guard = User::find($value);
-                        if (!$guard) {
-                            $fail('The selected hatchery guard does not exist.');
-                            return;
-                        }
-                        if ($guard->user_type !== 0) {
-                            $fail('The selected user is not a guard.');
-                            return;
-                        }
-                        if ($guard->disabled) {
-                            $fail('The selected hatchery guard has been disabled.');
-                        }
-                    },
-                ];
-                $rules['editReceivedGuardId'] = [
-                    'required',
-                    'exists:users,id',
-                    function ($attribute, $value, $fail) {
-                        if ($value && $value == $this->editHatcheryGuardId) {
-                            $fail('The receiving guard cannot be the same as the hatchery guard.');
-                            return;
-                        }
-                        $guard = User::find($value);
-                        if (!$guard) {
-                            $fail('The selected receiving guard does not exist.');
-                            return;
-                        }
-                        if ($guard->user_type !== 0) {
-                            $fail('The selected user is not a guard.');
-                            return;
-                        }
-                        if ($guard->disabled) {
-                            $fail('The selected receiving guard has been disabled.');
-                        }
-                    },
-                ];
-            }
-
-            $this->validate($rules, [], [
-                'editVehicleId' => 'Vehicle',
-                'editLocationId' => 'Origin',
-                'editDestinationId' => 'Destination',
-                'editDriverId' => 'Driver',
-                'editHatcheryGuardId' => 'Hatchery Guard',
-                'editReceivedGuardId' => 'Receiving Guard',
-                'editReasonId' => 'Reason',
-                'editRemarksForDisinfection' => 'Remarks for Disinfection',
-                'editStatus' => 'Status',
-            ]);
 
             // Check if there are any changes
             if (!$this->hasUnsavedChanges()) {
                 $this->dispatch('toast', message: 'No changes detected.', type: 'info');
+                $this->isUpdating = false;
                 return;
             }
 
@@ -439,8 +294,8 @@ class Edit extends Component
                 $updateData['received_guard_id'] = $this->editReceivedGuardId; // Can be null
             }
             
-            // Status 3: Update origin, hatchery guard, and receiving guard (required)
-            if ($status == 3) {
+            // Status 3 or 4 (Completed or Incomplete): Update origin, hatchery guard, and receiving guard (required)
+            if ($status == 3 || $status == 4) {
                 $updateData['location_id'] = $this->editLocationId;
                 $updateData['hatchery_guard_id'] = $this->editHatcheryGuardId;
                 $updateData['received_guard_id'] = $this->editReceivedGuardId; // Required, validated above
@@ -452,13 +307,13 @@ class Edit extends Component
             
             // Only update completed_at if status actually changed
             if ($oldStatus != $newStatus) {
-                // If changing TO status 3 (Completed), set completed_at to current time
-                if ($newStatus == 3) {
+                // If changing TO status 3 or 4 (Completed or Incomplete), set completed_at to current time
+                if ($newStatus == 3 || $newStatus == 4) {
                     $updateData['completed_at'] = now();
                 }
                 
-                // If changing FROM status 3 (Completed) to any other status, clear completed_at
-                if ($oldStatus == 3 && $newStatus != 3) {
+                // If changing FROM status 3 or 4 to any other status, clear completed_at
+                if (($oldStatus == 3 || $oldStatus == 4) && ($newStatus != 3 && $newStatus != 4)) {
                     $updateData['completed_at'] = null;
                 }
             }
@@ -493,6 +348,10 @@ class Edit extends Component
             $this->dispatch('toast', message: "{$slipId} has been updated.", type: 'success');
             $this->dispatch('slip-updated');
             $this->showFinalStatusConfirmation = false;
+        } catch (\Exception $e) {
+            $this->isUpdating = false;
+            $this->showFinalStatusConfirmation = false;
+            $this->dispatch('toast', message: 'An error occurred while saving: ' . $e->getMessage(), type: 'error');
         } finally {
             $this->isUpdating = false;
         }
@@ -503,17 +362,264 @@ class Edit extends Component
         return $this->hasUnsavedChanges();
     }
 
+    private function validateBeforeSave()
+    {
+        // Check if slip exists
+        if (!$this->selectedSlip) {
+            throw new \Exception('Slip not found.');
+        }
+        
+        // Check if vehicle is soft-deleted
+        if ($this->selectedSlip->vehicle && $this->selectedSlip->vehicle->trashed()) {
+            throw new \Exception('Cannot edit slip with deleted vehicle.');
+        }
+
+        // Use the edited status, not the current status
+        $status = $this->editStatus;
+        
+        // Validate status
+        $this->validate([
+            'editStatus' => 'required|in:0,1,2,3,4',
+        ], [], [
+            'editStatus' => 'Status',
+        ]);
+        
+        // Build validation rules based on selected status
+        $rules = [
+            'editVehicleId' => 'required|exists:vehicles,id',
+            'editDestinationId' => [
+                'required',
+                'exists:locations,id',
+                function ($attribute, $value, $fail) {
+                    if ($value == $this->editLocationId) {
+                        $fail('The destination cannot be the same as the origin.');
+                    }
+                },
+            ],
+            'editDriverId' => 'required|exists:drivers,id',
+            'editReasonId' => [
+                'required',
+                'exists:reasons,id',
+                function ($attribute, $value, $fail) {
+                    if ($value) {
+                        $reason = Reason::find($value);
+                        if (!$reason || $reason->is_disabled) {
+                            $fail('The selected reason is not available.');
+                        }
+                    }
+                },
+            ],
+            'editRemarksForDisinfection' => 'nullable|string|max:1000',
+        ];
+
+        // Status 0, 1, 2 (Pending, Disinfecting, In-Transit): Origin and Hatchery Guard are required, Receiving Guard is optional
+        if ($status == 0 || $status == 1 || $status == 2) {
+            $rules['editLocationId'] = [
+                'required',
+                'exists:locations,id',
+                function ($attribute, $value, $fail) {
+                    if ($value == $this->editDestinationId) {
+                        $fail('The origin cannot be the same as the destination.');
+                    }
+                },
+            ];
+            $rules['editHatcheryGuardId'] = [
+                'required',
+                'exists:users,id',
+                function ($attribute, $value, $fail) {
+                    $guard = User::find($value);
+                    if (!$guard) {
+                        $fail('The selected hatchery guard does not exist.');
+                        return;
+                    }
+                    if ($guard->user_type !== 0) {
+                        $fail('The selected user is not a guard.');
+                        return;
+                    }
+                    if ($guard->disabled) {
+                        $fail('The selected hatchery guard has been disabled.');
+                    }
+                },
+            ];
+            $rules['editReceivedGuardId'] = [
+                'nullable',
+                'exists:users,id',
+                function ($attribute, $value, $fail) {
+                    if ($value && $value == $this->editHatcheryGuardId) {
+                        $fail('The receiving guard cannot be the same as the hatchery guard.');
+                        return;
+                    }
+                    if ($value) {
+                        $guard = User::find($value);
+                        if (!$guard) {
+                            $fail('The selected receiving guard does not exist.');
+                            return;
+                        }
+                        if ($guard->user_type !== 0) {
+                            $fail('The selected user is not a guard.');
+                            return;
+                        }
+                        if ($guard->disabled) {
+                            $fail('The selected receiving guard has been disabled.');
+                        }
+                    }
+                },
+            ];
+        }
+        
+        // Status 3 (Completed): Origin, Hatchery Guard, and Receiving Guard are all required
+        if ($status == 3) {
+            $rules['editLocationId'] = [
+                'required',
+                'exists:locations,id',
+                function ($attribute, $value, $fail) {
+                    if ($value == $this->editDestinationId) {
+                        $fail('The origin cannot be the same as the destination.');
+                    }
+                },
+            ];
+            $rules['editHatcheryGuardId'] = [
+                'required',
+                'exists:users,id',
+                function ($attribute, $value, $fail) {
+                    $guard = User::find($value);
+                    if (!$guard) {
+                        $fail('The selected hatchery guard does not exist.');
+                        return;
+                    }
+                    if ($guard->user_type !== 0) {
+                        $fail('The selected user is not a guard.');
+                        return;
+                    }
+                    if ($guard->disabled) {
+                        $fail('The selected hatchery guard has been disabled.');
+                    }
+                },
+            ];
+            $rules['editReceivedGuardId'] = [
+                'required',
+                'exists:users,id',
+                function ($attribute, $value, $fail) {
+                    if ($value && $value == $this->editHatcheryGuardId) {
+                        $fail('The receiving guard cannot be the same as the hatchery guard.');
+                        return;
+                    }
+                    $guard = User::find($value);
+                    if (!$guard) {
+                        $fail('The selected receiving guard does not exist.');
+                        return;
+                    }
+                    if ($guard->user_type !== 0) {
+                        $fail('The selected user is not a guard.');
+                        return;
+                    }
+                    if ($guard->disabled) {
+                        $fail('The selected receiving guard has been disabled.');
+                    }
+                },
+            ];
+        }
+
+        // Status 4 (Incomplete): Same as status 3
+        if ($status == 4) {
+            $rules['editLocationId'] = [
+                'required',
+                'exists:locations,id',
+                function ($attribute, $value, $fail) {
+                    if ($value == $this->editDestinationId) {
+                        $fail('The origin cannot be the same as the destination.');
+                    }
+                },
+            ];
+            $rules['editHatcheryGuardId'] = [
+                'required',
+                'exists:users,id',
+                function ($attribute, $value, $fail) {
+                    $guard = User::find($value);
+                    if (!$guard) {
+                        $fail('The selected hatchery guard does not exist.');
+                        return;
+                    }
+                    if ($guard->user_type !== 0) {
+                        $fail('The selected user is not a guard.');
+                        return;
+                    }
+                    if ($guard->disabled) {
+                        $fail('The selected hatchery guard has been disabled.');
+                    }
+                },
+            ];
+            $rules['editReceivedGuardId'] = [
+                'required',
+                'exists:users,id',
+                function ($attribute, $value, $fail) {
+                    if ($value && $value == $this->editHatcheryGuardId) {
+                        $fail('The receiving guard cannot be the same as the hatchery guard.');
+                        return;
+                    }
+                    $guard = User::find($value);
+                    if (!$guard) {
+                        $fail('The selected receiving guard does not exist.');
+                        return;
+                    }
+                    if ($guard->user_type !== 0) {
+                        $fail('The selected user is not a guard.');
+                        return;
+                    }
+                    if ($guard->disabled) {
+                        $fail('The selected receiving guard has been disabled.');
+                    }
+                },
+            ];
+        }
+
+        $this->validate($rules, [], [
+            'editVehicleId' => 'Vehicle',
+            'editLocationId' => 'Origin',
+            'editDestinationId' => 'Destination',
+            'editDriverId' => 'Driver',
+            'editHatcheryGuardId' => 'Hatchery Guard',
+            'editReceivedGuardId' => 'Receiving Guard',
+            'editReasonId' => 'Reason',
+            'editRemarksForDisinfection' => 'Remarks for Disinfection',
+            'editStatus' => 'Status',
+        ]);
+    }
+
     public function checkBeforeSave()
     {
-        // Check if the status is being set to Completed (3) or Incomplete (4)
-        // For SuperAdmin, they can always edit, but we still show the warning
-        // For Admin, they cannot edit completed/incomplete slips (handled by canEdit)
-        if ($this->editStatus == 3 || $this->editStatus == 4) {
-            // Show confirmation modal
-            $this->showFinalStatusConfirmation = true;
-        } else {
-            // For other statuses, save directly
-            $this->saveEdit();
+        // Prevent multiple submissions
+        if ($this->isUpdating) {
+            return;
+        }
+
+        // Authorization check
+        if (Auth::user()->user_type < $this->minUserType) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        try {
+            // Validate first before showing any confirmation
+            $this->validateBeforeSave();
+            
+            // Check if there are any changes
+            if (!$this->hasUnsavedChanges()) {
+                $this->dispatch('toast', message: 'No changes detected.', type: 'info');
+                return;
+            }
+
+            // Check if the status is being set to Completed (3) or Incomplete (4)
+            // AND user is NOT a SuperAdmin (user_type 2)
+            if (($this->editStatus == 3 || $this->editStatus == 4) && Auth::user()->user_type < 2) {
+                // Show confirmation modal for non-SuperAdmins
+                $this->showFinalStatusConfirmation = true;
+            } else {
+                // For SuperAdmins or other statuses, save directly
+                $this->saveEdit();
+            }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Validation failed - errors will be displayed automatically
+            throw $e;
         }
     }
 
