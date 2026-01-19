@@ -619,12 +619,12 @@ class DisinfectionSlip extends Component
         }
 
         // For INCOMING only: Status 2 (In-Transit) -> 4 (Incomplete)
-        // Keep received_guard_id so incomplete slips show to the user who received them
-        $oldReceivedGuardId = $this->selectedSlip->received_guard_id;
+        // Set received_guard_id to current user if not already set, so incomplete slips show to the user who marked them incomplete
+        $receivedGuardId = $this->selectedSlip->received_guard_id ?: Auth::id();
         $this->selectedSlip->update([
             'status' => 4, // Incomplete
             'completed_at' => now(), // Set completion timestamp for incomplete status
-            'received_guard_id' => $oldReceivedGuardId, // Preserve the guard who received it
+            'received_guard_id' => $receivedGuardId, // Set to current user if not already set
         ]);
 
         $slipId = $this->selectedSlip->slip_id;
@@ -634,8 +634,8 @@ class DisinfectionSlip extends Component
             DisinfectionSlipModel::class,
             $this->selectedSlip->id,
             "Marked slip {$slipId} as incomplete",
-            ['status' => 2, 'received_guard_id' => $oldReceivedGuardId, 'completed_at' => $this->selectedSlip->completed_at],
-            ['status' => 4, 'received_guard_id' => $oldReceivedGuardId, 'completed_at' => now()]
+            ['status' => 2, 'received_guard_id' => $this->selectedSlip->getOriginal('received_guard_id'), 'completed_at' => $this->selectedSlip->completed_at],
+            ['status' => 4, 'received_guard_id' => $receivedGuardId, 'completed_at' => now()]
         );
 
         Cache::forget('disinfection_slips_all');
@@ -1031,15 +1031,14 @@ class DisinfectionSlip extends Component
         $userType = $user->user_type ?? 0;
         $status = $this->selectedSlip->status;
 
-        // COMPLETED AND INCOMPLETE SLIPS: Only Superadmin can delete photos
-        if (in_array($status, [3, 4])) {
-            return $userType === 2; // Only Superadmin
+        // SUPERADMIN can delete photos from ANY status
+        if ($userType === 2) {
+            return true;
         }
 
-        // ACTIVE SLIPS: Check permissions based on user type
-        if ($userType === 2) {
-            // Superadmin can always delete
-            return true;
+        // COMPLETED AND INCOMPLETE SLIPS: Only Superadmin can delete photos (already handled above)
+        if (in_array($status, [3, 4])) {
+            return false; // No one else can delete from completed/incomplete slips
         }
 
         if ($userType === 1) {

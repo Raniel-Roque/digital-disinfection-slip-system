@@ -199,7 +199,7 @@
                 <x-buttons.submit-button wire:click="closeDetailsModal" color="white">
                     Close
                 </x-buttons.submit-button>
-                
+
                 {{-- Edit Button (Only for non-completed/incomplete slips) --}}
                 @if ($this->canEdit())
                     <x-buttons.submit-button wire:click="openEditModal" color="orange">
@@ -389,7 +389,7 @@
                             isAdminOrSuperAdmin: @js($isAdminOrSuperAdmin),
                             canManage: @js($canManage),
                             status: @js($status),
-                            userType: @js(Auth::user()->user_type),
+                            userType: @js($this->userType),
                             getCurrentAttachment() {
                                 const index = $wire.get('currentAttachmentIndex');
                                 return this.photos[index] || null;
@@ -399,13 +399,13 @@
                                 if (!Photo) return false;
 
                                 // SuperAdmin can always delete regardless of status or ownership
-                                if (this.isAdminOrSuperAdmin && $wire.get('userType') === 2) return true;
+                                if (this.userType === 2) return true;
 
                                 // Admin cannot delete from completed/incomplete slips
-                                if ($wire.get('userType') === 1 && (this.status === 3 || this.status === 4)) return false;
+                                if (this.userType === 1 && (this.status === 3 || this.status === 4)) return false;
 
                                 // Admin can delete from pending/disinfecting/in-transit slips if they can manage
-                                if ($wire.get('userType') === 1 && this.canManage) return true;
+                                if (this.userType === 1 && this.canManage) return true;
 
                                 return false;
                             },

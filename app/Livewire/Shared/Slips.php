@@ -89,6 +89,9 @@ class Slips extends Component
     
     public $filtersActive = false;
     public $excludeDeletedItems = true; // Default: exclude slips with deleted related items
+
+    // User type for frontend access
+    public $userType;
     
     // Store previous date filter values when entering restore mode
     private $previousFilterCreatedFrom = null;
@@ -133,6 +136,7 @@ class Slips extends Component
     {
         // Auto-detect user type if config not provided
         $userType = Auth::user()->user_type ?? 1;
+        $this->userType = $userType; // Set for frontend access
         $isSuperAdmin = $userType === 2;
         
         // Apply config or use auto-detected values
@@ -1134,6 +1138,12 @@ class Slips extends Component
         return true;
     }
 
+    // Alias for photo component compatibility
+    public function canDeleteCurrentAttachment()
+    {
+        return $this->canRemoveAttachment();
+    }
+
     #[On('slip-updated')]
     public function handleSlipUpdated()
     {
@@ -1228,6 +1238,13 @@ class Slips extends Component
     {
         $this->attachmentToDelete = $attachmentId;
         $this->showRemoveAttachmentConfirmation = true;
+    }
+
+    // Alias for photo component compatibility
+    public function confirmRemoveCurrentAttachment()
+    {
+        $attachmentId = $this->getCurrentAttachmentId();
+        $this->confirmRemoveAttachment($attachmentId);
     }
 
     public function removeAttachment()

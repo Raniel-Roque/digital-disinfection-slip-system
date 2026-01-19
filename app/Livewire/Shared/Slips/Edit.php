@@ -873,6 +873,34 @@ class Edit extends Component
         ];
     }
 
+    public function canDelete()
+    {
+        if (!$this->selectedSlip) {
+            return false;
+        }
+
+        // Cannot delete if vehicle is soft-deleted
+        if ($this->selectedSlip->vehicle && $this->selectedSlip->vehicle->trashed()) {
+            return false;
+        }
+
+        $user = Auth::user();
+        $slipStatus = $this->selectedSlip->status;
+
+        // SuperAdmin can delete any slip, including completed ones (unless vehicle is soft-deleted)
+        if ($user->user_type === 2) {
+            return true;
+        }
+
+        // Admin cannot delete completed (status 3) or incomplete (status 4) slips
+        if ($user->user_type === 1 && in_array($slipStatus, [3, 4])) {
+            return false;
+        }
+
+        // Admin can delete pending (0), disinfecting (1), and in-transit (2) slips
+        return true;
+    }
+
     public function render()
     {
         return view('livewire.shared.slips.edit');

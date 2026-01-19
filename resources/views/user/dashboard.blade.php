@@ -12,8 +12,7 @@
 
                 <!-- Incoming Slips Card -->
                 <a href="{{ route('user.incoming-slips') }}"
-                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl hover:cursor-pointer transition-all duration-300 border border-gray-200 hover:border-green-400"
-                    wire:poll>
+                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl hover:cursor-pointer transition-all duration-300 border border-gray-200 hover:border-green-400">
                     <div class="p-6">
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex items-center gap-3">
@@ -35,7 +34,7 @@
                         </div>
                         <div class="flex items-end justify-between">
                             <p class="text-4xl font-bold text-gray-800">
-                                <livewire:slips.slip-count-card type="incoming" :key="'incoming-count'" />
+                                <livewire:slips.slip-count-card type="incoming" :key="'incoming-count'" wire:poll />
                             </p>
                             <span
                                 class="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full font-medium">Active</span>
@@ -48,8 +47,7 @@
 
                 <!-- Outgoing Slips Card -->
                 <a href="{{ route('user.outgoing-slips') }}"
-                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl hover:cursor-pointer transition-all duration-300 border border-gray-200 hover:border-red-400"
-                    wire:poll>
+                    class="group relative overflow-hidden bg-white rounded-2xl shadow-md hover:shadow-xl hover:cursor-pointer transition-all duration-300 border border-gray-200 hover:border-red-400">
                     <div class="p-6">
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex items-center gap-3">
@@ -71,7 +69,7 @@
                         </div>
                         <div class="flex items-end justify-between">
                             <p class="text-4xl font-bold text-gray-800">
-                                <livewire:slips.slip-count-card type="outgoing" :key="'outgoing-count'" />
+                                <livewire:slips.slip-count-card type="outgoing" :key="'outgoing-count'" wire:poll />
                             </p>
                             <span
                                 class="text-xs text-red-600 bg-red-50 px-2 py-1 rounded-full font-medium">Active</span>
@@ -124,7 +122,7 @@
             </div>
 
             <!-- Quick Stats Bar -->
-            <div class="bg-white rounded-2xl shadow-md border border-gray-200 p-6 mb-8" wire:poll>
+            <div class="bg-white rounded-2xl shadow-md border border-gray-200 p-6 mb-8">
                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-6">
                     <div class="flex items-center gap-4">
                         <div class="p-3 bg-blue-100 rounded-xl">
@@ -135,7 +133,7 @@
                         </div>
                         <div>
                             <p class="text-2xl font-bold text-gray-800">
-                                <livewire:slips.slip-count-card type="total" :key="'total-count'" />
+                                <livewire:slips.slip-count-card type="total" :key="'total-count'" wire:poll />
                             </p>
                             <p class="text-xs text-gray-500">Total Slips Today</p>
                         </div>
@@ -149,7 +147,7 @@
                         </div>
                         <div>
                             <p class="text-2xl font-bold text-gray-800">
-                                <livewire:slips.slip-count-card type="pending" :key="'pending-count'" />
+                                <livewire:slips.slip-count-card type="pending" :key="'pending-count'" wire:poll />
                             </p>
                             <p class="text-xs text-gray-500">Pending</p>
                         </div>
@@ -164,7 +162,7 @@
                         </div>
                         <div>
                             <p class="text-2xl font-bold text-gray-800">
-                                <livewire:slips.slip-count-card type="inprogress" :key="'inprogress-count'" />
+                                <livewire:slips.slip-count-card type="inprogress" :key="'inprogress-count'" wire:poll />
                             </p>
                             <p class="text-xs text-gray-500">Disinfecting</p>
                         </div>
@@ -179,7 +177,7 @@
                         </div>
                         <div>
                             <p class="text-2xl font-bold text-gray-800">
-                                <livewire:slips.slip-count-card type="completed" :key="'completed-count'" />
+                                <livewire:slips.slip-count-card type="completed" :key="'completed-count'" wire:poll />
                             </p>
                             <p class="text-xs text-gray-500">Completed Today</p>
                         </div>

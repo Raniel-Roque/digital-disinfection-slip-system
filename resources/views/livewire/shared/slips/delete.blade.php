@@ -1,5 +1,5 @@
 <div>
-    <x-modals.modal-template show="showModal" max-width="max-w-lg">
+    <x-modals.modal-template show="showModal" max-width="max-w-lg" z-index="60">
         <x-slot name="header">
             <div class="flex items-center">
                 <div class="flex items-center justify-center w-12 h-12 bg-red-100 rounded-full">

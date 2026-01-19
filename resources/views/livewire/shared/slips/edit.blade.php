@@ -220,21 +220,65 @@
 
             {{-- Footer --}}
             <x-slot name="footer">
-                <x-buttons.submit-button wire:click="closeModal" color="white" wire:loading.attr="disabled" wire:target="saveEdit">
-                    Cancel
-                </x-buttons.submit-button>
+                {{-- Mobile Layout --}}
+                <div class="flex flex-col gap-2 w-full md:hidden">
+                    {{-- Delete button at top for mobile --}}
+                    @if ($this->canDelete())
+                        <x-buttons.submit-button wire:click="$dispatch('openDeleteModal', [{{ $selectedSlip->id }}])" color="red" class="w-full">
+                            Delete Slip
+                        </x-buttons.submit-button>
+                    @endif
 
-                <x-buttons.submit-button wire:click.prevent="checkBeforeSave" color="green" wire:loading.attr="disabled" wire:target="saveEdit"
-                    x-bind:disabled="!$wire.hasUnsavedChanges()">
-                    <span wire:loading.remove wire:target="saveEdit">Save Changes</span>
-                    <span wire:loading.inline-flex wire:target="saveEdit" class="inline-flex items-center gap-2">
-                        <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Saving...
-                    </span>
-                </x-buttons.submit-button>
+                    {{-- Cancel and Save buttons --}}
+                    <div class="grid grid-cols-2 gap-2 w-full">
+                        <x-buttons.submit-button wire:click="closeModal" color="white" wire:loading.attr="disabled" wire:target="saveEdit" class="w-full">
+                            Cancel
+                        </x-buttons.submit-button>
+
+                        <x-buttons.submit-button wire:click.prevent="checkBeforeSave" color="green" wire:loading.attr="disabled" wire:target="saveEdit"
+                            x-bind:disabled="!$wire.hasUnsavedChanges()" class="w-full">
+                            <span wire:loading.remove wire:target="saveEdit">Save</span>
+                            <span wire:loading.inline-flex wire:target="saveEdit" class="inline-flex items-center gap-2">
+                                <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Saving...
+                            </span>
+                        </x-buttons.submit-button>
+                    </div>
+                </div>
+
+                {{-- Desktop Layout --}}
+                <div class="hidden md:flex justify-between w-full gap-2">
+                    {{-- Left side: Delete button --}}
+                    <div>
+                        @if ($this->canDelete())
+                            <x-buttons.submit-button wire:click="$dispatch('openDeleteModal', [{{ $selectedSlip->id }}])" color="red">
+                                Delete Slip
+                            </x-buttons.submit-button>
+                        @endif
+                    </div>
+
+                    {{-- Right side: Cancel and Save buttons --}}
+                    <div class="flex gap-2">
+                        <x-buttons.submit-button wire:click="closeModal" color="white" wire:loading.attr="disabled" wire:target="saveEdit">
+                            Cancel
+                        </x-buttons.submit-button>
+
+                        <x-buttons.submit-button wire:click.prevent="checkBeforeSave" color="green" wire:loading.attr="disabled" wire:target="saveEdit"
+                            x-bind:disabled="!$wire.hasUnsavedChanges()">
+                            <span wire:loading.remove wire:target="saveEdit">Save Changes</span>
+                            <span wire:loading.inline-flex wire:target="saveEdit" class="inline-flex items-center gap-2">
+                                <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Saving...
+                            </span>
+                        </x-buttons.submit-button>
+                    </div>
+                </div>
             </x-slot>
 
         </x-modals.modal-template>
