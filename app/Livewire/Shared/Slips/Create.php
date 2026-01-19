@@ -458,7 +458,7 @@ class Create extends Component
                 ])
             );
             
-            $this->dispatch('toast', message: "Disinfection slip created successfully!", type: 'success');
+            $this->dispatch('toast', message: "{$slipId} has been created.", type: 'success');
             $this->dispatch('slip-created');
             $this->dispatch('refresh-slips'); // Refresh the slip list
             

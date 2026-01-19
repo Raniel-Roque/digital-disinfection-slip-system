@@ -78,18 +78,20 @@ class Restore extends Component
             
             // Now load the restored slip
             $slip = DisinfectionSlipModel::findOrFail($this->slipId);
-            
+            $this->slipSlipId = $slip->slip_id;
+            $slipSlipId = $this->slipSlipId;
+
             // Log the restore action
             Logger::restore(
                 DisinfectionSlipModel::class,
                 $slip->id,
-                "Restored disinfection slip {$slip->slip_id}"
+                "Restored disinfection slip {$slipSlipId}"
             );
-            
+
             $this->showModal = false;
             $this->reset(['slipId', 'slipSlipId']);
             $this->dispatch('slip-restored');
-            $this->dispatch('toast', message: "Disinfection slip {$slip->slip_id} has been restored.", type: 'success');
+            $this->dispatch('toast', message: "{$slipSlipId} has been restored.", type: 'success');
         } catch (\Exception $e) {
             $this->dispatch('toast', message: 'Failed to restore slip: ' . $e->getMessage(), type: 'error');
         } finally {
