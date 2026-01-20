@@ -140,7 +140,7 @@
                 {{-- Reason --}}
                 @php $bgClass = ($rowIndex % 2 === 0) ? 'bg-white' : 'bg-gray-100'; $rowIndex++; @endphp
                 <div class="grid grid-cols-[1fr_2fr] gap-4 px-6 py-2 text-xs {{ $bgClass }}">
-                    <div class="font-semibold text-gray-500">Reason:<span class="text-red-500">*</span></div>
+                    <div class="font-semibold text-gray-500">Reason:</div>
                     <div class="text-gray-900 min-w-0">
                         @if ($isEditing)
                             <x-forms.searchable-dropdown-paginated wire-model="reason_id" data-method="getPaginatedReasons"
