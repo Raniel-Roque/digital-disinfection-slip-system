@@ -945,7 +945,7 @@ class Slips extends Component
         
         // Clear exclude deleted items filter (set to false so pill disappears)
         $this->excludeDeletedItems = false;
-        
+
         $this->filtersActive = false;
         $this->resetPage();
     }
@@ -1333,7 +1333,7 @@ class Slips extends Component
             $this->previousFilterCreatedTo = $this->filterCreatedTo;
             $this->previousAppliedCreatedFrom = $this->appliedCreatedFrom;
             $this->previousAppliedCreatedTo = $this->appliedCreatedTo;
-            
+
             // Clear all filters except date range when entering restore mode
             $this->filterStatus = null;
             $this->filterOrigin = [];
@@ -1342,7 +1342,7 @@ class Slips extends Component
             $this->filterVehicle = [];
             $this->filterHatcheryGuard = [];
             $this->filterReceivedGuard = [];
-            
+
             $this->appliedStatus = null;
             $this->appliedOrigin = [];
             $this->appliedDestination = [];
@@ -1350,7 +1350,7 @@ class Slips extends Component
             $this->appliedVehicle = [];
             $this->appliedHatcheryGuard = [];
             $this->appliedReceivedGuard = [];
-            
+
             $this->updateFiltersActive();
         } else {
             // Exiting restore mode - restore previous date filters if they existed
@@ -1362,13 +1362,13 @@ class Slips extends Component
                 $this->filterCreatedTo = $this->previousFilterCreatedTo;
                 $this->appliedCreatedTo = $this->previousAppliedCreatedTo;
             }
-            
+
             // Clear the stored previous values
             $this->previousFilterCreatedFrom = null;
             $this->previousFilterCreatedTo = null;
             $this->previousAppliedCreatedFrom = null;
             $this->previousAppliedCreatedTo = null;
-            
+
             $this->updateFiltersActive();
         }
         
@@ -1531,34 +1531,61 @@ class Slips extends Component
             ->when($this->appliedCreatedTo, function($query) {
                 $query->whereDate('created_at', '<=', $this->appliedCreatedTo);
             })
-            // Exclude slips with deleted items (default: on)
-            // Use whereIn with subqueries for better performance than whereHas with large datasets
-            // This avoids loading all IDs into memory and is faster than whereHas
+            // Filter slips based on deleted items status
             ->when($this->excludeDeletedItems, function($query) {
-                $query->whereIn('vehicle_id', function($subquery) {
-                        $subquery->select('id')->from('vehicles')->whereNull('deleted_at');
-                    })
-                    ->whereIn('driver_id', function($subquery) {
-                        $subquery->select('id')->from('drivers')->whereNull('deleted_at');
-                    })
-                    ->whereIn('location_id', function($subquery) {
-                        $subquery->select('id')->from('locations')->whereNull('deleted_at');
-                    })
-                    ->whereIn('destination_id', function($subquery) {
-                        $subquery->select('id')->from('locations')->whereNull('deleted_at');
-                    })
-                    ->where(function($q) {
-                        $q->whereIn('hatchery_guard_id', function($subquery) {
-                            $subquery->select('id')->from('users')->whereNull('deleted_at');
+                if ($this->showDeleted) {
+                    // In restore mode: exclude deleted slips that have deleted related items (same as normal mode)
+                    $query->whereIn('vehicle_id', function($subquery) {
+                            $subquery->select('id')->from('vehicles')->whereNull('deleted_at');
                         })
-                          ->orWhereNull('hatchery_guard_id');
-                    })
-                    ->where(function($q) {
-                        $q->whereIn('received_guard_id', function($subquery) {
-                            $subquery->select('id')->from('users')->whereNull('deleted_at');
+                        ->whereIn('driver_id', function($subquery) {
+                            $subquery->select('id')->from('drivers')->whereNull('deleted_at');
                         })
-                          ->orWhereNull('received_guard_id');
-                    });
+                        ->whereIn('location_id', function($subquery) {
+                            $subquery->select('id')->from('locations')->whereNull('deleted_at');
+                        })
+                        ->whereIn('destination_id', function($subquery) {
+                            $subquery->select('id')->from('locations')->whereNull('deleted_at');
+                        })
+                        ->where(function($q) {
+                            $q->whereIn('hatchery_guard_id', function($subquery) {
+                                $subquery->select('id')->from('users')->whereNull('deleted_at');
+                            })
+                              ->orWhereNull('hatchery_guard_id');
+                        })
+                        ->where(function($q) {
+                            $q->whereIn('received_guard_id', function($subquery) {
+                                $subquery->select('id')->from('users')->whereNull('deleted_at');
+                            })
+                              ->orWhereNull('received_guard_id');
+                        });
+                } else {
+                    // In normal mode: exclude slips that have deleted related items
+                    $query->whereIn('vehicle_id', function($subquery) {
+                            $subquery->select('id')->from('vehicles')->whereNull('deleted_at');
+                        })
+                        ->whereIn('driver_id', function($subquery) {
+                            $subquery->select('id')->from('drivers')->whereNull('deleted_at');
+                        })
+                        ->whereIn('location_id', function($subquery) {
+                            $subquery->select('id')->from('locations')->whereNull('deleted_at');
+                        })
+                        ->whereIn('destination_id', function($subquery) {
+                            $subquery->select('id')->from('locations')->whereNull('deleted_at');
+                        })
+                        ->where(function($q) {
+                            $q->whereIn('hatchery_guard_id', function($subquery) {
+                                $subquery->select('id')->from('users')->whereNull('deleted_at');
+                            })
+                              ->orWhereNull('hatchery_guard_id');
+                        })
+                        ->where(function($q) {
+                            $q->whereIn('received_guard_id', function($subquery) {
+                                $subquery->select('id')->from('users')->whereNull('deleted_at');
+                            })
+                              ->orWhereNull('received_guard_id');
+                        });
+                }
             })
             // Apply sorting (works with all filters)
             ->when($this->sortBy === 'slip_id' && !$this->showDeleted, function($query) {
@@ -1663,32 +1690,61 @@ class Slips extends Component
             ->when($this->showDeleted, function ($query) {
                 $query->orderBy('deleted_at', 'desc');
             })
-            // Exclude slips with deleted items (default: on)
+            // Filter slips based on deleted items status
             ->when($this->excludeDeletedItems, function($query) {
-                $query->whereHas('vehicle', function($q) {
-                    $q->whereNull('deleted_at');
-                })
-                ->whereHas('driver', function($q) {
-                    $q->whereNull('deleted_at');
-                })
-                ->whereHas('location', function($q) {
-                    $q->whereNull('deleted_at');
-                })
-                ->whereHas('destination', function($q) {
-                    $q->whereNull('deleted_at');
-                })
-                ->where(function($q) {
-                    $q->whereHas('hatcheryGuard', function($guardQ) {
-                        $guardQ->whereNull('deleted_at');
+                if ($this->showDeleted) {
+                    // In restore mode: exclude deleted slips that have deleted related items (same as normal mode)
+                    $query->whereHas('vehicle', function($q) {
+                        $q->whereNull('deleted_at');
                     })
-                    ->orWhereNull('hatchery_guard_id');
-                })
-                ->where(function($q) {
-                    $q->whereHas('receivedGuard', function($guardQ) {
-                        $guardQ->whereNull('deleted_at');
+                    ->whereHas('driver', function($q) {
+                        $q->whereNull('deleted_at');
                     })
-                    ->orWhereNull('received_guard_id');
-                });
+                    ->whereHas('location', function($q) {
+                        $q->whereNull('deleted_at');
+                    })
+                    ->whereHas('destination', function($q) {
+                        $q->whereNull('deleted_at');
+                    })
+                    ->where(function($q) {
+                        $q->whereHas('hatcheryGuard', function($guardQ) {
+                            $guardQ->whereNull('deleted_at');
+                        })
+                        ->orWhereNull('hatchery_guard_id');
+                    })
+                    ->where(function($q) {
+                        $q->whereHas('receivedGuard', function($guardQ) {
+                            $guardQ->whereNull('deleted_at');
+                        })
+                        ->orWhereNull('received_guard_id');
+                    });
+                } else {
+                    // In normal mode: exclude slips that have deleted related items
+                    $query->whereHas('vehicle', function($q) {
+                        $q->whereNull('deleted_at');
+                    })
+                    ->whereHas('driver', function($q) {
+                        $q->whereNull('deleted_at');
+                    })
+                    ->whereHas('location', function($q) {
+                        $q->whereNull('deleted_at');
+                    })
+                    ->whereHas('destination', function($q) {
+                        $q->whereNull('deleted_at');
+                    })
+                    ->where(function($q) {
+                        $q->whereHas('hatcheryGuard', function($guardQ) {
+                            $guardQ->whereNull('deleted_at');
+                        })
+                        ->orWhereNull('hatchery_guard_id');
+                    })
+                    ->where(function($q) {
+                        $q->whereHas('receivedGuard', function($guardQ) {
+                            $guardQ->whereNull('deleted_at');
+                        })
+                        ->orWhereNull('received_guard_id');
+                    });
+                }
             })
             ->get();
     }
