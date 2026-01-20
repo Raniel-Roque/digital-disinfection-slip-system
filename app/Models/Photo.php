@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Photo extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'photos'; // Match migration table name
-    
+
+    public $timestamps = true; // Ensure timestamps are enabled
+
     protected $fillable = [
         'file_path',
         'user_id',

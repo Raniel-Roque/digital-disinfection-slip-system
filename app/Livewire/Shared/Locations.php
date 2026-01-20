@@ -114,6 +114,9 @@ class Locations extends Component
     {
         Cache::forget('locations_all');
         $this->resetPage();
+
+        // Force component to re-render with fresh data
+        $this->dispatch('$refresh');
     }
 
     public function handleLocationDeleted()

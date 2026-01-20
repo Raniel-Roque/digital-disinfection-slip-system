@@ -116,8 +116,82 @@ class Edit extends Component
         
         // Handle logo update/removal first to determine new photo_id
         $attachmentId = $location->photo_id;
-        
-        if ($this->remove_logo) {
+
+        if ($this->logo) {
+            // Upload new logo - this takes priority over remove_logo
+            // Delete old logo if it exists
+            if ($attachmentId) {
+                $oldAttachment = Photo::find($attachmentId);
+                if ($oldAttachment) {
+                    // Log the photo deletion before deleting
+                    Logger::delete(
+                        Photo::class,
+                        $oldAttachment->id,
+                        "Deleted old location logo during update: {$oldAttachment->file_path}",
+                        $oldAttachment->only(['file_path', 'user_id'])
+                    );
+
+                    if (Storage::disk('public')->exists($oldAttachment->file_path)) {
+                        Storage::disk('public')->delete($oldAttachment->file_path);
+                    }
+                    $oldAttachment->forceDelete();
+                }
+            }
+
+            // Generate unique filename
+            $extension = $this->logo->getClientOriginalExtension();
+            $filename = 'location_logo_' . Str::slug($locationName) . '_' . time() . '_' . Str::random(8) . '.' . $extension;
+
+            // Store file in images/logos/ directory
+            try {
+                $path = $this->logo->storeAs('images/logos', $filename, 'public');
+
+                \Log::info('File upload attempt', [
+                    'filename' => $filename,
+                    'path' => $path,
+                    'file_exists' => $path ? Storage::disk('public')->exists($path) : false
+                ]);
+
+                // Verify file was stored successfully
+                if (!$path || !Storage::disk('public')->exists($path)) {
+                    $this->dispatch('toast', message: 'Failed to upload logo file.', type: 'error');
+                    return;
+                }
+            } catch (\Exception $e) {
+                \Log::error('File upload failed', ['error' => $e->getMessage()]);
+                $this->dispatch('toast', message: 'File upload failed: ' . $e->getMessage(), type: 'error');
+                return;
+            }
+
+            // Create Photo record
+            try {
+                $Photo = Photo::create([
+                    'file_path' => $path,
+                    'user_id' => Auth::id(),
+                ]);
+
+                if (!$Photo || !$Photo->id) {
+                    // Clean up uploaded file if Photo creation failed
+                    Storage::disk('public')->delete($path);
+                    $this->dispatch('toast', message: 'Failed to save logo record.', type: 'error');
+                    return;
+                }
+
+                \Log::info('Photo created successfully', [
+                    'photo_id' => $Photo->id,
+                    'file_path' => $path,
+                    'user_id' => Auth::id()
+                ]);
+
+                $attachmentId = $Photo->id;
+            } catch (\Exception $e) {
+                // Clean up uploaded file if Photo creation failed
+                Storage::disk('public')->delete($path);
+                \Log::error('Photo creation failed', ['error' => $e->getMessage()]);
+                $this->dispatch('toast', message: 'Failed to save logo: ' . $e->getMessage(), type: 'error');
+                return;
+            }
+        } elseif ($this->remove_logo) {
             // Remove existing logo if it exists
             if ($attachmentId) {
                 $Photo = Photo::find($attachmentId);
@@ -139,48 +213,23 @@ class Edit extends Component
                 }
             }
             $attachmentId = null;
-        } elseif ($this->logo) {
-            // Upload new logo
-            // Delete old logo if it exists
-            if ($attachmentId) {
-                $oldAttachment = Photo::find($attachmentId);
-                if ($oldAttachment) {
-                    // Log the photo deletion before deleting
-                    Logger::delete(
-                        Photo::class,
-                        $oldAttachment->id,
-                        "Deleted old location logo during update: {$oldAttachment->file_path}",
-                        $oldAttachment->only(['file_path', 'user_id'])
-                    );
-
-                    if (Storage::disk('public')->exists($oldAttachment->file_path)) {
-                        Storage::disk('public')->delete($oldAttachment->file_path);
-                    }
-                    $oldAttachment->forceDelete();
-                }
-            }
-            
-            // Generate unique filename
-            $extension = $this->logo->getClientOriginalExtension();
-            $filename = 'location_logo_' . Str::slug($locationName) . '_' . time() . '_' . Str::random(8) . '.' . $extension;
-            
-            // Store file in images/logos/ directory
-            $path = $this->logo->storeAs('images/logos', $filename, 'public');
-            
-            // Create Photo record
-            $Photo = Photo::create([
-                'file_path' => $path,
-                'user_id' => Auth::id(),
-            ]);
-            
-            $attachmentId = $Photo->id;
         }
         
         // Check if there are any changes
         $nameChanged = $location->location_name !== $locationName;
         $attachmentChanged = $location->photo_id !== $attachmentId;
         $createSlipChanged = ($location->create_slip ?? false) !== $this->create_slip;
-        
+
+        // Debug logging
+        \Log::info('Location update check', [
+            'location_id' => $this->locationId,
+            'nameChanged' => $nameChanged,
+            'attachmentChanged' => $attachmentChanged,
+            'old_photo_id' => $location->photo_id,
+            'new_photo_id' => $attachmentId,
+            'createSlipChanged' => $createSlipChanged
+        ]);
+
         if (!$nameChanged && !$attachmentChanged && !$createSlipChanged) {
             // Reset logo fields if no changes
             $this->logo = null;
@@ -196,6 +245,14 @@ class Edit extends Component
             'location_name' => $locationName,
             'photo_id' => $attachmentId,
             'create_slip' => $this->create_slip,
+        ]);
+
+        // Verify the update worked
+        $location->refresh();
+        \Log::info('Location updated', [
+            'location_id' => $location->id,
+            'photo_id' => $location->photo_id,
+            'photo_exists' => $location->photo_id ? Photo::find($location->photo_id) !== null : false
         ]);
         
         // Generate specific description based on what changed
