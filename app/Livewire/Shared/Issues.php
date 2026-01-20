@@ -1326,7 +1326,7 @@ class Issues extends Component
         }
         
         // Exclude deleted items filter
-        if ($this->excludeDeletedItems && !$this->showDeleted) {
+        if ($this->excludeDeletedItems) {
             // Exclude issues where related user or slip has been deleted
             // Use whereIn with subqueries for better performance than whereHas with large datasets
             $query->whereIn('user_id', function($subquery) {

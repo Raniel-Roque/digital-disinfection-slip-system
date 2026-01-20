@@ -66,4 +66,20 @@
             class="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500">
     </div>
 
+    {{-- Exclude Deleted Items Toggle (full width) - SUPERADMIN ONLY --}}
+    @if (Auth::user()->user_type === 2)
+        <div class="border-t border-gray-200 pt-4 mt-2">
+            <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" wire:model.live="excludeDeletedItems"
+                    class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2">
+                <span class="text-sm font-medium text-gray-700">
+                    Exclude items with deleted related items
+                </span>
+            </label>
+            <p class="text-xs text-gray-500 mt-1 ml-7">
+                When enabled, hides items where any related item has been deleted
+            </p>
+        </div>
+    @endif
+
 </div>
