@@ -5,7 +5,7 @@
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
     {{-- Status Filter using shared component --}}
-    <x-filters.status-dropdown 
+    <x-filters.status-dropdown
         label="Status"
         wireModel="filterStatus"
         :options="$availableStatuses"
@@ -76,7 +76,7 @@
             "
             :min="$wire.filterCreatedFrom || ''"
             max="<?php echo date('Y-m-d'); ?>"
-            class="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500">
+            class="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-blue-500">
     </div>
 
 </div>
