@@ -123,7 +123,7 @@
                 <div class="mt-4 flex flex-wrap gap-2">
                     <span class="text-sm text-gray-600">Active filters:</span>
 
-                    @if ($showRestore && $excludeDeletedItems)
+                    @if (!$showDeleted && $excludeDeletedItems)
                         <span
                             class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             Excluding slips with deleted items
@@ -453,9 +453,6 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-semibold text-gray-900">
                                         {{ $slip->slip_id }}
-                                        @if ($showRestore && $slip->trashed())
-                                            <span class="text-red-600 font-semibold">(Deleted)</span>
-                                        @endif
                                     </div>
                                     <div class="text-xs text-gray-500 mt-0.5">
                                         {{ \Carbon\Carbon::parse($slip->created_at)->format('M d, Y h:i A') }}
@@ -488,16 +485,18 @@
 
                                     @if ($showDriverFirst)
                                         <div class="text-sm font-semibold text-gray-900">
-                                            {{ $slip->driver->first_name }} {{ $slip->driver->last_name }}
                                             @if ($showRestore && $slip->driver && $slip->driver->trashed())
-                                                <span class="text-red-600 font-semibold">(Deleted)</span>
+                                                {{ $slip->driver->first_name }} {{ $slip->driver->last_name }} <span class="text-red-600 font-semibold">(Deleted)</span>
+                                            @else
+                                                {{ $slip->driver->first_name }} {{ $slip->driver->last_name }}
                                             @endif
                                         </div>
                                         <div class="text-xs text-gray-500 mt-0.5">
                                             @if ($slip->vehicle)
-                                                {{ $slip->vehicle->vehicle }}
                                                 @if ($showRestore && $slip->vehicle->trashed())
-                                                    <span class="text-red-600 font-semibold">(Deleted)</span>
+                                                    {{ $slip->vehicle->vehicle }} <span class="text-red-600 font-semibold">(Deleted)</span>
+                                                @else
+                                                    {{ $slip->vehicle->vehicle }}
                                                 @endif
                                             @else
                                                 @if ($showRestore)
@@ -508,9 +507,10 @@
                                     @else
                                         <div class="text-sm font-semibold text-gray-900">
                                             @if ($slip->vehicle)
-                                                {{ $slip->vehicle->vehicle }}
                                                 @if ($showRestore && $slip->vehicle->trashed())
-                                                    <span class="text-red-600 font-semibold">(Deleted)</span>
+                                                    {{ $slip->vehicle->vehicle }} <span class="text-red-600 font-semibold">(Deleted)</span>
+                                                @else
+                                                    {{ $slip->vehicle->vehicle }}
                                                 @endif
                                             @else
                                                 @if ($showRestore)
@@ -519,41 +519,46 @@
                                             @endif
                                         </div>
                                         <div class="text-xs text-gray-500 mt-0.5">
-                                            {{ $slip->driver->first_name }} {{ $slip->driver->last_name }}
                                             @if ($showRestore && $slip->driver && $slip->driver->trashed())
-                                                <span class="text-red-600 font-semibold">(Deleted)</span>
+                                                {{ $slip->driver->first_name }} {{ $slip->driver->last_name }} <span class="text-red-600 font-semibold">(Deleted)</span>
+                                            @else
+                                                {{ $slip->driver->first_name }} {{ $slip->driver->last_name }}
                                             @endif
                                         </div>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-700">
-                                        {{ $slip->location->location_name }}
                                         @if ($showRestore && $slip->location && $slip->location->trashed())
-                                            <span class="text-red-600 font-semibold">(Deleted)</span>
+                                            {{ $slip->location->location_name }} <span class="text-red-600 font-semibold">(Deleted)</span>
+                                        @else
+                                            {{ $slip->location->location_name }}
                                         @endif
                                     </div>
                                     @if ($slip->hatcheryGuard)
                                         <div class="text-xs text-gray-500 mt-0.5">
-                                            {{ trim("{$slip->hatcheryGuard->first_name} {$slip->hatcheryGuard->middle_name} {$slip->hatcheryGuard->last_name}") }}
                                             @if ($showRestore && $slip->hatcheryGuard->trashed())
-                                                <span class="text-red-600 font-semibold">(Deleted)</span>
+                                                {{ trim("{$slip->hatcheryGuard->first_name} {$slip->hatcheryGuard->middle_name} {$slip->hatcheryGuard->last_name}") }} <span class="text-red-600 font-semibold">(Deleted)</span>
+                                            @else
+                                                {{ trim("{$slip->hatcheryGuard->first_name} {$slip->hatcheryGuard->middle_name} {$slip->hatcheryGuard->last_name}") }}
                                             @endif
                                         </div>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-700">
-                                        {{ $slip->destination->location_name }}
                                         @if ($showRestore && $slip->destination && $slip->destination->trashed())
-                                            <span class="text-red-600 font-semibold">(Deleted)</span>
+                                            {{ $slip->destination->location_name }} <span class="text-red-600 font-semibold">(Deleted)</span>
+                                        @else
+                                            {{ $slip->destination->location_name }}
                                         @endif
                                     </div>
                                     @if ($slip->receivedGuard)
                                         <div class="text-xs text-gray-500 mt-0.5">
-                                            {{ trim("{$slip->receivedGuard->first_name} {$slip->receivedGuard->middle_name} {$slip->receivedGuard->last_name}") }}
                                             @if ($showRestore && $slip->receivedGuard->trashed())
-                                                <span class="text-red-600 font-semibold">(Deleted)</span>
+                                                {{ trim("{$slip->receivedGuard->first_name} {$slip->receivedGuard->middle_name} {$slip->receivedGuard->last_name}") }} <span class="text-red-600 font-semibold">(Deleted)</span>
+                                            @else
+                                                {{ trim("{$slip->receivedGuard->first_name} {$slip->receivedGuard->middle_name} {$slip->receivedGuard->last_name}") }}
                                             @endif
                                         </div>
                                     @endif
@@ -663,7 +668,7 @@
             </div>
 
             {{-- Pagination Footer --}}
-            <div class="px-6 bg-gray-50 border-t border-gray-200">
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
                 <x-buttons.nav-pagination :paginator="$slips" />
             </div>
         </div>

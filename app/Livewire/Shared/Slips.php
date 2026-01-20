@@ -1419,20 +1419,20 @@ class Slips extends Component
         // This significantly reduces memory usage with large datasets (5,000+ records)
         $query = $this->showDeleted
             ? DisinfectionSlipModel::onlyTrashed()->with([
-                'vehicle:id,vehicle,disabled,deleted_at',
-                'location:id,location_name,disabled,deleted_at',
-                'destination:id,location_name,disabled,deleted_at',
-                'driver:id,first_name,middle_name,last_name,disabled,deleted_at',
-                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at',
-                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at'
+                'vehicle' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
+                'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'hatcheryGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); },
+                'receivedGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); }
             ])
             : DisinfectionSlipModel::with([
-                'vehicle:id,vehicle,disabled,deleted_at',
-                'location:id,location_name,disabled,deleted_at',
-                'destination:id,location_name,disabled,deleted_at',
-                'driver:id,first_name,middle_name,last_name,disabled,deleted_at',
-                'hatcheryGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at',
-                'receivedGuard:id,first_name,middle_name,last_name,username,disabled,deleted_at'
+                'vehicle' => function($q) { $q->select('id', 'vehicle', 'disabled', 'deleted_at')->withTrashed(); },
+                'location' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'destination' => function($q) { $q->select('id', 'location_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'driver' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'disabled', 'deleted_at')->withTrashed(); },
+                'hatcheryGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); },
+                'receivedGuard' => function($q) { $q->select('id', 'first_name', 'middle_name', 'last_name', 'username', 'disabled', 'deleted_at')->withTrashed(); }
             ])->whereNull('deleted_at');
         
         $slips = $query
