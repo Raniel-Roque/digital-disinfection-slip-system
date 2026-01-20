@@ -112,6 +112,7 @@ class Locations extends Component
 
     public function handleLocationUpdated()
     {
+        Cache::forget('locations_all');
         $this->resetPage();
     }
 

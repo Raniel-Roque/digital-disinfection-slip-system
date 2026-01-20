@@ -379,11 +379,11 @@
                                     <div class="flex items-center justify-center">
                                         <div class="w-28 h-20">
                                             @if ($location->photo_id && $location->Photo)
-                                                <img src="{{ asset('storage/' . $location->Photo->file_path) }}"
+                                                <img src="{{ asset('storage/' . $location->Photo->file_path) }}?t={{ $location->Photo->updated_at ? $location->Photo->updated_at->timestamp : time() }}"
                                                     alt="{{ $location->location_name }}"
                                                     class="max-w-full max-h-full object-contain">
                                             @else
-                                                <img src="{{ asset('storage/' . $defaultLogoPath) }}"
+                                                <img src="{{ asset('storage/' . $defaultLogoPath) }}?t={{ time() }}"
                                                     alt="{{ $location->location_name }}"
                                                     class="max-w-full max-h-full object-contain">
                                             @endif

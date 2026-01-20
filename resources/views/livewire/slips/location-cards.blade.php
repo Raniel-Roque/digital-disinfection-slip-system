@@ -26,11 +26,12 @@
                     <!-- Logo Section -->
                     <div class="flex justify-center items-center mb-4 sm:mb-5 h-20 sm:h-24">
                         @if ($location->photo_id && $location->Photo)
-                            <img src="{{ asset('storage/' . $location->Photo->file_path) }}"
+                            <img src="{{ asset('storage/' . $location->Photo->file_path) }}?t={{ $location->Photo->updated_at ? $location->Photo->updated_at->timestamp : time() }}"
                                 alt="{{ $location->location_name }}"
                                 class="max-h-full w-auto object-contain filter group-hover:scale-110 transition-transform duration-300">
                         @else
-                            <img src="{{ asset('storage/' . $defaultLogoPath) }}" alt="{{ $location->location_name }}"
+                            <img src="{{ asset('storage/' . $defaultLogoPath) }}?t={{ time() }}"
+                                alt="{{ $location->location_name }}"
                                 class="max-h-full w-auto object-contain filter group-hover:scale-110 transition-transform duration-300">
                         @endif
                     </div>
@@ -71,11 +72,11 @@
                         <!-- Logo/Image -->
                         <div class="shrink-0 w-14 h-14">
                             @if ($location->photo_id && $location->Photo)
-                                <img src="{{ asset('storage/' . $location->Photo->file_path) }}"
+                                <img src="{{ asset('storage/' . $location->Photo->file_path) }}?t={{ $location->Photo->updated_at ? $location->Photo->updated_at->timestamp : time() }}"
                                     alt="{{ $location->location_name }}"
                                     class="w-full h-full object-contain rounded-lg group-hover:scale-110 transition-transform duration-300">
                             @else
-                                <img src="{{ asset('storage/' . $defaultLogoPath) }}"
+                                <img src="{{ asset('storage/' . $defaultLogoPath) }}?t={{ time() }}"
                                     alt="{{ $location->location_name }}"
                                     class="w-full h-full object-contain rounded-lg group-hover:scale-110 transition-transform duration-300">
                             @endif
